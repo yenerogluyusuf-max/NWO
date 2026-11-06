@@ -63,5 +63,20 @@
 .ges-rathaus.lager { border-left: 4px solid var(--tinte-weich); }
 .ges-rathaus.verwalter { border-left: 4px solid var(--siegel); background: var(--schlecht-flaeche); }
 .ges-rathaus .name { font-weight: 600; }
-.ges-rathaus .partei { color: var(--tinte-3); }
-.ges-rathaus button { grid-column: 1 / -1; justify-self: start; font: 600 var(--schrift-2) var(--serif); border: 1px solid rgba(90, 64, 40, 0.35); background: var(--leder-text); padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+.ges-rathaus .partei { color: #6b5a46; }
+.ges-rathaus button { grid-column: 1 / -1; justify-self: start; font: 600 var(--schrift-1) var(--sans, Inter, sans-serif); border: 1px solid rgba(90, 64, 40, 0.35); background: #f3ead2; padding: 3px 8px; border-radius: 4px; cursor: pointer; }
+
+/* N2: Wirkung der Instrumente auf die Wahl, Ursachen mit Namen, Ruhe auf der Straße */
+.ges-vorschau.ges-wahl { font-weight: 600; }
+.ges-vorschau.ges-wahl.gut, .ges-ursache .gut { color: #3d6b5a; }
+.ges-vorschau.ges-wahl.schlecht, .ges-ursache .schlecht { color: #8a2d26; }
+.ges-vorschau.ges-wahl em { display: block; font-weight: 400; font-style: italic; color: #4c3b28; }
+.ges-ruhe { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 22px; align-items: start; max-width: 760px; margin: 12px 0; padding: 22px 24px; border: 1px solid rgba(120, 90, 50, 0.28); border-radius: 6px; background: rgba(255, 252, 241, 0.88); }
+.ges-ruhe-zeichen { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fbf1da, #e9d6a8); box-shadow: inset 0 0 0 2px rgba(167, 122, 20, 0.55); color: #5d4231; }
+.ges-ruhe h3 { margin: 0 0 6px; font: 600 var(--schrift-6)/1.2 var(--display, serif); color: #2a1f18; }
+.ges-ruhe-liste { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.ges-ruhe-liste li { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) 36px; align-items: center; gap: 12px; font: var(--schrift-3) var(--serif); }
+.ges-ruhe-liste em { font: 600 var(--schrift-2) var(--sans); font-style: normal; text-align: right; }
+@media (max-width: 700px) { .ges-ruhe { grid-template-columns: 1fr; } .ges-ruhe-zeichen { display: none; } }
+.ges-buchung { display: block; margin-top: 3px; font: 600 var(--schrift-1) var(--sans, Inter, sans-serif); color: #2a1f18; }
+.ges-ruhe-liste li.kopf { padding-bottom: 6px; margin-bottom: 2px; border-bottom: 1px solid rgba(120, 90, 50, 0.2); font-weight: 600; }

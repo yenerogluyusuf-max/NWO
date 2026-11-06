@@ -416,7 +416,7 @@
  "st.sichern.titel": "Save progress (Cmd+S / Ctrl+S)",
  "st.sichern.nochmal": "Game not saved, try again",
  "st.sichern.aria": "Save progress",
- "st.zustimmung.tip": "How many voters would vote for you again today. The next election is in {n, plural, one {# month} other {# months}}; from 50 per cent you win.",
+ "st.zustimmung.tip": "How satisfied the country is with your government. The next election is in {n, plural, one {# month} other {# months}}; it is won with more than 50 percent of the vote, not of approval. The voter coalition shows the expected result.",
  "st.zustimmung.quelleInstitut": "{institut} poll, {tage, plural, one {# day} other {# days}} ago. ",
  "st.zustimmung.quelleRoh": "Raw data: the true figure. ",
  "st.inflation.tip": "Price rise against the same month last year, published by the statistics office with a delay of a few weeks.",

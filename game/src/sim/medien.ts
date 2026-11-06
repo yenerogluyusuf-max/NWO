@@ -28,7 +28,7 @@ import { clamp } from "./economy";
 import { kannZahlen } from "./kapital";
 import { hashWert, neuanfangGrund, verbrauche } from "./aufmerksamkeit";
 import { marktSchock } from "./maerkte";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Spielparameter
@@ -496,6 +496,23 @@ function vorschauVon(w: World, a: AktionDef, c: MedienCluster | undefined): stri
   }
   if (a.markt > 0) out.push(t("medien.vorschau.markt_schreck"));
   if (a.maertyrer >= 15 && z) out.push(t("medien.vorschau.maertyrer"));
+  // Wer gewinnt, wer sich ärgert: dieselben Punkte, die `auswirkungen` bucht (befund-E, E-15)
+  if (rsf > 0) {
+    const k = MEDIEN.wirkung;
+    const name = (id: string) => NET.nodes[NET.index.get(id)!]!.name;
+    const z1 = (x: number) => `${x >= 0 ? "+" : "−"}${Math.abs(Math.round(x * 10) / 10).toLocaleString(aktuelleLocale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })}`;
+    out.push(
+      t("nacht_n2.medien.gruppen", {
+        liste: [
+          `${name("vertrauen_regierung")} ${z1(k.ruhe * rsf)}`,
+          `${name("konservative")} ${z1(k.konservative * rsf)}`,
+          `${name("staedtische_saekulare")} ${z1(-k.staedtisch * rsf)}`,
+          `${name("junge")} ${z1(-k.junge * rsf)}`,
+          `${name("ansehen")} ${z1(-k.ansehen * rsf)}`,
+        ].join(", "),
+      }),
+    );
+  }
   return out;
 }
 
@@ -915,4 +932,21 @@ export function rohdatenKaufen(w: World): MedienErgebnis {
   m.rohdaten = { bestelltTag: w.day, bereitTag: w.day + ROHDATEN.wartetage, bisTag: w.day + ROHDATEN.wartetage + ROHDATEN.gueltigTage };
   addLog(w, "entscheidung", t("medien.rohdaten.log", { tage: ROHDATEN.wartetage }));
   return { ok: true, text: t("medien.rohdaten.log", { tage: ROHDATEN.wartetage }) };
+}
+
+/**
+ * Anteil der Leserschaft und Zuschauer, den die regierungsnahen Häuser (staatlich oder loyal, nach Eigentümer und Kippen) heute erreichen:
+ * Mittel der Segmentreichweiten mal der heutigen Reichweite, geteilt durch alle Häuser. Die Gegendarstellung im Wahlkampf wirkt nur dort
+ * (sim/wahlkampf.ts, angriffBeantworten). Spielparameter aus den Modellwerten der Recherche A.5.2.
+ */
+export function hausmedienAnteil(w: World): number {
+  let haus = 0;
+  let alle = 0;
+  for (const c of MEDIEN_CLUSTER) {
+    const seg = Object.values(c.reichweiteSegmente);
+    const r = (seg.reduce((a, b) => a + b, 0) / Math.max(1, seg.length)) * reichweiteJetzt(w, c.id);
+    alle += r;
+    if (loyalAusrichtung(wirksamerCluster(w, c).ausrichtung)) haus += r;
+  }
+  return alle > 0 ? haus / alle : 0;
 }

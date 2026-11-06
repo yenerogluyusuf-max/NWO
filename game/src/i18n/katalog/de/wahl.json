@@ -116,7 +116,7 @@
  "wahl.chronik.wiederwahl": "Wiederwahl",
  "wahl.chronik.wiederwahl_text": "{name} wird {gang} mit {anteil, number, 1} Prozent wiedergewählt (Vorsprung {marge, number, 1} Prozentpunkte).",
  "wahl.einfluss.abtruenniger": "Abtrünniger Rivale {name}",
- "wahl.einfluss.lager": "Lager im Parlament",
+ "wahl.einfluss.lager": "Rückhalt Ihres Lagers im Parlament",
  "wahl.einfluss.nachfolger": "Ausstrahlung des Nachfolgers {name}",
  "wahl.einfluss.opposition": "Oppositionsführung",
  "wahl.einfluss.schuld": "Versprechensschuld nach der Katastrophe",

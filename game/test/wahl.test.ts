@@ -292,7 +292,10 @@ describe("Rede und Anfechtung", () => {
     let gefunden = false;
     for (let seed = 1; seed <= 80 && !gefunden; seed++) {
       const w = spiel(seed);
-      stelleZustimmung(w, 51);
+      // 53 statt 51 seit 6. November: Die Wahl bucht jetzt die Stärke der Opposition (E-3, sim/wahl.ts, oppositionsEinfluss). Wer wie
+      // diese Testpartie fünf Jahre nichts beantwortet, stärkt die Opposition (liegengelassene Ressortvorfälle) und verliert am Wahltag
+      // rund 1,5 Punkte; ein knapper Sieg braucht deshalb zwei Punkte mehr Zustimmung.
+      stelleZustimmung(w, 53);
       bisWahltag(w);
       if (w.spiel!.wahl?.stichwahl) advance(w, WAHL.stichwahlTage + 2);
       // Partien, die vor der Wahl enden (Tod, Enthebung), zählen nicht

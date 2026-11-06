@@ -14,7 +14,7 @@ import { kannZahlen } from "./kapital";
 import { hashWert, verbrauche } from "./aufmerksamkeit";
 import { marktSchock } from "./maerkte";
 import { PARTEI_NAME } from "./fraktionen";
-import { gesellschaftVon, knoten, repressionBuchen } from "./gesellschaft";
+import { gesellschaftVon, knoten, repressionBuchen, wahlDruckAus } from "./gesellschaft";
 import { starteBewegung } from "./bewegungen";
 import { t } from "../i18n";
 
@@ -162,8 +162,7 @@ export function oppositionMonat(w: World, g: GesellschaftZustand): void {
 
 function verbotEntscheiden(w: World, o: OppositionZustand): void {
   const v = o.verbot!;
-  const unabh = knoten(w, "justiz_unabhaengigkeit");
-  const p = clamp(0.25 + ((50 - unabh) / 100) * 0.8, 0.05, 0.85);
+  const p = verbotChance(w);
   const name = parteiName(o.partei);
   if (hashWert(`${w.seed}|verbot|${v.seit}`) < p) {
     v.ausgang = "verboten";
@@ -203,6 +202,57 @@ export const OPP_INSTRUMENTE: Record<OppInstrument, InstrumentDef> = {
   verbot: { kapital: 12, aufmerksamkeit: 12, abkuehlung: 99999, folgen: ["gericht", "polarisierung_rauf", "ansehen_runter", "markt", "rueckschlag"] },
 };
 
+/** Was ein Instrument sofort an der Opposition ändert (dieselben Zahlen bucht `oppositionInstrument`). */
+const SOFORT: Record<OppInstrument, { staerke: number; maertyrer: number; verfahren: number }> = {
+  gespraech: { staerke: 1, maertyrer: 0, verfahren: 0 },
+  ausschuss_zulassen: { staerke: -1, maertyrer: 0, verfahren: 0 },
+  ermittlung: { staerke: -6, maertyrer: 8, verfahren: 1 },
+  immunitaet: { staerke: -8, maertyrer: 12, verfahren: 0 },
+  verbot: { staerke: 0, maertyrer: 0, verfahren: 0 },
+};
+
+/** Wahrscheinlichkeit, dass das Verfassungsgericht die Partei verbietet (nach der Unabhängigkeit der Justiz, Spielparameter). */
+export function verbotChance(w: World): number {
+  return clamp(0.25 + ((50 - knoten(w, "justiz_unabhaengigkeit")) / 100) * 0.8, 0.05, 0.85);
+}
+
+/**
+ * Die Wirkung eines Instruments auf die nächste Wahl in Prozentpunkten für den Amtsinhaber (E-3): heute und am Wahltag. Fortgeschrieben wird
+ * die Opposition Monat für Monat wie in `oppositionMonat` (Stärke folgt dem Ziel, Märtyrer und Verfahren klingen ab), alles andere bleibt,
+ * wie es heute ist. Das Verbot zählt mit seinem erwarteten Ausgang nach dem Urteil. Positive Zahl: hilft dem Amtsinhaber.
+ */
+export function oppositionWahlwirkung(w: World, id: OppInstrument): { heute: number; wahltag: number; monate: number } {
+  const g = gesellschaftVon(w);
+  const o = g.opposition;
+  const monate = Math.max(0, Math.round(((w.spiel?.wahltag ?? w.day) - w.day) / 30.4));
+  const zielRest = zielStaerke(w, o) - 0.25 * o.maertyrer + 2.5 * o.verfahren;
+  const druck = (st: number, ma: number) => wahlDruckAus({ milieus: g.milieus, opposition: { ...o, staerke: st, maertyrer: ma } });
+  const lauf = (st: number, ma: number, ve: number, verbotIn: number | null, p: number) => {
+    const schritt = (x: { st: number; ma: number; ve: number }) => {
+      const ziel = clamp(zielRest + 0.25 * x.ma - 2.5 * x.ve, 5, 95);
+      return { st: clamp(x.st + OPPOSITION.traegheit * (ziel - x.st), 0, 100), ma: clamp(x.ma * OPPOSITION.maertyrerVerfall, 0, 100), ve: clamp(x.ve * OPPOSITION.verfahrenVerfall, 0, 12) };
+    };
+    let x = { st: clamp(st, 0, 100), ma: clamp(ma, 0, 100), ve: clamp(ve, 0, 12) };
+    const heute = druck(x.st, x.ma);
+    for (let m = 1; m <= monate; m++) {
+      x = schritt(x);
+      if (verbotIn !== null && m === verbotIn) {
+        // Erwartungswert beider Ausgänge des Urteils
+        const ja = { st: x.st * 0.6, ma: clamp(x.ma + 20, 0, 100) };
+        const nein = { st: clamp(x.st + 8, 0, 100), ma: x.ma };
+        x = { st: p * ja.st + (1 - p) * nein.st, ma: p * ja.ma + (1 - p) * nein.ma, ve: x.ve };
+      }
+    }
+    return { heute, wahltag: druck(x.st, x.ma) };
+  };
+  const ohne = lauf(o.staerke, o.maertyrer, o.verfahren, null, 0);
+  const d = SOFORT[id];
+  const verbotIn = id === "verbot" ? Math.round(OPPOSITION.verbotTage / 30.4) : null;
+  const mit = lauf(o.staerke + d.staerke, o.maertyrer + d.maertyrer, o.verfahren + d.verfahren, verbotIn !== null && verbotIn <= monate ? verbotIn : null, verbotChance(w));
+  const r = (x: number) => Math.round(x * 10) / 10;
+  return { heute: r(-(mit.heute - ohne.heute)), wahltag: r(-(mit.wahltag - ohne.wahltag)), monate };
+}
+
 export interface OppInstrumentSicht {
   id: OppInstrument;
   kapital: number;
@@ -212,13 +262,15 @@ export interface OppInstrumentSicht {
   folgen: string[];
   /** Erwartete Wirkung auf die Stärke (sofort, Punkte) */
   staerkeSofort: number;
+  /** Wirkung auf die nächste Wahl (Prozentpunkte für den Amtsinhaber), heute und am Wahltag */
+  wahl: { heute: number; wahltag: number; monate: number };
 }
 
 export function oppositionInstrumente(w: World): OppInstrumentSicht[] {
   const g = gesellschaftVon(w);
   const o = g.opposition;
   const kap = w.spiel?.kapital ?? 0;
-  const sofort: Record<OppInstrument, number> = { gespraech: 1, ausschuss_zulassen: -1, ermittlung: -6, immunitaet: -8, verbot: 0 };
+
   return (Object.keys(OPP_INSTRUMENTE) as OppInstrument[]).map((id) => {
     const d = OPP_INSTRUMENTE[id];
     let grund: string | undefined;
@@ -235,7 +287,8 @@ export function oppositionInstrumente(w: World): OppInstrumentSicht[] {
       moeglich: !grund,
       ...(grund ? { grund } : {}),
       folgen: d.folgen.map((f) => t(`ges.opp.folge.${f}`)),
-      staerkeSofort: sofort[id],
+      staerkeSofort: SOFORT[id].staerke,
+      wahl: oppositionWahlwirkung(w, id),
     };
   });
 }
@@ -263,20 +316,20 @@ export function oppositionInstrument(w: World, id: OppInstrument): GesErgebnis {
       wirke(w, "polarisierung", -2);
       wirke(w, "legitimitaet", 0.5);
       wirke(w, "nationalisten", -0.5);
-      o.staerke = clamp(o.staerke + 1, 0, 100);
+      o.staerke = clamp(o.staerke + SOFORT.gespraech.staerke, 0, 100);
       text = t("ges.opp.ergebnis.gespraech", { partei: name });
       break;
     case "ausschuss_zulassen":
       delete o.ausschussBis;
       wirke(w, "legitimitaet", 1.5);
       wirke(w, "vertrauen_regierung", -0.5);
-      o.staerke = clamp(o.staerke - 1, 0, 100);
+      o.staerke = clamp(o.staerke + SOFORT.ausschuss_zulassen.staerke, 0, 100);
       text = t("ges.opp.ergebnis.ausschuss_zulassen");
       break;
     case "ermittlung":
-      o.staerke = clamp(o.staerke - 6, 0, 100);
-      o.verfahren = clamp(o.verfahren + 1, 0, 12);
-      o.maertyrer = clamp(o.maertyrer + 8, 0, 100);
+      o.staerke = clamp(o.staerke + SOFORT.ermittlung.staerke, 0, 100);
+      o.verfahren = clamp(o.verfahren + SOFORT.ermittlung.verfahren, 0, 12);
+      o.maertyrer = clamp(o.maertyrer + SOFORT.ermittlung.maertyrer, 0, 100);
       wirke(w, "ansehen", -2);
       wirke(w, "beziehungen_eu", -2);
       wirke(w, "polarisierung", 2);
@@ -287,8 +340,8 @@ export function oppositionInstrument(w: World, id: OppInstrument): GesErgebnis {
       break;
     case "immunitaet":
       o.immunitaetAufgehoben = true;
-      o.staerke = clamp(o.staerke - 8, 0, 100);
-      o.maertyrer = clamp(o.maertyrer + 12, 0, 100);
+      o.staerke = clamp(o.staerke + SOFORT.immunitaet.staerke, 0, 100);
+      o.maertyrer = clamp(o.maertyrer + SOFORT.immunitaet.maertyrer, 0, 100);
       wirke(w, "legitimitaet", -2);
       wirke(w, "ansehen", -2.5);
       wirke(w, "beziehungen_eu", -3);

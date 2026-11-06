@@ -272,16 +272,35 @@ export function Wahlabend({ ergebnis, onRede, onSchliessen, stufe: stufeStart }:
                   )),
               )}
             </ul>
-            {ergebnis.einfluesse && ergebnis.einfluesse.length > 0 && (
+            {((ergebnis.einfluesse && ergebnis.einfluesse.length > 0) || ergebnis.treppe) && (
               <>
-                <h3 style={{ marginTop: 14 }}>{t("wahl.ui.einfluesse")}</h3>
+                {/* Die Treppe von der Zustimmung zum Ergebnis des ersten Wahlgangs, mit dem Zufall des Wahltags (E-26) */}
+                <h3 style={{ marginTop: 14 }}>{t(ergebnis.treppe ? "nacht_n2.wahlabend.treppe" : "wahl.ui.einfluesse")}</h3>
                 <ul className="wn-einfluesse">
-                  {ergebnis.einfluesse.map((e) => (
+                  {ergebnis.treppe && (
+                    <li className="basis">
+                      <span>{t("nacht_n2.wahlabend.basis")}</span>
+                      <span>{zahl(ergebnis.treppe.basis, 1)} %</span>
+                    </li>
+                  )}
+                  {(ergebnis.einfluesse ?? []).map((e) => (
                     <li key={e.name}>
                       <span>{e.name}</span>
                       <span className={e.punkte >= 0 ? "plus" : "minus"}>{e.punkte >= 0 ? "+" : "−"}{zahl(Math.abs(e.punkte), 1)}</span>
                     </li>
                   ))}
+                  {ergebnis.treppe && (
+                    <>
+                      <li>
+                        <span>{t("nacht_n2.wahlabend.zufall")}</span>
+                        <span className={ergebnis.treppe.zufall >= 0 ? "plus" : "minus"}>{ergebnis.treppe.zufall >= 0 ? "+" : "−"}{zahl(Math.abs(ergebnis.treppe.zufall), 1)}</span>
+                      </li>
+                      <li className="basis">
+                        <span>{t("nacht_n2.wahlabend.ergebnis")}</span>
+                        <span>{zahl(ergebnis.runden[0]?.anteile.amt ?? 0, 1)} %</span>
+                      </li>
+                    </>
+                  )}
                 </ul>
               </>
             )}

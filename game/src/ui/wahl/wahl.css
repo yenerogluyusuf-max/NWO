@@ -206,6 +206,7 @@ html[data-effekte="aus"] .umb-karte, html[data-effekte="aus"] .umb-stempel, html
 
 /* Das Urteil der Geschichte (Epoche) am Wahlabend: ein Siegel in Messing, golden und heroisch in Gold, dunkel in Siegelrot */
 .wn-urteil { border-top: 1px solid #c69a4a66; padding-top: 12px; }
-.wn-urteil-stufe { margin: 0; font: 500 var(--schrift-6)/1.15 var(--display); color: var(--ink, var(--tinte-1)); }
-.wn-urteil.golden .wn-urteil-stufe, .wn-urteil.heroisch .wn-urteil-stufe { color: var(--messing-3); }
-.wn-urteil.dunkel .wn-urteil-stufe { color: var(--seal, var(--siegel)); }
+.wn-urteil-stufe { margin: 0; font: 500 var(--schrift-6)/1.15 var(--display); color: var(--ink, #2a1f18); }
+.wn-urteil.golden .wn-urteil-stufe, .wn-urteil.heroisch .wn-urteil-stufe { color: #7c5823; }
+.wn-urteil.dunkel .wn-urteil-stufe { color: var(--seal, #8e2a22); }
+.wn-einfluesse li.basis { font-weight: 700; border-bottom-style: solid; }

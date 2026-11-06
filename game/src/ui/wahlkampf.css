@@ -195,3 +195,25 @@
 .kampf-plan-links { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 12px 0; }
 @container wahlkampf (max-width: 760px) { .kampf-versprechen-auswahl { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @container wahlkampf (max-width: 420px) { .kampf-versprechen-auswahl, .kampf-versprechen-fakten { grid-template-columns: minmax(0,1fr); } }
+
+/* Angriffe mit Antworten (N2, E-2) */
+.dossier .kampf-angriffe li.kampf-angriff { display: grid; gap: 6px; padding: 10px 0; border-bottom: 1px solid var(--pd-line); }
+.kampf-angriff-kopf { display: flex; justify-content: space-between; gap: 10px; font: 600 16.5px var(--serif); }
+.kampf-angriff-stand { margin: 0; font: italic 14.5px/1.4 var(--serif); color: #4c3b28; }
+.kampf-angriff-stand.gut { color: #3d6b5a; font-style: normal; font-weight: 600; }
+.kampf-angriff-stand.schlecht { color: #8a2d26; font-style: normal; font-weight: 600; }
+.kampf-antworten { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
+.dossier button.kampf-antwort { display: grid; gap: 3px; align-content: start; text-align: left; padding: 9px 11px; border: 1px solid rgba(167, 122, 20, 0.55); border-radius: 4px; background: #fffaf0; color: #2a1f18; font: 14px/1.35 var(--serif); cursor: pointer; transition: background 120ms ease, transform 120ms ease; }
+.dossier button.kampf-antwort strong { font: 600 15px var(--serif); }
+.kampf-antwort-ap { font: 600 12.5px var(--sans); letter-spacing: 0.04em; color: #7a5a14; }
+.dossier button.kampf-antwort:hover:not(:disabled) { background: #fbf1da; transform: translateY(-1px); }
+.dossier button.kampf-antwort:disabled { opacity: 0.55; cursor: not-allowed; }
+.kampf-h4 { margin: 10px 0 2px; font: 600 15px var(--kapitaelchen, var(--serif)); letter-spacing: 0.08em; text-transform: uppercase; color: #8a2d26; }
+.kampf-wahltag { margin: 4px 0; }
+@media (prefers-reduced-motion: reduce) { .dossier button.kampf-antwort { transition: none; } .dossier button.kampf-antwort:hover:not(:disabled) { transform: none; } }
+/* Die Gegenseite steht oben: Angriffe sind Woche für Woche die wichtigste Entscheidung (E-2) */
+.dossier .kampf-gegner-oben { margin: 0 0 24px; padding: 20px 22px; border: 1px solid var(--pd-line); border-left: 4px solid #8a2d26; border-radius: 6px; background: var(--pd-card); box-shadow: var(--pd-schatten); }
+.dossier .kampf-gegner-oben .kampf-angriffe { display: grid; gap: 4px; }
+.dossier .kampf-gegner-oben .kampf-angriffe li.kampf-angriff { width: 100%; box-sizing: border-box; }
+.dossier .kampf-gegner-oben .kampf-angriff-kopf { width: 100%; }
+.dossier .kampf-gegner-oben .kampf-angriff.offen { padding: 12px 14px; margin: 4px 0; border: 1px solid rgba(138, 45, 38, 0.35); border-radius: 6px; background: rgba(138, 45, 38, 0.04); }

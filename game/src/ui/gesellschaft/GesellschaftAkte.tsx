@@ -14,6 +14,10 @@ import { formatDateDe } from "../../sim/dates";
 import { t } from "../../i18n";
 import { Portraet } from "../art/Portraet";
 import { Sparkline } from "../waehler/Sparkline";
+import { prozent, vz } from "../waehler/format";
+import { NET } from "../../sim/modell";
+import { oppositionsEinfluss } from "../../sim/wahl";
+import { Icon } from "../icons";
 import "./gesellschaft.css";
 
 type Reiter = "lage" | "opposition" | "strasse" | "kommunen";
@@ -30,10 +34,13 @@ function Balken({ wert, warn = 60, umgekehrt = false }: { wert: number; warn?: n
 }
 
 function Lage({ world }: { world: World }) {
-  const zahlen = gesellschaftLage(world);
+  // Opposition, Polarisierung und Protestdruck stehen im Aktenkopf; hier nur, was dort fehlt (E-8). Der Hinweis auf zu wenig Verlauf einmal (E-35).
+  const zahlen = gesellschaftLage(world).filter((k) => k.id !== "opposition" && k.id !== "polarisierung" && k.id !== "protest");
   const milieus = milieuLage(world);
+  const mitVerlauf = zahlen.some((k) => k.reihe.werte.filter((v) => v !== null).length >= 2);
   return (
     <div className="ges-lage">
+      {!mitVerlauf && <p className="ges-unter">{t("nacht_n2.lage.ohne_verlauf")}</p>}
       <div className="ges-kennzahlen">
         {zahlen.map((k) => (
           <article key={k.id} className="ges-kennzahl">
@@ -41,7 +48,7 @@ function Lage({ world }: { world: World }) {
               <span>{t(`ges.kz.${k.id}`)}</span>
               <strong>{k.wert}{k.id === "rathaeuser" ? " / 81" : ""}</strong>
             </header>
-            <Sparkline monate={k.reihe.monate} werte={k.reihe.werte} hoehe={54} beschriftung={t(`ges.kz.${k.id}`)} />
+            {mitVerlauf && <Sparkline monate={k.reihe.monate} werte={k.reihe.werte} hoehe={54} beschriftung={t(`ges.kz.${k.id}`)} />}
             <p>{t(`ges.kz.${k.id}.text`)}</p>
           </article>
         ))}
@@ -65,13 +72,30 @@ function Lage({ world }: { world: World }) {
               <Balken wert={m.groll} warn={45} />
               <em>{m.groll}</em>
             </div>
-            <p className="ges-ursache">
-              {t("ges.milieu.ursachen")} {m.ursachen.map((u) => `${u.id.replace(/^m_/, "")} ${u.beitrag >= 0 ? "+" : "−"}${Math.abs(u.beitrag)}`).join(" · ")}
-            </p>
+            <MilieuUrsachen ursachen={m.ursachen} />
           </article>
         ))}
       </div>
     </div>
+  );
+}
+
+/** Ursachen eines Milieus mit Namen aus dem Netz statt interner Kennungen (E-9): „Hilft: Ausnahmerecht niedrig (+8)“. */
+function MilieuUrsachen({ ursachen }: { ursachen: { id: string; beitrag: number; wert: number }[] }) {
+  const teil = (u: (typeof ursachen)[number]) => {
+    const i = NET.index.get(u.id);
+    const name = i !== undefined ? NET.nodes[i]!.name : u.id;
+    return t(u.wert < 50 ? "nacht_n2.milieu.niedrig" : "nacht_n2.milieu.hoch", { name, d: vz(u.beitrag) });
+  };
+  const hilft = ursachen.filter((u) => u.beitrag > 0.05);
+  const schadet = ursachen.filter((u) => u.beitrag < -0.05);
+  if (!hilft.length && !schadet.length) return null;
+  return (
+    <p className="ges-ursache">
+      {hilft.length > 0 && <span className="gut">{t("nacht_n2.milieu.hilft", { liste: hilft.map(teil).join(", ") })}</span>}
+      {hilft.length > 0 && schadet.length > 0 && " · "}
+      {schadet.length > 0 && <span className="schlecht">{t("nacht_n2.milieu.schadet", { liste: schadet.map(teil).join(", ") })}</span>}
+    </p>
   );
 }
 
@@ -94,6 +118,7 @@ function Opposition({ world, onAktion }: { world: World; onAktion: (text: string
             <em>{Math.round(o.staerke)}</em>
           </div>
           <p className="ges-unter">{t("ges.opp.ziel", { ziel })}</p>
+          <p className="ges-unter">{t("nacht_n2.opp.stand", { d: vz(oppositionsEinfluss(world)) })}</p>
           <ul className="ges-marken">
             {o.verfahren >= 0.5 && <li>{t("ges.opp.marke.verfahren", { n: Math.round(o.verfahren) })}</li>}
             {o.maertyrer >= 5 && <li>{t("ges.opp.marke.maertyrer", { n: Math.round(o.maertyrer) })}</li>}
@@ -113,6 +138,10 @@ function Opposition({ world, onAktion }: { world: World; onAktion: (text: string
             </header>
             <ul>{i.folgen.map((x) => <li key={x}>{x}</li>)}</ul>
             {i.staerkeSofort !== 0 && <p className="ges-vorschau">{t("ges.opp.vorschau", { d: `${i.staerkeSofort > 0 ? "+" : "−"}${Math.abs(i.staerkeSofort)}` })}</p>}
+            <p className={`ges-vorschau ges-wahl ${i.wahl.wahltag > 0.05 ? "gut" : i.wahl.wahltag < -0.05 ? "schlecht" : ""}`}>
+              {t("nacht_n2.opp.wahl", { heute: vz(i.wahl.heute), wahltag: vz(i.wahl.wahltag) })}
+              {i.wahl.heute > 0.05 && i.wahl.wahltag < 0 ? <em> {t("nacht_n2.opp.wahl_kehrt")}</em> : null}
+            </p>
             <button type="button" className="brass-button" disabled={!i.moeglich} title={i.grund ?? ""} onClick={() => onAktion(oppositionInstrument(world, i.id as OppInstrument).text)}>
               {i.moeglich ? t("ges.ausfuehren") : i.grund}
             </button>
@@ -136,12 +165,43 @@ function datumIn(w: World, tag: number): string {
   return new Date(Date.parse(w.date + "T00:00:00Z") + (tag - w.day) * 86_400_000).toISOString().slice(0, 10);
 }
 
+/** Ruhe auf der Straße: kein leeres Blatt, sondern Protestdruck und die Milieus mit dem meisten Groll (Gestaltung leerer Zustände). */
+function StrasseRuhig({ world }: { world: World }) {
+  const protest = gesellschaftLage(world).find((k) => k.id === "protest")?.wert ?? 0;
+  const milieus = [...milieuLage(world)].sort((a, b) => b.groll - a.groll).slice(0, 3);
+  return (
+    <section className="ges-ruhe">
+      <div className="ges-ruhe-zeichen" aria-hidden>
+        <Icon name="menge" size={44} />
+      </div>
+      <div>
+        <h3>{t("nacht_n2.strasse.leer_titel")}</h3>
+        <p className="ges-unter">{t("nacht_n2.strasse.leer_text", { protest })}</p>
+        <ul className="ges-ruhe-liste">
+          <li className="kopf">
+            <span>{t("ges.kz.protest")}</span>
+            <Balken wert={protest} warn={50} />
+            <em>{protest}</em>
+          </li>
+          {milieus.map((m) => (
+            <li key={m.id}>
+              <span>{t("nacht_n2.strasse.milieu", { name: t(`ges.milieu.${m.id}`) })}</span>
+              <Balken wert={m.groll} warn={45} />
+              <em>{m.groll}</em>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 function Strasse({ world, onAktion }: { world: World; onAktion: (text: string) => void }) {
   const liste = bewegungenSicht(world);
   const g = gesellschaftVon(world);
   return (
     <div className="ges-strasse">
-      {liste.length === 0 && <p className="ges-leer">{t("ges.bew.keine")}</p>}
+      {liste.length === 0 && <StrasseRuhig world={world} />}
       {liste.map(({ b, druck, antworten }) => (
         <article key={b.id} className={`ges-bewegung phase-${b.phase}`}>
           <header>
@@ -167,6 +227,13 @@ function Strasse({ world, onAktion }: { world: World; onAktion: (text: string) =
                 <span className="ges-preis">{t("ges.preis", { k: a.kapital, a: a.aufmerksamkeit })}</span>
                 <span className="ges-vorschau">{t("ges.bew.vorschau", { g: a.vorschau.groesse, r: a.vorschau.radikal, m: a.vorschau.maertyrer })}</span>
                 <span className="ges-folgen">{a.folgen.join(" · ")}</span>
+                <span className="ges-buchung">
+                  {[
+                    t("nacht_n2.bew.zustimmung", { d: vz(a.zustimmung) }),
+                    ...(a.massnahme ? [t("nacht_n2.bew.massnahme", { name: NET.nodes[NET.index.get(a.massnahme.id)!]!.name, n: a.massnahme.stufen })] : []),
+                    ...(a.opfer ? [t("nacht_n2.bew.opfer", { chance: prozent(a.opfer.chance, 0), d: vz(a.opfer.zustimmung) })] : []),
+                  ].join(" · ")}
+                </span>
               </button>
             ))}
           </div>
@@ -226,14 +293,16 @@ function Kommunen({ world, onAktion }: { world: World; onAktion: (text: string) 
   );
 }
 
-export function GesellschaftAkte({ world, start = "lage" }: { world: World; start?: Reiter }) {
+export function GesellschaftAkte({ world, start = "lage", onAenderung }: { world: World; start?: Reiter; onAenderung?: () => void }) {
   const [reiter, setReiter] = useState<Reiter>(start);
   const [meldung, setMeldung] = useState<string | null>(null);
   const [, setTick] = useState(0);
   if (!world.spiel) return null;
+  // Jede Handlung zeichnet die Kopfleiste neu und sichert den Spielstand, wie in den anderen Akten (E-6)
   const onAktion = (text: string) => {
     setMeldung(text);
     setTick((x) => x + 1);
+    onAenderung?.();
   };
   const g = gesellschaftVon(world);
   return (

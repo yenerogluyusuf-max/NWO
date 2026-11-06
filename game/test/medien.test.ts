@@ -392,13 +392,15 @@ describe("Ansicht", () => {
     expect(html).toContain("Anordnen");
   });
 
-  test("die Zeitungsakte hat die Reiter Ausgaben und Medien und nennt gesperrte Blätter", () => {
+  test("die Zeitung nennt gesperrte Blätter; die Mediensteuerung ist ein eigener Reiter der Akte", () => {
     const w = spiel();
     setzeKnoten(w, "m_medienaufsicht", 95);
     advance(w, tageZumErsten(w.date));
-    const html = renderToStaticMarkup(createElement(Zeitung, { world: w }));
-    expect(html).toContain("zt-reiter");
-    expect(html).toContain("Medien");
+    // Seit 6. November (befund-E, E-7) liegt die Mediensteuerung nicht mehr hinter „Zeitung › Medien“, sondern im Reiter „Medien steuern“
+    // der Akte (Stage); die Zeitung führt dorthin über den Knopf am Rand.
+    const html = renderToStaticMarkup(createElement(Zeitung, { world: w, onMedien: () => {} }));
+    expect(html).not.toContain("zt-reiter");
+    expect(html).toContain("Medien steuern");
     expect(html).toContain("Nicht erschienen:");
     expect(html).not.toContain("⟦");
     // Die Auswahl der Blätter bleibt deterministisch gleich lang

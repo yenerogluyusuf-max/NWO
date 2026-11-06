@@ -149,7 +149,7 @@ function startZustand(w: World): GesellschaftZustand {
     // Startgroll: was schon da ist, wenn das Spiel beginnt (Spielparameter aus der Startstimmung)
     milieus[m.id] = { groll: clamp(20 + 0.5 * (50 - st), 5, 60), stimmung: st };
   }
-  return {
+  const g: GesellschaftZustand = {
     v: 1,
     milieus,
     repression: clamp(10 + 0.3 * (knoten(w, "ausnahmerecht") - 30), 0, 60),
@@ -161,6 +161,8 @@ function startZustand(w: World): GesellschaftZustand {
     zuletzt: {},
     monat: w.date.slice(0, 7),
   };
+  g.wahlDruckStart = wahlDruckAus(g);
+  return g;
 }
 
 /** Der Zustand; ältere Spielstände ohne Feld bekommen beim ersten Zugriff einen aus der aktuellen Lage gerechneten Start. */
@@ -173,6 +175,8 @@ export function gesellschaftVon(w: World): GesellschaftZustand {
   g.frueher ??= [];
   g.verlauf ??= [];
   g.zuletzt ??= {};
+  // Ältere Stände: Der Druck beim Laden gilt als eingepreist, die Wahl bucht nur, was sich danach ändert (sim/wahl.ts, oppositionsEinfluss)
+  g.wahlDruckStart ??= wahlDruckAus(g);
   return g;
 }
 
@@ -252,8 +256,8 @@ export interface MilieuSicht {
   groll: number;
   /** Groll vor drei Monaten (aus dem Verlauf nicht gespeichert: Näherung über die Stimmung), Trend des Grolls */
   trend: "steigt" | "faellt" | "gleich";
-  /** Die zwei stärksten Ursachen (Knoten mit Beitrag) */
-  ursachen: { id: string; beitrag: number }[];
+  /** Die zwei stärksten Ursachen (Knoten mit Beitrag und heutigem Wert, 50 = neutral) */
+  ursachen: { id: string; beitrag: number; wert: number }[];
 }
 
 export function milieuLage(w: World): MilieuSicht[] {
@@ -261,7 +265,10 @@ export function milieuLage(w: World): MilieuSicht[] {
   return MILIEUS.map((def) => {
     const m = g.milieus[def.id];
     const ursachen = def.quellen
-      .map((q) => ({ id: q.id, beitrag: Math.round(q.g * (knoten(w, q.id, def.gewicht) - 50) * 10) / 10 }))
+      .map((q) => {
+        const wert = knoten(w, q.id, def.gewicht);
+        return { id: q.id, beitrag: Math.round(q.g * (wert - 50) * 10) / 10, wert: Math.round(wert) };
+      })
       .sort((a, b) => Math.abs(b.beitrag) - Math.abs(a.beitrag))
       .slice(0, 2);
     const luecke = 50 - m.stimmung;
@@ -290,10 +297,18 @@ export function gesellschaftLage(w: World): GesellschaftKennzahl[] {
   ];
 }
 
-/** Für das Wahlmodul (Fork NACHFOLGE, sim/wahl.ts): Zuschlag auf die Gegnerstärke aus Opposition und Groll (Prozentpunkte, Spielparameter). */
+/**
+ * Zuschlag auf die Gegnerstärke aus Opposition, Groll und Märtyrern in Prozentpunkten (Spielparameter). Die Wahl bucht seit dem 6. November
+ * die Veränderung gegenüber dem Amtsantritt (sim/wahl.ts, oppositionsEinfluss; vorher wurde die Funktion nirgends aufgerufen, befund-E E-3).
+ */
+export function wahlDruckAus(g: Pick<GesellschaftZustand, "milieus" | "opposition">, aenderung: { staerke?: number; maertyrer?: number } = {}): number {
+  const groll = MILIEUS.reduce((s, m) => s + (g.milieus[m.id]?.groll ?? 20), 0) / MILIEUS.length;
+  const staerke = clamp(g.opposition.staerke + (aenderung.staerke ?? 0), 0, 100);
+  const maertyrer = clamp(g.opposition.maertyrer + (aenderung.maertyrer ?? 0), 0, 100);
+  return clamp(0.06 * (staerke - 50) + 0.04 * (groll - 30) + 0.02 * maertyrer, -4, 6);
+}
+
 export function gesellschaftWahlDruck(w: World): number {
   if (!w.spiel) return 0;
-  const g = gesellschaftVon(w);
-  const groll = MILIEUS.reduce((s, m) => s + g.milieus[m.id].groll, 0) / MILIEUS.length;
-  return clamp(0.06 * (g.opposition.staerke - 50) + 0.04 * (groll - 30) + 0.02 * g.opposition.maertyrer, -4, 6);
+  return wahlDruckAus(gesellschaftVon(w));
 }

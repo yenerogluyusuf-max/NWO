@@ -416,7 +416,7 @@
  "st.sichern.titel": "Zwischenstand sichern (Cmd+S / Strg+S)",
  "st.sichern.nochmal": "Spielstand nicht gesichert, erneut versuchen",
  "st.sichern.aria": "Zwischenstand sichern",
- "st.zustimmung.tip": "Wie viele Wähler Sie heute wieder wählen würden. Die nächste Wahl ist in {n, plural, one {# Monat} other {# Monaten}}; ab 50 Prozent gewinnen Sie.",
+ "st.zustimmung.tip": "Wie zufrieden das Land mit Ihrer Regierung ist. Die nächste Wahl ist in {n, plural, one {# Monat} other {# Monaten}}; gewonnen ist sie mit über 50 Prozent der Stimmen, nicht der Zustimmung. Das erwartete Ergebnis zeigt die Wählerkoalition.",
  "st.zustimmung.quelleInstitut": "Umfrage {institut}, vor {tage, plural, one {# Tag} other {# Tagen}}. ",
  "st.zustimmung.quelleRoh": "Rohdaten: die wahre Zahl. ",
  "st.inflation.tip": "Preisanstieg zum Vorjahresmonat, veröffentlicht vom Statistikamt mit einigen Wochen Verzögerung.",

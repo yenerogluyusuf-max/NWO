@@ -3,7 +3,7 @@
 // und der Verlauf der letzten Eingriffe. Reine Darstellung über die Funktionen aus sim/medien.ts; Aktionen rufen sie auf und melden die
 // Änderung nach oben (`onAenderung`), damit die Bühne sichert und neu zeichnet.
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { World } from "../sim/types";
 import { formatDateDe } from "../sim/dates";
 import { NET } from "../sim/modell";
@@ -90,7 +90,8 @@ export function MedienAkte({ world, onAenderung }: { world: World; onAenderung?:
   const liste = (ids: AktionId[]): MedienAktionSicht[] => aktionen.filter((a) => a.cluster === gewaehlt && ids.includes(a.aktion) && a.anwendbar);
   const cluster = MEDIEN_CLUSTER.find((c) => c.id === gewaehlt) ?? MEDIEN_CLUSTER[0]!;
   const pk = aktionen.find((a) => a.aktion === "pressekonferenz");
-  const verlaufEintraege = useMemo(() => [...m.eingriffe].reverse().slice(0, 8), [m.eingriffe.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Ohne Hook: Er stand hinter dem frühen Ausstieg, die Reihenfolge der Hooks war dann nicht stabil (E-32); die Liste ist klein
+  const verlaufEintraege = [...m.eingriffe].reverse().slice(0, 8);
 
   const AktionKarte = ({ a }: { a: MedienAktionSicht }) => (
     <li className={`md-aktion${a.moeglich ? "" : " gesperrt"}`}>
@@ -123,16 +124,15 @@ export function MedienAkte({ world, onAenderung }: { world: World; onAenderung?:
     <div className="md">
       <header className="md-kopf">
         <div>
-          <h3>{t("medien.ui.titel")}</h3>
           <p className="md-hinweis">{t("medien.ui.zweck")}</p>
         </div>
+        {/* Der Wert der Pressefreiheit steht im Aktenkopf; hier nur der Rang und wie er sich seit dem Amtsantritt bewegt hat (E-8) */}
         <section className="md-rsf" aria-label={t("medien.ui.rsf")}>
           <h5>{t("medien.ui.rsf")}</h5>
           <p>
-            <strong>{t("medien.ui.rsf_rang", { rang: rsf.rang })}</strong> · {t("medien.ui.rsf_wert", { score: nf(rsf.score) })}
+            <strong>{t("medien.ui.rsf_rang", { rang: rsf.rang })}</strong> · {t("nacht_n2.medien.rang_seit", { d: rsf.start.rang === rsf.rang ? "±0" : `${rsf.rang < rsf.start.rang ? "+" : "−"}${Math.abs(rsf.start.rang - rsf.rang)}` })}
           </p>
           <RsfVerlauf verlauf={rsf.verlauf} />
-          <p className="md-hinweis">{t("medien.ui.rsf_start", { rang: rsf.start.rang, score: nf(rsf.start.score) })}</p>
         </section>
       </header>
 

@@ -416,7 +416,7 @@
  "st.sichern.titel": "Ara kayıt (Cmd+S / Ctrl+S)",
  "st.sichern.nochmal": "Oyun kaydedilmedi, yeniden deneyin",
  "st.sichern.aria": "Ara kayıt",
- "st.zustimmung.tip": "Bugün kaç seçmenin size yeniden oy vereceği. Sonraki seçim {n} ay sonra; yüzde 50'den itibaren kazanırsınız.",
+ "st.zustimmung.tip": "Ülkenin hükümetinizden ne kadar memnun olduğu. Sonraki seçim {n} ay sonra; seçim onayın değil, oyların yüzde 50'sinden fazlasıyla kazanılır. Beklenen sonucu seçmen koalisyonu gösterir.",
  "st.zustimmung.quelleInstitut": "{institut} anketi, {tage} gün önce. ",
  "st.zustimmung.quelleRoh": "Ham veri: gerçek rakam. ",
  "st.inflation.tip": "Geçen yılın aynı ayına göre fiyat artışı; istatistik kurumu birkaç hafta gecikmeyle yayımlar.",

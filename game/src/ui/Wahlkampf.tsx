@@ -9,6 +9,9 @@ import type { Rng } from "../sim/rng";
 import {
   TOUR_LAENDER,
   WAHLKAMPF,
+  angriffAntworten,
+  angriffBeantworten,
+  angriffOffen,
   auslandstour,
   duellVorbereiten,
   nachfolgerAuftritt,
@@ -19,6 +22,7 @@ import {
   regionenMitProvinzen,
   wahlkampfSicht,
   type AktionErgebnis,
+  type AngriffAntwort,
   type AuftrittArt,
   type TourLand,
 } from "../sim/wahlkampf";
@@ -29,6 +33,7 @@ import { NET } from "../sim/modell";
 import { AtlasMap } from "./atlas/AtlasMap";
 import { nf, prozent, vz } from "./waehler/format";
 import { t as tx } from "../i18n";
+import type { Ziel } from "./schreibtisch/briefing";
 import "./politik/design.css";
 import "./wahlkampf.css";
 
@@ -43,7 +48,7 @@ function ApPunkte({ ap, max }: { ap: number; max: number }) {
   );
 }
 
-export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: () => void }) {
+export function WahlkampfZentrale({ world, refresh, onGehe }: { world: World; refresh: () => void; onGehe?: (z: Ziel) => void }) {
   const s = wahlkampfSicht(world);
   const [provinz, setProvinz] = useState(6);
   const [meldung, setMeldung] = useState<string | null>(null);
@@ -99,8 +104,13 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         </div>
         <div className="kampf-kopf-block">
           <span className="kampf-kicker">{tx("ui2.ui.Wahlkampf.7e090e3")}</span>
-          <strong className={s.effekte.gesamt >= 0 ? "gut" : "schlecht"}>{vz(s.effekte.gesamt)}</strong>
-          <span className="kampf-klein">{s.effekte.teile.map((t) => `${t.name} ${vz(t.punkte)}`).join(" · ") || tx("ui2.ui.Wahlkampf.06d81f3")}</span>
+          <strong className={s.effekte.gesamt + s.reisenZustimmung >= 0 ? "gut" : "schlecht"}>{vz(s.effekte.gesamt + s.reisenZustimmung)}</strong>
+          <span className="kampf-klein">
+            {[
+              ...(s.reisenZustimmung !== 0 ? [`${t("nacht_n2.wk.reisen")} ${vz(s.reisenZustimmung, 2)} (${t("nacht_n2.wk.reisen_hinweis")})`] : []),
+              ...s.effekte.teile.map((e) => `${e.name} ${vz(e.punkte)}`),
+            ].join(" · ") || tx("ui2.ui.Wahlkampf.06d81f3")}
+          </span>
         </div>
       </section>
 
@@ -117,6 +127,38 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
         </p>
       )}
 
+      <section className="kampf-gegner kampf-gegner-oben" aria-label={tx("ui2.ui.Wahlkampf.35d0259")}>
+        <h3>{tx("ui2.ui.Wahlkampf.35d0259")}</h3>
+        <p className="kampf-gegner-profil">
+          <strong>{s.gegner.name}</strong> ({s.gegner.parteiName})
+        </p>
+        <p className="kampf-unter">
+          {s.gegner.staerkeSicht !== null
+            ? tx("ui2.ui.Wahlkampf.1663da3", { p0: nf(s.gegner.staerkeSicht), p1: s.gegner.institut, p2: vz(s.gegner.hausBias ?? 0) })
+            : tx("ui2.ui.Wahlkampf.5819f97")}
+        </p>
+        <h4 className="kampf-h4">{t("nacht_n2.angriff.kopf")}</h4>
+        <p className="kampf-unter">{t("nacht_n2.angriff.summe", { d: vz(s.angriffe), n: s.aussicht.wochen, summe: vz(s.aussicht.summe) })}</p>
+        {s.angriffeLog.length > 0 && (
+          <ul className="kampf-angriffe">
+            {s.angriffeLog
+              .map((a, index) => ({ a, index }))
+              .slice(-4)
+              .reverse()
+              .map(({ a, index }) => (
+                <AngriffKarte key={`${a.tag}-${index}`} world={world} index={index} tue={tue} />
+              ))}
+          </ul>
+        )}
+        {s.aussicht.themaId && onGehe && (
+          <p className="kampf-unter">
+            {t("nacht_n2.angriff.problem_text")}{" "}
+            <button type="button" className="pd-btn quiet klein" onClick={() => onGehe({ art: "politik", theme: NET.nodes[NET.index.get(s.aussicht.themaId!)!]!.theme })}>
+              {t("nacht_n2.angriff.problem", { thema: s.aussicht.thema ?? "" })}
+            </button>
+          </p>
+        )}
+      </section>
       <div className="kampf-grid">
         <section className="kampf-reisen" aria-label={tx("ui2.ui.Wahlkampf.a1bd152")}>
           <h3>{tx("ui2.ui.Wahlkampf.21e26aa")}</h3>
@@ -152,7 +194,7 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
                         <span className={v.punkte >= 0 ? "gut" : "schlecht"}>{t("enden.wk.ui.kosten", { ap: v.ap, uebrig: v.uebrig, max: v.max, punkte: v.punkte })}</span>
                       </div>
                       <button className="pd-btn primary" disabled={s.ap < v.ap || v.uebrig <= 0} onClick={() => tue(() => nachfolgerAuftritt(world, art))}>
-                        {v.ap} AP
+                        {t("nacht_n2.antwort.ap", { ap: v.ap })}
                       </button>
                     </li>
                   );
@@ -165,14 +207,14 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
           <section className="kampf-touren" aria-label={tx("ui2.ui.Wahlkampf.9744596")}>
             <h3>{t("ui.Wahlkampf.3a7a840")}</h3>
             <p className="kampf-unter">
-              {tx("ui2.ui.Wahlkampf.83246dd")} {s.diaspora.lagerAnteil > 0 ? tx("ui2.ui.Wahlkampf.f38f63c", { p0: nf(s.diaspora.lagerAnteil) }) : "fest"} {tx("ui2.ui.Wahlkampf.8851220", { p0: prozent(s.diaspora.beteiligung, 0), p1: vz(s.diaspora.beitrag), p2: WAHLKAMPF.tourAp })}
+              {tx("ui2.ui.Wahlkampf.83246dd")} {s.diaspora.lagerAnteil > 0 ? tx("ui2.ui.Wahlkampf.f38f63c", { p0: nf(s.diaspora.lagerAnteil) }) : t("nacht_n2.wk.fest")} {tx("ui2.ui.Wahlkampf.8851220", { p0: prozent(s.diaspora.beteiligung, 0), p1: vz(s.diaspora.beitrag), p2: WAHLKAMPF.tourAp })}
             </p>
             <div className="kampf-tourplaene">
               {TOUR_LAENDER.map(ziel => <TourPlan key={ziel.land} world={world} land={ziel.land} tue={tue} />)}
             </div>
           </section>
 
-          <section className="kampf-duell" aria-label="TV-Duell">
+          <section className="kampf-duell" aria-label={t("nacht_n2.wk.duell")}>
             <h3>{s.rolle === "nachfolger" ? t("enden.wk.ui.duell_nachfolger") : tx("ui2.ui.Wahlkampf.8235cca")}</h3>
             {s.duell.effekt === undefined ? (
               <>
@@ -199,31 +241,9 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
             )}
           </section>
 
-          <section className="kampf-gegner" aria-label={tx("ui2.ui.Wahlkampf.35d0259")}>
-            <h3>{tx("ui2.ui.Wahlkampf.35d0259")}</h3>
-            <p className="kampf-gegner-profil">
-              <strong>{s.gegner.name}</strong> ({s.gegner.parteiName})
-            </p>
-            <p className="kampf-unter">
-              {s.gegner.staerkeSicht !== null
-                ? tx("ui2.ui.Wahlkampf.1663da3", { p0: nf(s.gegner.staerkeSicht), p1: s.gegner.institut, p2: vz(s.gegner.hausBias ?? 0) })
-                : tx("ui2.ui.Wahlkampf.5819f97")}
-            </p>
-            {s.angriffeLog.length > 0 && (
-              <ul className="kampf-angriffe">
-                {s.angriffeLog.slice(-4).reverse().map((a, i) => (
-                  <li key={`${a.tag}-${i}`}>
-                    <span>{a.thema}</span>
-                    <strong className="schlecht">−{nf(a.staerke)}</strong>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="kampf-unter">{tx("ui2.ui.Wahlkampf.1963a80", { p0: vz(s.angriffe) })}</p>
-          </section>
 
-          <section className="kampf-ticker" aria-label="Umfrage-Ticker">
-            <h3>Umfrage-Ticker</h3>
+          <section className="kampf-ticker" aria-label={t("nacht_n2.wk.ticker")}>
+            <h3>{t("nacht_n2.wk.ticker")}</h3>
             <ul>
               {s.ticker.slice().reverse().map((tk) => (
                 <li key={tk.tag}>
@@ -254,16 +274,58 @@ export function WahlkampfZentrale({ world, refresh }: { world: World; refresh: (
 
 
 type ReisePlanProps = { world: World; tue: (aktion: (rng: Rng) => AktionErgebnis) => void };
+
+/** Ein Angriff der Gegenseite mit den drei Antworten, ihrem Preis in Aktionspunkten und ihrer Wirkung (E-2). */
+function AngriffKarte({ world, index, tue }: ReisePlanProps & { index: number }) {
+  const a = world.spiel!.wahlkampf!.angriffeLog[index]!;
+  const offen = angriffOffen(world, a);
+  const antworten = angriffAntworten(world, index);
+  const text = (x: (typeof antworten)[number]) =>
+    x.id === "gegendarstellung"
+      ? t("nacht_n2.antwort.gegendarstellung.text", { anteil: prozent(x.hausmedien ?? 0, 0), d: vz(x.zurueck, 2) })
+      : x.id === "ortstermin"
+        ? t("nacht_n2.antwort.ortstermin.text", { d: vz(x.zurueck, 2), risiko: prozent(x.risiko, 0), rueckschlag: vz(x.rueckschlag, 2) })
+        : t("nacht_n2.antwort.gegenangriff.text", { d: vz(x.zurueck, 2), pol: nf(x.polarisierung) });
+  return (
+    <li className={`kampf-angriff${a.antwort ? " beantwortet" : offen ? " offen" : ""}`}>
+      <div className="kampf-angriff-kopf">
+        <span>{a.thema}</span>
+        <strong className="schlecht">−{nf(a.staerke)}</strong>
+      </div>
+      {a.antwort ? (
+        <p className={`kampf-angriff-stand ${(a.zurueck ?? 0) >= 0 ? "gut" : "schlecht"}`}>
+          {t("nacht_n2.angriff.beantwortet", { antwort: t(`nacht_n2.antwort.${a.antwort}.name`), d: vz(a.zurueck ?? 0, 2) })}
+        </p>
+      ) : offen ? (
+        <>
+          <p className="kampf-angriff-stand">{t("nacht_n2.angriff.offen", { tage: Math.max(0, WAHLKAMPF.antwortFristTage - (world.day - a.tag)) })}</p>
+          <div className="kampf-antworten">
+            {antworten.map((x) => (
+              <button key={x.id} type="button" className="kampf-antwort" disabled={!x.moeglich} title={x.grund ?? ""} onClick={() => tue((rng) => angriffBeantworten(world, index, x.id as AngriffAntwort, rng))}>
+                <strong>{t(`nacht_n2.antwort.${x.id}.name`)}</strong>
+                <span className="kampf-antwort-ap">{t("nacht_n2.antwort.ap", { ap: x.ap })}</span>
+                <span>{text(x)}</span>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="kampf-angriff-stand">{t("nacht_n2.angriff.vorbei")}</p>
+      )}
+    </li>
+  );
+}
 export function ReisePlan({ world, plaka, tue }: ReisePlanProps & { plaka: number }) {
   const p = reiseWirkungVorschau(world, plaka), name = PROVINZEN[plaka - 1]!.name;
   const gruppe = p.gruppe ? NET.nodes[NET.index.get(p.gruppe)!]!.name : "";
   return <article className="kampf-entscheid" aria-label={t("wahlreise.plan", { name })}>
-    <header><div><span className="kampf-kicker">{t("wahlreise.vorOrt")}</span><h4>{name}</h4></div><strong>{p.kosten} AP</strong></header>
+    <header><div><span className="kampf-kicker">{t("wahlreise.vorOrt")}</span><h4>{name}</h4></div><strong>{t("nacht_n2.antwort.ap", { ap: p.kosten })}</strong></header>
     <div className="kampf-ausgaenge">
       <div><span>{t("wahlreise.erfolg", { chance: prozent(1 - p.risiko, 0) })}</span><strong className="gut">{vz(p.erfolg)}</strong><small>{t("wahlreise.lokal")}</small></div>
       <div><span>{t("wahlreise.risiko", { chance: prozent(p.risiko, 0) })}</span><strong className="schlecht">{p.risiko > 0 ? vz(p.rueckschlag) : "—"}</strong><small>{t("wahlreise.lokal")}</small></div>
     </div>
     {p.gruppe && <p>{t("wahlreise.gruppe", { name: gruppe, plus: vz(p.gruppenErfolg), minus: p.risiko > 0 ? vz(p.gruppenRueckschlag) : "—" })}</p>}
+    <p className="kampf-wahltag"><b>{p.risiko > 0 ? t("nacht_n2.reise.wahltag", { erfolg: vz(p.wahlErfolg, 2), rueckschlag: vz(p.wahlRueckschlag, 2) }) : t("nacht_n2.reise.wahltag_ruhig", { erfolg: vz(p.wahlErfolg, 2) })}</b></p>
     <p>{p.probleme.length ? t("wahlreise.probleme", { namen: p.probleme.join(", ") }) : t("wahlreise.ruhig")}</p>
     <p className="kampf-hinweis">{t("wahlreise.wirkung", { anteil: prozent(p.abnutzung, 0) })}</p>
     <button className="pd-btn primary" disabled={!world.spiel?.wahlkampf || !!world.spiel.ende || world.spiel.wahlkampf.ap < p.kosten} onClick={() => tue(rng => reise(world, plaka, rng))}>{t("wahlreise.start", { name, ap: p.kosten })}</button>
@@ -274,8 +336,8 @@ export function TourPlan({ world, land, tue }: ReisePlanProps & { land: TourLand
   const p = tourVorschau(world, land), name = t(`wahlreise.land.${land}`);
   const bereich = (min: number, max: number) => `${vz(min, 2)} … ${vz(max, 2)}`;
   return <article className="kampf-entscheid" aria-label={t("wahlreise.plan", { name })}>
-    <header><h4>{name}</h4><strong>{p.kosten} AP</strong></header>
-    <p>{t("wahlreise.heimisch", { vertrauen: vz(p.vertrauen), nationalisten: vz(p.nationalisten) })}</p>
+    <header><h4>{name}</h4><strong>{t("nacht_n2.antwort.ap", { ap: p.kosten })}</strong></header>
+    <p>{t("wahlreise.heimisch", { vertrauen: vz(p.vertrauen), nationalisten: vz(p.nationalisten) })} <b>{t("nacht_n2.tour.inland", { d: vz(p.wahlInland, 2) })}</b></p>
     <p>{t("wahlreise.ausland", { beitrag: bereich(p.min.beitrag, p.max.beitrag), beteiligung: bereich(p.min.beteiligung, p.max.beteiligung) })}</p>
     <details><summary>{t("wahlreise.verbot", { chance: prozent(p.risiko, 0) })}</summary>
       <p>{t("wahlreise.diplomatie", { min: p.euMin, max: p.euMax, konflikt: p.konflikt, beitrag: bereich(p.verbotMin.beitrag, p.verbotMax.beitrag) })}</p>
