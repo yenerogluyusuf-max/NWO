@@ -500,6 +500,7 @@
 .dossier .wi-zb-folge > .kicker { margin: 0 0 2px; }
 .dossier .wi-zb-folge > .wi-option-text { margin: 0 0 var(--abstand-1); font: var(--schrift-3)/1.45 var(--serif); color: var(--tinte-1); }
 .dossier .wi-zb-folge > .wi-kosten { margin: 0 0 var(--abstand-3); }
+.dossier .wi-kosten.frei { color: var(--tinte-2); }
 .dossier .wi-zb-folge .wi-folgen { margin: var(--abstand-1) 0 var(--abstand-2); }
 .dossier .wi-zb-folge .wi-zb-verlauf { margin: var(--abstand-2) 0; }
 .dossier .wi-zb-folge button.wi-haupt { margin-top: var(--abstand-2); }

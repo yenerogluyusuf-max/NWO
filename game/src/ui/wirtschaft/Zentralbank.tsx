@@ -282,7 +282,8 @@ export function Zentralbank({ world, geaendert, abschnitt }: { world: World; gea
               <>
                 <p className="kicker">{opt.label}</p>
                 <p className="wi-option-text">{opt.text}</p>
-                <p className="wi-kosten">{opt.kosten.join(" · ")}</p>
+                {/* Ohne Preis nicht in Siegelrot: Rot heißt in den Preiszeilen „kostet“ */}
+                <p className={opt.id === "keiner" ? "wi-kosten frei" : "wi-kosten"}>{opt.kosten.join(" · ")}</p>
               </>
             )}
             <h4>{t("zb.danach")}</h4>
