@@ -7,5 +7,7 @@
  "t5.kr.frage": "How do you relieve households, and who will vote for it?",
  "t5.kr.tiefstand": "Political low",
  "t5.kr.tiefstandWert": "{n} of 6 months",
- "t5.kr.lesehilfe": "How to read these figures"
+ "t5.kr.lesehilfe": "How to read these figures",
+ "t5.vs.tage": "{n} days",
+ "t5.vs.legende": "Ring: self-sufficiency · Days: how long stocks last without imports"
 }
