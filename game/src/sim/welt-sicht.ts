@@ -90,7 +90,10 @@ export interface WahlSicht {
   offen: boolean;
 }
 
-const staerkeWort = (x: number): string => (x >= 58 ? tx("sim2.sim.welt-sicht.b2bb223") : x <= 42 ? "schwach" : "gleichauf");
+const staerkeWort = (x: number): string => (x >= 58 ? tx("sim2.sim.welt-sicht.b2bb223") : x <= 42 ? tx("tag_t8.dienst.staerke.schwach") : tx("tag_t8.dienst.staerke.gleichauf"));
+
+import { wahlArtName } from "./welt-modell";
+export { wahlArtName };
 
 export function wahlSicht(w: World, id: string): WahlSicht | null {
   const e = eigenVon(w, id);
@@ -100,7 +103,7 @@ export function wahlSicht(w: World, id: string): WahlSicht | null {
   const l = lagebildZu(w, id);
   const k = haltungFuehrung(w, id);
   return {
-    art: e.wahl.art,
+    art: wahlArtName(e.wahl.art),
     datum: e.wahl.datum,
     datumDe: /^\d{4}-\d{2}-\d{2}$/.test(e.wahl.datum) ? formatDateDe(e.wahl.datum) : e.wahl.datum,
     tage,

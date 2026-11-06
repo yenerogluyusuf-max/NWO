@@ -24,7 +24,7 @@ import { LAENDER, aktionenFuer } from "../../sim/laender";
 import type { Theme } from "../../data/politiknetz";
 import { naechsteSitzung } from "../../sim/zentralbank";
 import { akteurName, weltModell } from "../../sim/welt-modell";
-import { t } from "../../i18n";
+import { aktuelleLocale, t } from "../../i18n";
 import { stufenName } from "../../data/skalen";
 import type { World } from "../../sim/types";
 import { zusageText, zusageVon } from "../../sim/zusagen";
@@ -134,7 +134,7 @@ export interface Briefing {
   termine: Termin[];
 }
 
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nf = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 // Über 60 Tage in Monaten (keine Scheingenauigkeit)
 const tageWort = (tage: number) => (tage > 60 ? t("sk.monate", { n: Math.round(tage / 30.4) }) : t("sk.tage", { n: Math.max(0, tage) }));
 const monateBis = (tage: number) => Math.max(0, Math.round(tage / 30.4));

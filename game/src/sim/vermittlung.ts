@@ -148,15 +148,15 @@ export function zopaFuer(w: World, def: KonfliktDef): ZopaSicht {
   const min = Math.min(va, vb);
   const breite = Math.round(clamp(def.zopaBasis * (z.reif / 100) * (0.5 + min / 200), 0, 100));
   const gruende: string[] = [];
-  if (z.reif < VERMITTLUNG.zopaOeffnetAb) gruende.push(`Die Lage ist nicht reif (${Math.round(z.reif)} von ${VERMITTLUNG.zopaOeffnetAb} nötig): Der Schmerz des Patts wiegt den Kompromiss noch nicht auf.`);
-  if (va < def.minA) gruende.push(`${def.a.name} vertraut Ankara als Vermittler noch nicht genug (${Math.round(va)} von ${def.minA}).`);
-  if (vb < def.minB) gruende.push(`${def.b.name} vertraut Ankara als Vermittler noch nicht genug (${Math.round(vb)} von ${def.minB}).`);
+  if (z.reif < VERMITTLUNG.zopaOeffnetAb) gruende.push(t("tag_t8.verm.zopa.unreif", { reif: Math.round(z.reif), noetig: VERMITTLUNG.zopaOeffnetAb }));
+  if (va < def.minA) gruende.push(t("tag_t8.verm.zopa.misstrauen", { name: def.a.name, wert: Math.round(va), noetig: def.minA }));
+  if (vb < def.minB) gruende.push(t("tag_t8.verm.zopa.misstrauen", { name: def.b.name, wert: Math.round(vb), noetig: def.minB }));
   if (gruende.length) return { stufe: "geschlossen", breite, gruende };
   if (z.reif >= VERMITTLUNG.zopaBreitReif && breite >= VERMITTLUNG.zopaBreitBand) {
-    gruende.push(`Die Lage ist reif (${Math.round(z.reif)}), und beide Seiten trauen Ankara den Ausgleich zu.`);
+    gruende.push(t("tag_t8.verm.zopa.breit", { reif: Math.round(z.reif) }));
     return { stufe: "breit", breite, gruende };
   }
-  gruende.push(`Es gibt eine Zone möglicher Einigung, aber sie ist eng: Reife ${Math.round(z.reif)}, Vertrauen ${Math.round(min)}.`);
+  gruende.push(t("tag_t8.verm.zopa.schmal", { reif: Math.round(z.reif), vertrauen: Math.round(min) }));
   return { stufe: "schmal", breite, gruende };
 }
 
@@ -179,11 +179,12 @@ export function aussichtFuer(w: World, def: KonfliktDef): number {
 
 export type KonfliktStatus = "eingefroren" | "verhandelnd" | "geeint" | "stabilisiert";
 
+// Anzeige in der Sprache des Spiels (Getter: der Text entsteht erst beim Lesen)
 export const STATUS_NAME: Record<KonfliktStatus, string> = {
-  eingefroren: "eingefroren",
-  verhandelnd: "verhandelnd",
-  geeint: "geeint — Umsetzung läuft",
-  stabilisiert: "stabilisiert",
+  get eingefroren() { return t("tag_t8.verm.status.eingefroren"); },
+  get verhandelnd() { return t("tag_t8.verm.status.verhandelnd"); },
+  get geeint() { return t("tag_t8.verm.status.geeint"); },
+  get stabilisiert() { return t("tag_t8.verm.status.stabilisiert"); },
 };
 
 export interface VorbereitungSicht {
@@ -227,20 +228,20 @@ export function konfliktSicht(w: World, def: KonfliktDef): KonfliktSicht {
   const vb = vertrauenPartei(w, def.b);
   let grund: string | undefined;
   const zuletzt = spiel?.vermittelt?.[def.id] ?? -1e9;
-  if (spiel && !kannZahlen(spiel.kapital, def.pk)) grund = "Dafür fehlt das Kapital.";
-  else if (spiel && w.day - zuletzt < def.abkuehlung) grund = `Wieder möglich in ${def.abkuehlung - (w.day - zuletzt)} Tagen.`;
-  else if (va < def.minA) grund = `${def.a.name} vertraut Ankara als Vermittler noch nicht genug.`;
-  else if (vb < def.minB) grund = `${def.b.name} vertraut Ankara als Vermittler noch nicht genug.`;
-  else if (z.einigung !== undefined) grund = "Die Einigung steht — jetzt zählt die Umsetzung (Garantien und Spoiler-Abwehr).";
-  else if (zopa.stufe === "geschlossen") grund = "Es gibt keine Zone möglicher Einigung; erst muss die Lage reifen.";
+  if (spiel && !kannZahlen(spiel.kapital, def.pk)) grund = t("tag_t8.verm.grund.kapital");
+  else if (spiel && w.day - zuletzt < def.abkuehlung) grund = t("tag_t8.verm.grund.wieder", { n: def.abkuehlung - (w.day - zuletzt) });
+  else if (va < def.minA) grund = t("tag_t8.verm.grund.misstrauen", { name: def.a.name });
+  else if (vb < def.minB) grund = t("tag_t8.verm.grund.misstrauen", { name: def.b.name });
+  else if (z.einigung !== undefined) grund = t("tag_t8.verm.grund.einigung");
+  else if (zopa.stufe === "geschlossen") grund = t("tag_t8.verm.grund.keineZopa");
   const vorbereitungen = (Object.keys(VORBEREITUNGEN) as VorbereitungId[]).map((id) => {
     const d = VORBEREITUNGEN[id];
     let g: string | undefined;
     const rest = (z.vorbereitet[id] ?? -1e9) + d.abkuehlung - w.day;
-    if (z.einigung !== undefined) g = "Die Einigung steht; Vorbereitung hat sich erledigt.";
-    else if (rest > 0) g = `Wieder möglich in ${rest} Tagen.`;
-    else if (spiel && !kannZahlen(spiel.kapital, d.pk)) g = "Dafür fehlt das Kapital.";
-    else if (id === "gastgeber" && (z.reif < VERMITTLUNG.zopaOeffnetAb || zopa.stufe === "geschlossen")) g = "Ein Gipfel lohnt erst, wenn eine Zone möglicher Einigung besteht.";
+    if (z.einigung !== undefined) g = t("tag_t8.verm.grund.vorbereitungErledigt");
+    else if (rest > 0) g = t("tag_t8.verm.grund.wieder", { n: rest });
+    else if (spiel && !kannZahlen(spiel.kapital, d.pk)) g = t("tag_t8.verm.grund.kapital");
+    else if (id === "gastgeber" && (z.reif < VERMITTLUNG.zopaOeffnetAb || zopa.stufe === "geschlossen")) g = t("tag_t8.verm.grund.gipfel");
     return { def: d, moeglich: !g, ...(g ? { grund: g } : {}) };
   });
   const garantien = (Object.keys(GARANTIEN) as GarantieArtId[]).map((id) => {
@@ -249,12 +250,12 @@ export function konfliktSicht(w: World, def: KonfliktDef): KonfliktSicht {
     const angeboten = z.garantieAngebot === id;
     let g: string | undefined;
     if (aktiv || angeboten) g = undefined;
-    else if (z.einigung !== undefined) g = z.garantie ? "Es steht schon eine Garantie." : "Die Einigung steht; eine nachträgliche Garantie wirkt nicht mehr.";
-    else if (z.garantie) g = "Es steht schon eine Garantie.";
-    else if (z.garantieAngebot) g = `Es liegt schon das Angebot „${GARANTIEN[z.garantieAngebot].label}" — erst ein Vermittlungsversuch entscheidet.`;
-    else if (z.reif < VERMITTLUNG.garantieAb) g = `Garantien wirken erst ab Reife ${VERMITTLUNG.garantieAb} (jetzt ${Math.round(z.reif)}).`;
-    else if (zopa.stufe === "geschlossen") g = "Ohne Zone möglicher Einigung ist eine Garantie wertlos.";
-    else if (spiel && !kannZahlen(spiel.kapital, d.pk)) g = "Dafür fehlt das Kapital.";
+    else if (z.einigung !== undefined) g = z.garantie ? t("tag_t8.verm.grund.garantieSteht") : t("tag_t8.verm.grund.garantieZuSpaet");
+    else if (z.garantie) g = t("tag_t8.verm.grund.garantieSteht");
+    else if (z.garantieAngebot) g = t("tag_t8.verm.grund.angebotLiegt", { label: GARANTIEN[z.garantieAngebot].label });
+    else if (z.reif < VERMITTLUNG.garantieAb) g = t("tag_t8.verm.grund.garantieReife", { ab: VERMITTLUNG.garantieAb, jetzt: Math.round(z.reif) });
+    else if (zopa.stufe === "geschlossen") g = t("tag_t8.verm.grund.garantieOhneZopa");
+    else if (spiel && !kannZahlen(spiel.kapital, d.pk)) g = t("tag_t8.verm.grund.kapital");
     return { def: d, aktiv, angeboten, moeglich: !aktiv && !angeboten && !g, ...(g ? { grund: g } : {}) };
   });
   return {
@@ -277,16 +278,16 @@ function bandFuer(reif: number): number {
 
 const KIPP_TEXT: Record<number, { titel: (d: KonfliktDef) => string; text: (d: KonfliktDef) => string }> = {
   0: {
-    titel: (d) => `Vermittlung ${d.titel}: Der Prozess droht einzufrieren`,
-    text: (d) => `Die Reife der Lage zwischen ${d.a.name} und ${d.b.name} ist unter ${VERMITTLUNG.kippEnde} gefallen. Ohne neue Kanäle und Vertrauensmaßnahmen verkommt Ankaras Vermittlung zur Makulatur — und Spoiler gewinnen Oberwasser.`,
+    titel: (d) => t("tag_t8.verm.kipp.0.titel", { titel: d.titel }),
+    text: (d) => t("tag_t8.verm.kipp.0.text", { a: d.a.name, b: d.b.name, ende: VERMITTLUNG.kippEnde }),
   },
   2: {
-    titel: (d) => `Vermittlung ${d.titel}: Die Gesprächsbereitschaft wächst`,
-    text: (d) => `Die Lage zwischen ${d.a.name} und ${d.b.name} reift (${VERMITTLUNG.kippBereit}+): Beide Seiten prüfen ernsthaft, ob der Kompromiss billiger ist als der Patt. Jetzt zählen Kanäle, Vertrauensmaßnahmen und der richtige Moment.`,
+    titel: (d) => t("tag_t8.verm.kipp.2.titel", { titel: d.titel }),
+    text: (d) => t("tag_t8.verm.kipp.2.text", { a: d.a.name, b: d.b.name, bereit: VERMITTLUNG.kippBereit }),
   },
   3: {
-    titel: (d) => `Vermittlung ${d.titel}: Das Fenster für eine Einigung öffnet sich`,
-    text: (d) => `Die Reife hat ${VERMITTLUNG.kippFenster} erreicht: Die Zone möglicher Einigung steht so offen wie selten. Ab Reife ${VERMITTLUNG.garantieAb} kann ein türkisches Garantiepaket den Ausschlag geben — Gipfel und Vermittlungsversuch haben jetzt die beste Aussicht.`,
+    titel: (d) => t("tag_t8.verm.kipp.3.titel", { titel: d.titel }),
+    text: () => t("tag_t8.verm.kipp.3.text", { fenster: VERMITTLUNG.kippFenster, ab: VERMITTLUNG.garantieAb }),
   },
 };
 
@@ -315,7 +316,7 @@ export interface Antwort {
 }
 
 function namen(def: KonfliktDef): string {
-  return `${def.a.name} und ${def.b.name}`;
+  return t("tag_t8.verm.namen", { a: def.a.name, b: def.b.name });
 }
 
 /** Vorbereitungshandlung: Reife schaffen, bevor der Tisch steht. */
@@ -323,9 +324,9 @@ export function vorbereite(w: World, konfliktId: string, vid: VorbereitungId): A
   const spiel = w.spiel;
   const def = KONFLIKT_NACH_ID[konfliktId];
   const d = VORBEREITUNGEN[vid];
-  if (!spiel || !def || !d) return { ok: false, text: "Diese Handlung gibt es nicht." };
+  if (!spiel || !def || !d) return { ok: false, text: t("tag_t8.verm.fehlt.handlung") };
   const sicht = konfliktSicht(w, def).vorbereitungen.find((v) => v.def.id === vid);
-  if (!sicht?.moeglich) return { ok: false, text: sicht?.grund ?? "Das geht gerade nicht." };
+  if (!sicht?.moeglich) return { ok: false, text: sicht?.grund ?? t("tag_t8.verm.geht_nicht") };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
   const z = konfliktZustand(w, konfliktId);
@@ -336,12 +337,12 @@ export function vorbereite(w: World, konfliktId: string, vid: VorbereitungId): A
   z.konfliktIndex = clamp(z.konfliktIndex - d.konflikt, 0, 100);
   if (d.ansehen) wirke(w, "ansehen", d.ansehen);
   // Diskrete Arbeit zahlt auf das Vertrauen beider Seiten ein
-  if (def.a.land) landAendern(w, def.a.land, { vertrauen: 1 }, `${d.label} (Vermittlung)`);
-  if (def.b.land && def.b.land !== def.a.land) landAendern(w, def.b.land, { vertrauen: 1 }, `${d.label} (Vermittlung)`);
+  if (def.a.land) landAendern(w, def.a.land, { vertrauen: 1 }, t("tag_t8.verm.vorb.grund", { label: d.label }));
+  if (def.b.land && def.b.land !== def.a.land) landAendern(w, def.b.land, { vertrauen: 1 }, t("tag_t8.verm.vorb.grund", { label: d.label }));
   kippPruefen(w, def, z);
-  const text = `${d.label} zwischen ${namen(def)}: Die Lage reift (${Math.round(z.reif)} von 100).`;
-  addLog(w, "entscheidung", text, `Kostet ${d.pk} Kapital und Aufmerksamkeit. Reife +${d.reif}${d.konflikt ? `, Konflikt-Index −${d.konflikt}` : ""}${d.ansehen ? `, Ansehen +${d.ansehen}` : ""}.`);
-  return { ok: true, text, why: `Kostet ${d.pk} Kapital. Reife +${d.reif}; der Weg zum Tisch wird kürzer, aber Spoiler können alles zurückwerfen.` };
+  const text = t("tag_t8.verm.vorb.text", { label: d.label, namen: namen(def), reif: Math.round(z.reif) });
+  addLog(w, "entscheidung", text, t("tag_t8.verm.vorb.log", { pk: d.pk, reif: d.reif, zusatz: `${d.konflikt ? t("tag_t8.verm.vorb.log.konflikt", { n: d.konflikt }) : ""}${d.ansehen ? t("tag_t8.verm.vorb.log.ansehen", { n: d.ansehen }) : ""}` }));
+  return { ok: true, text, why: t("tag_t8.verm.vorb.why", { pk: d.pk, reif: d.reif }) };
 }
 
 /** Ein Garantiepaket anbieten: hebt die Aussicht des nächsten Vermittlungsversuchs, bindet Ankara im Erfolgsfall. */
@@ -349,37 +350,37 @@ export function bieteGarantie(w: World, konfliktId: string, art: GarantieArtId):
   const spiel = w.spiel;
   const def = KONFLIKT_NACH_ID[konfliktId];
   const d = GARANTIEN[art];
-  if (!spiel || !def || !d) return { ok: false, text: "Diese Garantie gibt es nicht." };
+  if (!spiel || !def || !d) return { ok: false, text: t("tag_t8.verm.fehlt.garantie") };
   const sicht = konfliktSicht(w, def).garantien.find((g) => g.def.id === art);
-  if (!sicht || sicht.aktiv || sicht.angeboten || !sicht.moeglich) return { ok: false, text: sicht?.grund ?? "Das geht gerade nicht." };
+  if (!sicht || sicht.aktiv || sicht.angeboten || !sicht.moeglich) return { ok: false, text: sicht?.grund ?? t("tag_t8.verm.geht_nicht") };
   const pause = neuanfangGrund(w);
   if (pause) return { ok: false, text: pause };
   const z = konfliktZustand(w, konfliktId);
   spiel.kapital -= d.pk;
-  verbrauche(w, 6, `Garantie-Angebot: ${def.titel}`);
+  verbrauche(w, 6, t("tag_t8.verm.garantie.aufm", { titel: def.titel }));
   z.garantieAngebot = art;
-  const text = `Ankara bietet ${namen(def)} eine Garantie an: ${d.label}.`;
-  addLog(w, "entscheidung", text, `Die Aussicht des nächsten Vermittlungsversuchs steigt um ${d.aussicht} Punkte. Wird die Einigung geschlossen, steht die Garantie — mit laufenden Kosten und dem Risiko des Bruchs.`);
-  return { ok: true, text, why: `Kostet ${d.pk} Kapital. Aussicht +${d.aussicht} Punkte; im Erfolgsfall läuft die Garantie mit ${d.monatPk} Kapital im Monat. ${d.risiko}` };
+  const text = t("tag_t8.verm.garantie.text", { namen: namen(def), label: d.label });
+  addLog(w, "entscheidung", text, t("tag_t8.verm.garantie.log", { n: d.aussicht }));
+  return { ok: true, text, why: t("tag_t8.verm.garantie.why", { pk: d.pk, aussicht: d.aussicht, monat: d.monatPk, risiko: d.risiko }) };
 }
 
 /** Eine stehende Garantie beenden: geordnet billig, mitten im Konflikt ein Gesichtsverlust. */
 export function beendeGarantie(w: World, konfliktId: string): Antwort {
   const spiel = w.spiel;
   const def = KONFLIKT_NACH_ID[konfliktId];
-  if (!spiel || !def) return { ok: false, text: "Diesen Konflikt gibt es nicht." };
+  if (!spiel || !def) return { ok: false, text: t("tag_t8.verm.fehlt.konflikt") };
   const z = konfliktZustand(w, konfliktId);
-  if (!z.garantie) return { ok: false, text: "Es steht keine Garantie." };
+  if (!z.garantie) return { ok: false, text: t("tag_t8.verm.fehlt.keineGarantie") };
   const d = GARANTIEN[z.garantie];
   const geordnet = z.konfliktIndex <= 25;
   z.garantie = undefined;
   z.garantieSeit = undefined;
   if (!geordnet) wirke(w, "ansehen", -2);
   const text = geordnet
-    ? `Die Garantie „${d.label}" zwischen ${namen(def)} wird geordnet beendet: Die Lage hält auch ohne Ankaras Bürgschaft.`
-    : `Ankara zieht die Garantie „${d.label}" mitten im Konflikt zurück: Das lesen beide Seiten als Wortbruch.`;
-  addLog(w, "entscheidung", text, geordnet ? "Die laufenden Kosten entfallen." : "Ansehen −2; die laufenden Kosten entfallen.");
-  return { ok: true, text, why: geordnet ? "Die laufenden Kosten entfallen." : "Ansehen −2; wer bürgt und davonläuft, verliert Gesicht." };
+    ? t("tag_t8.verm.ende.geordnet", { label: d.label, namen: namen(def) })
+    : t("tag_t8.verm.ende.bruch", { label: d.label });
+  addLog(w, "entscheidung", text, geordnet ? t("tag_t8.verm.ende.kosten") : t("tag_t8.verm.ende.bruch.log"));
+  return { ok: true, text, why: geordnet ? t("tag_t8.verm.ende.kosten") : t("tag_t8.verm.ende.bruch.why") };
 }
 
 // ---------------------------------------------------------------------------
@@ -387,11 +388,11 @@ export function beendeGarantie(w: World, konfliktId: string): Antwort {
 
 export function vermittle(w: World, konfliktId: string, rng: Rng): Antwort {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es keine Vermittlung." };
+  if (!spiel) return { ok: false, text: t("tag_t8.verm.fehlt.spiel") };
   const def = KONFLIKT_NACH_ID[konfliktId];
-  if (!def) return { ok: false, text: "Diese Vermittlung gibt es nicht." };
+  if (!def) return { ok: false, text: t("tag_t8.verm.fehlt.vermittlung") };
   const sicht = konfliktSicht(w, def);
-  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "Das geht gerade nicht." };
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? t("tag_t8.verm.geht_nicht") };
   const z = sicht.z;
   spiel.kapital -= def.pk;
   (spiel.vermittelt ??= {})[konfliktId] = w.day;
@@ -399,31 +400,31 @@ export function vermittle(w: World, konfliktId: string, rng: Rng): Antwort {
     // Einigung: ein Abkommen zwischen den Dritten — der Konflikt-Index sinkt ab jetzt über Monate
     z.einigung = w.day;
     const E = VERMITTLUNG.erfolg;
-    if (def.a.land) landAendern(w, def.a.land, { vertrauen: E.parteien, konflikt: E.parteienKonflikt }, `Einigung mit ${def.b.name} in Istanbul`);
-    if (def.b.land && def.b.land !== def.a.land) landAendern(w, def.b.land, { vertrauen: E.parteien, konflikt: E.parteienKonflikt }, `Einigung mit ${def.a.name} in Istanbul`);
+    if (def.a.land) landAendern(w, def.a.land, { vertrauen: E.parteien, konflikt: E.parteienKonflikt }, t("tag_t8.verm.erfolg.grund", { name: def.b.name }));
+    if (def.b.land && def.b.land !== def.a.land) landAendern(w, def.b.land, { vertrauen: E.parteien, konflikt: E.parteienKonflikt }, t("tag_t8.verm.erfolg.grund", { name: def.a.name }));
     wirke(w, "ansehen", E.ansehen);
     vertrauenAendern(w, E.vertrauenAlle);
     // EU und USA begrüßen die Stabilisierung (Reaktion der Dritten)
-    landAendern(w, "EU", { vertrauen: E.dritte }, `Vermittlungserfolg: ${def.titel}`);
-    landAendern(w, "USA", { vertrauen: E.dritte }, `Vermittlungserfolg: ${def.titel}`);
+    landAendern(w, "EU", { vertrauen: E.dritte }, t("tag_t8.verm.erfolg.dritte", { titel: def.titel }));
+    landAendern(w, "USA", { vertrauen: E.dritte }, t("tag_t8.verm.erfolg.dritte", { titel: def.titel }));
     let garantieText = "";
     if (z.garantieAngebot) {
       z.garantie = z.garantieAngebot;
       z.garantieSeit = w.day;
       kosten(w, GARANTIEN[z.garantie].bip);
-      garantieText = ` Die türkische Garantie „${GARANTIEN[z.garantie].label}" steht ab jetzt — mit laufenden Kosten und dem Risiko des Bruchs.`;
+      garantieText = t("tag_t8.verm.erfolg.garantie", { label: GARANTIEN[z.garantie].label });
       z.garantieAngebot = undefined;
     }
-    const text = `Vermittlung gelingt: ${namen(def)} einigen sich in Istanbul auf ein Paket.`;
-    addLog(w, "entscheidung", text, `${def.paket.join("; ")}. Kostet ${def.pk} Kapital; Ankaras Ansehen wächst.${garantieText}`);
+    const text = t("tag_t8.verm.erfolg.text", { namen: namen(def) });
+    addLog(w, "entscheidung", text, t("tag_t8.verm.erfolg.log", { paket: def.paket.join("; "), pk: def.pk, garantie: garantieText }));
     // Die Zeitung berichtet (Eilmeldung digital, Print im nächsten Monat)
     bruecke?.zeitung(w, {
-      titel: `Abkommen in Istanbul: ${def.titel}`,
-      fakt: `${def.a.name} und ${def.b.name} einigen sich auf türkische Vermittlung: ${def.paket[0]}. Der Konflikt-Index sinkt, Ankaras Ansehen wächst.`,
+      titel: t("tag_t8.verm.erfolg.zeitung.titel", { titel: def.titel }),
+      fakt: t("tag_t8.verm.erfolg.zeitung.fakt", { a: def.a.name, b: def.b.name, paket: def.paket[0]! }),
       wertung: 0.85,
       schluessel: ["einigen sich in Istanbul"],
     });
-    return { ok: true, text, why: `${def.paket.join("; ")}. Kostet ${def.pk} Kapital; Ansehen +${E.ansehen}, Vertrauen aller +${E.vertrauenAlle}.${garantieText}` };
+    return { ok: true, text, why: t("tag_t8.verm.erfolg.why", { paket: def.paket.join("; "), pk: def.pk, ansehen: E.ansehen, vertrauen: E.vertrauenAlle, garantie: garantieText }) };
   }
   const S = VERMITTLUNG.scheitern;
   z.reif = clamp(z.reif + S.reif, 0, 100);
@@ -434,13 +435,13 @@ export function vermittle(w: World, konfliktId: string, rng: Rng): Antwort {
   if (z.garantieAngebot) {
     // Scheitern nach einem Garantie-Angebot: Der Gesichtsverlust fällt größer aus
     wirke(w, "ansehen", S.gesichtNachGarantie - S.ansehen);
-    gesicht = ` Das angebotene Garantiepaket verfängt nicht: ein Gesichtsverlust (Ansehen ${S.gesichtNachGarantie}).`;
+    gesicht = t("tag_t8.verm.scheitern.gesicht", { n: S.gesichtNachGarantie });
     z.garantieAngebot = undefined;
   }
   kippPruefen(w, def, z);
-  const text = `Die Vermittlung zwischen ${namen(def)} scheitert.`;
-  addLog(w, "entscheidung", text, `Beide Seiten stellen zu hohe Bedingungen. Kostet ${def.pk} Kapital und etwas Ansehen; die Reife sinkt.${gesicht}`);
-  return { ok: false, text, why: `Kostet ${def.pk} Kapital und etwas Ansehen; die Reife sinkt um ${-S.reif} Punkte.${gesicht}` };
+  const text = t("tag_t8.verm.scheitern.text", { namen: namen(def) });
+  addLog(w, "entscheidung", text, t("tag_t8.verm.scheitern.log", { pk: def.pk, gesicht }));
+  return { ok: false, text, why: t("tag_t8.verm.scheitern.why", { pk: def.pk, n: -S.reif, gesicht }) };
 }
 
 // ---------------------------------------------------------------------------
@@ -458,8 +459,8 @@ export function spoilerFolge(w: World, ev: OffenesEreignis, antwort: SpoilerAntw
   const andere = ev.daten?.seite === "b" ? def.a : def.b;
   switch (antwort) {
     case "verurteilen": {
-      if (seite.land) landAendern(w, seite.land, { vertrauen: -6 }, `Öffentliche Rüge aus Ankara (${def.titel})`);
-      if (andere.land && andere.land !== seite.land) landAendern(w, andere.land, { vertrauen: 2 }, `Ankara rügt die Spoiler (${def.titel})`);
+      if (seite.land) landAendern(w, seite.land, { vertrauen: -6 }, t("tag_t8.verm.spoiler.ruege", { titel: def.titel }));
+      if (andere.land && andere.land !== seite.land) landAendern(w, andere.land, { vertrauen: 2 }, t("tag_t8.verm.spoiler.ruegeAndere", { titel: def.titel }));
       z.reif = clamp(z.reif + 2, 0, 100);
       z.konfliktIndex = clamp(z.konfliktIndex - 3, 0, 100);
       wirke(w, "ansehen", 0.5);

@@ -137,16 +137,16 @@ export function Verhandlungstisch({ world, landId, refresh, onVertraege }: { wor
     zeige();
   }
 
-  const stimmungText = nichts ? "Noch kein Angebot" : b.urteil === "veto" ? "Rote Linie" : STIMMUNG_WORT[b.stimmung];
+  const stimmungText = nichts ? t("tag_t8.aussen.tisch.keinAngebot") : b.urteil === "veto" ? t("tag_t8.aussen.tisch.roteLinie") : STIMMUNG_WORT[b.stimmung];
   const urteilText = nichts
-    ? "Wählen Sie Klauseln links und rechts."
+    ? t("tag_t8.aussen.tisch.waehlen")
     : b.urteil === "zustimmung"
-      ? `${l.name} würde zustimmen.`
+      ? t("tag_t8.aussen.tisch.zustimmung", { name: l.name })
       : b.urteil === "veto"
         ? b.veto
         : b.urteil === "gegenangebot"
-          ? `${l.name} würde ein Gegenangebot machen.`
-          : `${l.name} würde ablehnen.`;
+          ? t("tag_t8.aussen.tisch.gegenangebot", { name: l.name })
+          : t("tag_t8.aussen.tisch.ablehnung", { name: l.name });
 
   return (
     <>

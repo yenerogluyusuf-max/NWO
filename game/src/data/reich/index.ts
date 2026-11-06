@@ -41,6 +41,8 @@ datenFelder("vorhaben.zitat", STAMM.filter((v) => v.zitat).map((v) => ({ id: v.i
 datenFelder("vorhaben.vorlage", STAMM.filter((v) => v.vorlage).map((v) => ({ id: v.id, obj: v.vorlage!, feld: "kurz" })));
 datenFelder("vorhaben.voraus", STAMM.flatMap((v) => v.voraus.map((b, i) => ({ id: `${v.id}.${i}`, obj: b, feld: "text" }))));
 datenTexte("vorteil", VORTEILE, (v) => v.id, ["name", "text", "kehrseite"]);
+// Wer verliert: eine Gruppenkennung des Netzes (übersetzt die Oberfläche über den Knotennamen) oder ein Text (Katalog tag_t8.json)
+datenFelder("vorhaben.verlierer", STAMM.filter((v) => v.verlierer && !/^[a-z0-9_]+$/.test(v.verlierer)).map((v) => ({ id: v.id, obj: v, feld: "verlierer" })));
 
 const KEHRSEITE: Record<string, string> = {
   "Bindet Baukapazität, die dann für Neubauten fehlt.": "reich.kehrseite.bau",

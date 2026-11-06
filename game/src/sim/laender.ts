@@ -162,7 +162,7 @@ export const LAENDER: LandDef[] = [
     start: { handel: 55, sicherheit: 66, vertrauen: 62, konflikt: 28 },
     anliegen: [
       A("sau-invest", t("sim2.sim.laender.512f085"), t("sim2.sim.laender.fbeb7dd"), { art: "massnahme", id: "m_justizreform", min: 45 }),
-      A("sau-partner", "Partnerschaft statt Konkurrenz", t("sim2.sim.laender.46a67a6"), { art: "land", dim: "vertrauen", min: 60 }),
+      A("sau-partner", t("tag_t8.aussen.anliegen.sauPartner"), t("sim2.sim.laender.46a67a6"), { art: "land", dim: "vertrauen", min: 60 }),
     ],
     aktionen: ["gipfel", "handel", "ruestung", "hilfe"],
   },

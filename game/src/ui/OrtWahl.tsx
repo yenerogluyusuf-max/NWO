@@ -7,7 +7,7 @@ import { akuteOrte, provinzenText } from "../sim/handeln";
 import { REGION_COLORS } from "./atlas/overlay";
 import type { World } from "../sim/types";
 
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 const REGIONEN = Object.keys(REGION_DE);
 
 function useSchliessen(offen: boolean, zu: () => void) {
@@ -84,7 +84,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange, akutVorgabe, knapp 
                 <i style={{ background: REGION_COLORS[r] }} />
                 <span className="pop-name">{REGION_DE[r]}</span>
                 <span className="pop-meta">
-                  {t("ui2.ui.OrtWahl.e328e2f", { p0: mitglieder.length, p1: (einwohner / 1_000_000).toLocaleString("de-DE", { maximumFractionDigits: 1 }) })}
+                  {t("ui2.ui.OrtWahl.e328e2f", { p0: mitglieder.length, p1: (einwohner / 1_000_000).toLocaleString(aktuelleLocale(), { maximumFractionDigits: 1 }) })}
                 </span>
               </button>
             );
@@ -101,7 +101,7 @@ export function OrtWahl({ world, massnahmeId, ort, onChange, akutVorgabe, knapp 
                 <label className={gewaehlt.has(p.plaka) ? "on" : ""}>
                   <input type="checkbox" checked={gewaehlt.has(p.plaka)} onChange={() => umschalten(p.plaka)} />
                   <span>{p.name}</span>
-                  <em>{t("ui2.ui.OrtWahl.008849e", { p0: (p.bevoelkerung / 1000).toLocaleString("de-DE", { maximumFractionDigits: 0 }) })}</em>
+                  <em>{t("ui2.ui.OrtWahl.008849e", { p0: (p.bevoelkerung / 1000).toLocaleString(aktuelleLocale(), { maximumFractionDigits: 0 }) })}</em>
                 </label>
               </li>
             ))}

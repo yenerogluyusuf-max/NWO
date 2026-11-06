@@ -46,6 +46,7 @@ import { behoerdenMonat, mitStufen } from "./behoerden";
 import { nationalAverage } from "./netz";
 import { t } from "../i18n";
 import { landFormen, landZahl } from "./ereignisse-krieg";
+import { datenTexte } from "../i18n/daten";
 
 // ---------------------------------------------------------------------------
 // Die Arten von Operationen
@@ -101,6 +102,9 @@ export const OP_DEFS: Record<OpArt, OpDef> = {
     text: "Stört Verwaltung und Dienste des Zielstaats für eine Weile und bricht laufende Operationen von dort gegen die Türkei ab. Schnell, aber Spuren im Netz führen oft zurück, und der Gegenschlag trifft eigene Netze.",
   },
 };
+
+// Name und Beschreibung der Operationen dreisprachig (Katalog tag_t8.json); der Code vergleicht nur über `art`
+datenTexte("dienst.op", Object.values(OP_DEFS), (x) => x.art, ["name", "text"]);
 
 /** Was die Ausbaustufen des Dienstes (1 bis 5, Stufe 3 = wie heute) bewirken. Spielparameter. */
 export const MIT_STUFEN = {
@@ -187,13 +191,20 @@ export interface Aussicht {
   p: number;
   /** Aufdeckungsrisiko */
   pAuf: number;
+  /** Stufe der Aussicht als Kennung (gering, maessig, mittel, gut, sicher) und als Wort der Sprache */
+  stufe: string;
   wort: string;
+  /** Stufe des Aufdeckungsrisikos als Kennung (gering, maessig, hoch, sehr_hoch, kein) und als Wort der Sprache */
+  aufStufe: string;
   aufWort: string;
   faktoren: string[];
 }
 
-const stufe = (p: number): string => (p < 0.15 ? "gering" : p < 0.3 ? "mäßig" : p < 0.5 ? "mittel" : "gut");
-const stufeRisiko = (p: number): string => (p < 0.2 ? "gering" : p < 0.4 ? "mäßig" : p < 0.6 ? "hoch" : "sehr hoch");
+const stufe = (p: number): string => (p < 0.15 ? "gering" : p < 0.3 ? "maessig" : p < 0.5 ? "mittel" : "gut");
+const stufeRisiko = (p: number): string => (p < 0.2 ? "gering" : p < 0.4 ? "maessig" : p < 0.6 ? "hoch" : "sehr_hoch");
+const stufeWort = (s: string): string => t(`tag_t8.dienst.stufe.${s}`);
+/** Faktor „Wahl in N Monaten“ ohne Zusatz (die Oberfläche blendet ihn aus, wenn die Wahlzeile des Zielstaats dasselbe sagt) */
+export const wahlFaktor = (monate: number): string => t("tag_t8.dienst.faktor.wahl", { n: monate });
 
 export function aussicht(w: World, art: OpArt, ziel: string, lager?: Operation["lager"]): Aussicht {
   const def = OP_DEFS[art];
@@ -203,20 +214,20 @@ export function aussicht(w: World, art: OpArt, ziel: string, lager?: Operation["
   const vorb = dz.zugang[ziel] ?? 0;
   const e = eigenVon(w, ziel);
   const faktoren: string[] = [];
-  faktoren.push(`Sicherheitsapparat: ${apparat >= 65 ? "stark" : apparat >= 40 ? "mittel" : "schwach"} (${Math.round(apparat)} von 100)`);
-  faktoren.push(`Medienlage: ${offen >= 0.65 ? "offen, aber mit kritischer Presse" : offen >= 0.4 ? "teilweise frei" : "kontrolliert"}`);
+  faktoren.push(t("tag_t8.dienst.faktor.apparat", { stufe: apparat >= 65 ? "stark" : apparat >= 40 ? "mittel" : "schwach", n: Math.round(apparat) }));
+  faktoren.push(t("tag_t8.dienst.faktor.medien", { stufe: offen >= 0.65 ? "offen" : offen >= 0.4 ? "teilweise" : "kontrolliert" }));
   let fenster = 1;
   if (art === "kandidat" || art === "desinfo") {
     const tage = e.wahl ? e.wahl.tag - w.day : null;
     if (tage !== null && tage > 0) {
       fenster = tage <= 150 ? 1 : tage <= 365 ? 0.7 : 0.4;
-      faktoren.push(`Wahl in ${Math.max(1, Math.round(tage / 30))} Monaten${tage <= 150 ? " — das Fenster ist offen" : tage > 365 ? " — noch weit entfernt" : ""}`);
+      faktoren.push(wahlFaktor(Math.max(1, Math.round(tage / 30))) + (tage <= 150 ? t("tag_t8.dienst.faktor.wahl.offen") : tage > 365 ? t("tag_t8.dienst.faktor.wahl.fern") : ""));
     } else {
       fenster = art === "kandidat" ? 0 : 0.8;
-      faktoren.push(art === "kandidat" ? "keine Wahl in Sicht" : "keine Wahl in Sicht: die Kampagne zielt auf die Stimmung");
+      faktoren.push(t(art === "kandidat" ? "tag_t8.dienst.faktor.keineWahl" : "tag_t8.dienst.faktor.keineWahl.stimmung"));
     }
   }
-  faktoren.push(`Einflussnetz: ${vorb > 0 ? `Stufe ${vorb} von ${netzMax(w)}` : "keines"}`);
+  faktoren.push(vorb > 0 ? t("tag_t8.dienst.faktor.netz", { n: vorb, max: netzMax(w) }) : t("tag_t8.dienst.faktor.keinNetz"));
   const st = mitStufen(w);
   if (st.technik !== 3) faktoren.push(t("behoerden.mit.faktor.technik", { stufe: st.technik }));
   let p = def.basis * (1 - 0.55 * (apparat / 100)) * fenster;
@@ -231,8 +242,8 @@ export function aussicht(w: World, art: OpArt, ziel: string, lager?: Operation["
   }
   const andere = dz.ops.filter((o) => o.ziel === ziel).length;
   const pAuf = clamp(def.aufdeckung + 0.3 * (apparat / 100) + 0.15 * offen - 0.05 * Math.min(vorb, 3) - 0.02 * Math.max(0, vorb - 3) + 0.05 * andere + stufenWert(MIT_STUFEN.technikAuf, st.technik), 0.08, 0.85);
-  if (art === "gegen") return { p: 1, pAuf: 0, wort: "sicher", aufWort: "kein", faktoren: [] };
-  return { p, pAuf, wort: stufe(p), aufWort: stufeRisiko(pAuf), faktoren };
+  if (art === "gegen") return { p: 1, pAuf: 0, stufe: "sicher", wort: stufeWort("sicher"), aufStufe: "kein", aufWort: stufeWort("kein"), faktoren: [] };
+  return { p, pAuf, stufe: stufe(p), wort: stufeWort(stufe(p)), aufStufe: stufeRisiko(pAuf), aufWort: stufeWort(stufeRisiko(pAuf)), faktoren };
 }
 
 // ---------------------------------------------------------------------------
@@ -257,19 +268,19 @@ export function opsOptionen(w: World, ziel: string): OpOption[] {
     const a = aussicht(w, art, ziel, art === "kandidat" ? "herausforderer" : undefined);
     let grund: string | undefined;
     if (def.ab && st[def.ab.achse] < def.ab.stufe) grund = t("behoerden.mit.grund.stufe", { achse: t(`behoerden.mit.achse.${def.ab.achse}`), stufe: def.ab.stufe });
-    else if (spiel.kapital < def.pk) grund = "Dafür fehlt Kapital.";
-    else if (dz.kapazitaet < def.kap) grund = "Dafür fehlt Dienstkapazität: laufende Operationen binden sie.";
-    else if (dz.ops.filter((o) => o.ziel === ziel).length >= DIENST.jeZiel) grund = `Gegen diesen Staat laufen schon ${DIENST.jeZiel} Operationen.`;
-    else if (def.nurMitWahl && !(e.wahl && e.wahl.tag - w.day > 0 && e.wahl.tag - w.day <= 365 && !/Zwischenwahlen|Parteitag/.test(e.wahl.art))) grund = "Es steht in den nächsten zwölf Monaten keine Wahl an, die sich beeinflussen ließe.";
-    else if (akteurDef(ziel).form === "monarchie" && art === "kandidat") grund = "Eine Monarchie hat keine Wahl.";
+    else if (spiel.kapital < def.pk) grund = t("tag_t8.dienst.grund.kapital");
+    else if (dz.kapazitaet < def.kap) grund = t("tag_t8.dienst.grund.kapazitaet");
+    else if (dz.ops.filter((o) => o.ziel === ziel).length >= DIENST.jeZiel) grund = t("tag_t8.dienst.grund.jeZiel", { n: DIENST.jeZiel });
+    else if (def.nurMitWahl && !(e.wahl && e.wahl.tag - w.day > 0 && e.wahl.tag - w.day <= 365 && !/Zwischenwahlen|Parteitag/.test(e.wahl.art))) grund = t("tag_t8.dienst.grund.keineWahl");
+    else if (akteurDef(ziel).form === "monarchie" && art === "kandidat") grund = t("tag_t8.dienst.grund.monarchie");
     const lager =
       art === "kandidat" && e.wahl?.herausforderer
         ? [
-            { id: "herausforderer" as const, label: `Herausforderer (${haltungWortVon(e.wahl.herausforderer.kurs)})` },
-            { id: "amtsfuehrung" as const, label: `Amtsführung (${haltungWortVon(haltungFuehrung(w, ziel))})` },
+            { id: "herausforderer" as const, label: t("tag_t8.dienst.lager.herausforderer.haltung", { haltung: haltungWortVon(e.wahl.herausforderer.kurs) }) },
+            { id: "amtsfuehrung" as const, label: t("tag_t8.dienst.lager.amtsfuehrung.haltung", { haltung: haltungWortVon(haltungFuehrung(w, ziel)) }) },
           ]
         : art === "kandidat"
-          ? [{ id: "herausforderer" as const, label: "Opposition" }, { id: "amtsfuehrung" as const, label: "Amtsführung" }]
+          ? [{ id: "herausforderer" as const, label: t("tag_t8.dienst.lager.opposition") }, { id: "amtsfuehrung" as const, label: t("tag_t8.dienst.lager.amtsfuehrung") }]
           : undefined;
     return { def, moeglich: !grund, ...(grund ? { grund } : {}), aussicht: a, ...(lager ? { lager } : {}) };
   });
@@ -277,32 +288,32 @@ export function opsOptionen(w: World, ziel: string): OpOption[] {
 
 export function ordneAn(w: World, art: OpArt, ziel: string, lager?: Operation["lager"]): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es keinen Dienst." };
+  if (!spiel) return { ok: false, text: t("tag_t8.dienst.fehlt.spiel") };
   const dz = dienst(w);
   const def = OP_DEFS[art];
   if (art === "gegen") {
-    if (spiel.kapital < def.pk) return { ok: false, text: "Dafür fehlt Kapital." };
-    if (dz.kapazitaet < def.kap) return { ok: false, text: "Dafür fehlt Dienstkapazität." };
+    if (spiel.kapital < def.pk) return { ok: false, text: t("tag_t8.dienst.grund.kapital") };
+    if (dz.kapazitaet < def.kap) return { ok: false, text: t("tag_t8.dienst.grund.kapazitaetKurz") };
     spiel.kapital -= def.pk;
     dz.kapazitaet -= def.kap;
     dz.abwehr = Math.max(dz.abwehr, def.monate);
-    berichte(w, dz, def.name, `Die Gegenspionage ist für ${def.monate} Monate verstärkt: Fremde Operationen werden eher entdeckt und wirken schwächer.`, "info");
-    return { ok: true, text: `Die Gegenspionage ist für ${def.monate} Monate verstärkt.`, why: `Kostet ${def.pk} Kapital und ${def.kap} Dienstkapazität.` };
+    berichte(w, dz, def.name, t("tag_t8.dienst.gegen.bericht", { n: def.monate }), "info");
+    return { ok: true, text: t("tag_t8.dienst.gegen.text", { n: def.monate }), why: t("tag_t8.dienst.gegen.why", { pk: def.pk, kap: def.kap }) };
   }
   const opt = opsOptionen(w, ziel).find((o) => o.def.art === art);
-  if (!opt) return { ok: false, text: "Diese Operation gibt es nicht." };
-  if (!opt.moeglich) return { ok: false, text: opt.grund ?? "Das geht gerade nicht." };
+  if (!opt) return { ok: false, text: t("tag_t8.dienst.fehlt.op") };
+  if (!opt.moeglich) return { ok: false, text: opt.grund ?? t("tag_t8.verm.geht_nicht") };
   spiel.kapital -= def.pk;
   dz.kapazitaet -= def.kap;
   dz.zaehler += 1;
   const op: Operation = { id: dz.zaehler, art, ziel, start: w.day, ende: w.day + def.monate * 30, pk: def.pk, kap: def.kap, ...(art === "kandidat" ? { lager: lager ?? "herausforderer" } : {}) };
   dz.ops.push(op);
-  const lagerText = art === "kandidat" ? (op.lager === "amtsfuehrung" ? " zugunsten der Amtsführung" : " zugunsten des Herausforderers") : "";
-  berichte(w, dz, `${def.name}: ${akteurName(ziel)}`, `Angeordnet${lagerText}. Dauer ${def.monate} Monate, Aussicht ${opt.aussicht.wort}, Risiko der Aufdeckung ${opt.aussicht.aufWort}.`, "info");
+  const lagerText = art === "kandidat" ? t(op.lager === "amtsfuehrung" ? "tag_t8.dienst.zugunsten.amtsfuehrung" : "tag_t8.dienst.zugunsten.herausforderer") : "";
+  berichte(w, dz, `${def.name}: ${akteurName(ziel)}`, t("tag_t8.dienst.angeordnet", { lager: lagerText, n: def.monate, aussicht: opt.aussicht.wort, risiko: opt.aussicht.aufWort }), "info");
   return {
     ok: true,
-    text: `Der Dienst beginnt die Operation „${def.name}“ gegen ${akteurAkk(ziel)}${lagerText}.`,
-    why: `Kostet ${def.pk} Kapital und ${def.kap} Dienstkapazität; Ergebnis in ${def.monate} Monaten. Aussicht ${opt.aussicht.wort}, Aufdeckungsrisiko ${opt.aussicht.aufWort}.`,
+    text: t("tag_t8.dienst.beginnt", { op: def.name, land: landFormen(ziel), lager: lagerText }),
+    why: t("tag_t8.dienst.beginnt.why", { pk: def.pk, kap: def.kap, n: def.monate, aussicht: opt.aussicht.wort, risiko: opt.aussicht.aufWort }),
   };
 }
 
@@ -314,36 +325,36 @@ function folgenDerAufdeckung(w: World, m: WeltModell, dz: DienstZustand, op: Ope
   const ziel = op.ziel;
   const def = OP_DEFS[op.art];
   beziehungAendern(w, ziel, { vertrauen: -6, konflikt: 5 });
-  out.push(`${akteurName(ziel)} bestellt den türkischen Botschafter ein`);
+  out.push(t("tag_t8.dienst.folge.botschafter", { name: akteurName(ziel) }));
   if (!erfolg || def.schwere >= 3) {
     wirke(w, "vertrauen_regierung", -1.5);
     wirke(w, "ansehen", -1);
-    out.push("Innenpolitischer Skandal: Die Opposition spricht von Amtsmissbrauch");
+    out.push(t("tag_t8.dienst.folge.skandal"));
   }
   if (!erfolg) {
     const partner = AKTEUR_IDS.filter((x) => x !== ziel && paarVon(w, ziel, x).buendnis >= 40)
       .sort((a, b) => paarVon(w, ziel, b).buendnis - paarVon(w, ziel, a).buendnis)
       .slice(0, 3);
     for (const x of partner) beziehungAendern(w, x, { vertrauen: -3 });
-    if (partner.length) out.push(`Partner von ${akteurDat(ziel)} gehen auf Distanz: ${partner.map(akteurName).join(", ")}`);
+    if (partner.length) out.push(t("tag_t8.dienst.folge.partner", { land: landFormen(ziel), liste: partner.map(akteurName).join(", ") }));
     if ((ziel === "USA" || ziel === "EU") && NET.index.has("auslandskapital")) {
       wirke(w, "auslandskapital", -2);
-      out.push("Strafmaßnahmen und Zurückhaltung der Investoren");
+      out.push(t("tag_t8.dienst.folge.strafen"));
     }
   }
   if (r.next() < 0.4) {
     dz.zaehler += 1;
     dz.eingehend.push({ id: dz.zaehler, von: ziel, art: r.next() < 0.5 ? "medien" : "einfluss", start: w.day + 30, ende: w.day + 150, aufgedeckt: false });
-    out.push(`Mit einem Gegenschlag ${akteurDat(ziel)} ist zu rechnen`);
+    out.push(t("tag_t8.dienst.folge.gegenschlag", { land: landFormen(ziel) }));
   }
   // Öffentlich: Die Zeitung und die Länderansicht zeigen die Aufdeckung
   weltNotiz(w, m, {
     art: "aufdeckung", id: ziel,
-    titel: `Spionagevorwürfe gegen die Türkei: ${akteurName(ziel)}`,
-    fakt: `${akteurName(ziel)} wirft dem türkischen Geheimdienst vor, sich in die Politik des Landes eingemischt zu haben (${def.name}). ${out[0]}.`,
+    titel: t("tag_t8.dienst.aufdeckung.titel", { name: akteurName(ziel) }),
+    fakt: t("tag_t8.dienst.aufdeckung.fakt", { name: akteurName(ziel), op: def.name, folge: out[0]! }),
     wertung: -0.3, gewicht: 0.9,
   });
-  addLog(w, "ereignis", `Spionagevorwürfe: ${akteurName(ziel)} deckt eine Operation auf`, out.join("; ") + ".");
+  addLog(w, "ereignis", t("tag_t8.dienst.aufdeckung.log", { name: akteurName(ziel) }), out.join("; ") + ".");
   return out;
 }
 
@@ -360,23 +371,23 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
       case "kandidat": {
         const wucht = (op.lager === "amtsfuehrung" ? -0.9 : 0.9) * (0.8 + 0.2 * (dz.zugang[op.ziel] ?? 0));
         e.einfluss = clamp((e.einfluss ?? 0) + wucht, -3, 3);
-        ergebnis = `Die Unterstützung ${op.lager === "amtsfuehrung" ? "der Amtsführung" : "des Herausforderers"} wirkt: Der Einfluss auf die Wahl ${wucht > 0 ? "wächst" : "sinkt"} auf ${nf(e.einfluss ?? 0)}. Die Wahl bleibt offen.`;
+        ergebnis = t("tag_t8.dienst.erg.kandidat", { lager: op.lager === "amtsfuehrung" ? "amtsfuehrung" : "herausforderer", richtung: wucht > 0 ? "auf" : "ab", wert: nf(e.einfluss ?? 0) });
         break;
       }
       case "desinfo":
         e.rueckhalt = clamp(Math.round((e.rueckhalt - 3.5) * 10) / 10, 0, 100);
-        ergebnis = `Die Kampagne verfängt: Der Rückhalt der Führung ${akteurDef(op.ziel).inLand} sinkt auf ${Math.round(e.rueckhalt)} von 100.`;
+        ergebnis = t("tag_t8.dienst.erg.desinfo", { land: landFormen(op.ziel), n: Math.round(e.rueckhalt) });
         break;
       case "netz":
         dz.zugang[op.ziel] = Math.min(netzMax(w), (dz.zugang[op.ziel] ?? 0) + 1);
-        ergebnis = `Das Einflussnetz wächst auf Stufe ${dz.zugang[op.ziel]}: Spätere Operationen gegen ${akteurAkk(op.ziel)} werden leichter.`;
+        ergebnis = t("tag_t8.dienst.erg.netz", { n: dz.zugang[op.ziel] ?? 0, land: landFormen(op.ziel) });
         break;
       case "cyber": {
         const p = pAmtsfuehrung(w, op.ziel);
         dz.lagebild[op.ziel] = { tag: w.day, pAmtsfuehrung: p };
         const fremd = dz.eingehend.filter((x) => x.von === op.ziel && !x.aufgedeckt);
         for (const x of fremd) x.aufgedeckt = true;
-        ergebnis = `Das Lagebild: Rückhalt der Führung ${Math.round(e.rueckhalt)} von 100, Stabilität ${Math.round(e.stabilitaet)} von 100${e.wahl ? `, die Amtsführung gewinnt die nächste Wahl mit etwa ${Math.round(p * 100)} Prozent` : ""}.${fremd.length ? ` Außerdem: ${fremd.length} Operation${fremd.length > 1 ? "en" : ""} von dort gegen die Türkei aufgedeckt.` : ""}`;
+        ergebnis = t("tag_t8.dienst.erg.cyber", { rueckhalt: Math.round(e.rueckhalt), stabilitaet: Math.round(e.stabilitaet), wahl: e.wahl ? t("tag_t8.dienst.erg.cyber.wahl", { n: Math.round(p * 100) }) : "", fremd: fremd.length ? t("tag_t8.dienst.erg.cyber.fremd", { n: fremd.length }) : "" });
         if (fremd.length) m.ereignisKandidaten = [...(m.ereignisKandidaten ?? []), { art: "einfluss", id: op.ziel, einfluss: fremd[0]!.art, opId: fremd[0]!.id }];
         break;
       }
@@ -397,7 +408,7 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
         break;
     }
   } else {
-    ergebnis = op.art === "kandidat" ? "Die Unterstützung bleibt ohne messbare Wirkung." : op.art === "cyber" ? "Der Zugang scheitert: kein verwertbares Lagebild." : "Die Operation verpufft.";
+    ergebnis = t(op.art === "kandidat" ? "tag_t8.dienst.erg.kandidat.nichts" : op.art === "cyber" ? "tag_t8.dienst.erg.cyber.nichts" : "tag_t8.dienst.erg.nichts");
   }
   let folgen: string[] = [];
   if (entdeckt) folgen = folgenDerAufdeckung(w, m, dz, op, erfolg, r);
@@ -410,7 +421,7 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
   }
   berichte(
     w, dz, `${def.name}: ${akteurName(op.ziel)}`,
-    `${erfolg ? "Erfolg" : "Fehlschlag"}${entdeckt ? ", aufgedeckt" : ", unentdeckt"}. ${ergebnis}${folgen.length ? ` Folgen: ${folgen.join("; ")}.` : ""}`,
+    t("tag_t8.dienst.ausgang", { erfolg: erfolg ? "ja" : "nein", entdeckt: entdeckt ? "ja" : "nein", ergebnis, folgen: folgen.length ? t("tag_t8.dienst.ausgang.folgen", { liste: folgen.join("; ") }) : "" }),
     entdeckt ? "aufgedeckt" : erfolg ? "erfolg" : "fehlschlag",
   );
 }
@@ -419,9 +430,9 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
 // Fremde Operationen gegen die Türkei
 
 export const EINGEHEND_NAME: Record<EingehendeOp["art"], string> = {
-  einfluss: "Einflussversuch vor der Wahl",
-  medien: "Medienkampagne",
-  abhoeren: "Abhöraktion",
+  get einfluss() { return t("tag_t8.dienst.eingehend.einfluss"); },
+  get medien() { return t("tag_t8.dienst.eingehend.medien"); },
+  get abhoeren() { return t("tag_t8.dienst.eingehend.abhoeren"); },
 };
 
 function wirkeEingehend(w: World, art: EingehendeOp["art"], faktor: number): void {
@@ -586,17 +597,17 @@ export function inlandOptionen(w: World): InlandOption[] {
     let grund: string | undefined;
     if (laufend.has(art)) grund = t("behoerden.mit.inland.grund.laeuft");
     else if (art === "schutz" && (dz.schutzBis ?? -1) > w.day) grund = t("behoerden.mit.inland.grund.schutz", { monate: Math.ceil(((dz.schutzBis ?? 0) - w.day) / 30) });
-    else if (spiel.kapital < def.pk) grund = "Dafür fehlt Kapital.";
-    else if (dz.kapazitaet < def.kap) grund = "Dafür fehlt Dienstkapazität: laufende Operationen binden sie.";
+    else if (spiel.kapital < def.pk) grund = t("tag_t8.dienst.grund.kapital");
+    else if (dz.kapazitaet < def.kap) grund = t("tag_t8.dienst.grund.kapazitaet");
     return { def, name: t(`behoerden.mit.inland.${art}.name`), text: t(`behoerden.mit.inland.${art}.text`), moeglich: !grund, ...(grund ? { grund } : {}), p: a.p, pLeck: a.pLeck };
   });
 }
 
 export function ordneInlandAn(w: World, art: InlandArt): { ok: boolean; text: string; why?: string } {
-  if (!w.spiel) return { ok: false, text: "Ohne Spielschleife gibt es keinen Dienst." };
+  if (!w.spiel) return { ok: false, text: t("tag_t8.dienst.fehlt.spiel") };
   const opt = inlandOptionen(w).find((o) => o.def.art === art);
-  if (!opt) return { ok: false, text: "Diese Operation gibt es nicht." };
-  if (!opt.moeglich) return { ok: false, text: opt.grund ?? "Das geht gerade nicht." };
+  if (!opt) return { ok: false, text: t("tag_t8.dienst.fehlt.op") };
+  if (!opt.moeglich) return { ok: false, text: opt.grund ?? t("tag_t8.verm.geht_nicht") };
   const dz = dienst(w);
   const def = opt.def;
   w.spiel.kapital -= def.pk;

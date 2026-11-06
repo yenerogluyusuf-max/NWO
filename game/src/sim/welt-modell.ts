@@ -38,7 +38,7 @@ import { addDays } from "./dates";
 import { wirke } from "./wirkung";
 import { Rng } from "./rng";
 import type { World } from "./types";
-import { aktuelleSprache, t as tx } from "../i18n";
+import { aktuelleLocale, aktuelleSprache, t as tx } from "../i18n";
 
 // ---------------------------------------------------------------------------
 // Typen
@@ -227,6 +227,15 @@ export function akteurAkk(id: string): string {
   const w = WEITERE_NACH_ID.get(id);
   return w ? w.akk : land(id).akk;
 }
+/** Name mit Fällen für den Katalog: im Deutschen Dativ und Akkusativ aus den Daten, sonst der Name der Sprache. */
+function formenVon(id: string): { nom: string; dat?: string; akk?: string; loc?: string } {
+  const name = akteurName(id);
+  if (aktuelleSprache() !== "de") return { nom: name };
+  return { nom: name, dat: akteurDat(id), akk: akteurAkk(id), loc: akteurDef(id).inLand };
+}
+/** Art einer Wahl in der Sprache des Spiels; die Daten führen sie deutsch, und der Code vergleicht mit dem deutschen Wort. */
+const WAHLARTEN: Record<string, string> = { Parlamentswahl: "parlament", Präsidentenwahl: "praesident", Europawahl: "europa", Zwischenwahlen: "zwischen", Unterhauswahl: "unterhaus", Reichstagswahl: "reichstag", Parteitag: "parteitag", Nationalratswahl: "nationalrat", "Ende der Übergangsphase": "uebergang", Dumawahl: "duma", Bundestagswahl: "bundestag", "Wahl nach verlängerter Übergangsphase": "uebergangVerlaengert" };
+export const wahlArtName = (art: string): string => (WAHLARTEN[art] ? tx(`tag_t8.wahlart.${WAHLARTEN[art]}`) : art);
 export function weitereDef(id: string): WeitereDef | undefined {
   return WEITERE_NACH_ID.get(id);
 }
@@ -237,7 +246,8 @@ export function weitereDef(id: string): WeitereDef | undefined {
 const clamp = (x: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, x));
 const r2 = (x: number): number => Math.round(x * 100) / 100;
 const r1 = (x: number): number => Math.round(x * 10) / 10;
-export const nf = (x: number, d = 1): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+// Zahlen in der Sprache des Spiels (Deutsch unverändert „1,5“)
+export const nf = (x: number, d = 1): string => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
 export function hashInt(s: string): number {
   let h = 2166136261;
@@ -750,17 +760,17 @@ function wahlPruefen(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       e.rueckhalt = r1(clamp(e.rueckhalt - 3, 0, 100));
       bleibt = true;
     } else bleibt = rng.next() < pAmtsfuehrung(w, d.id);
-    const stand = `Rückhalt ${Math.round(e.rueckhalt)} von 100; Wachstum ${nf(e.wachstum)} Prozent, Inflation ${nf(e.inflation)} Prozent`;
-    const haltungText = ch ? ` Der Herausforderer galt als ${haltungWortVon(ch.kurs)}.` : "";
+    const stand = tx("tag_t8.welt.wahl.stand", { rueckhalt: Math.round(e.rueckhalt), wachstum: nf(e.wachstum), inflation: nf(e.inflation) });
+    const haltungText = ch ? tx("tag_t8.welt.wahl.herausforderer", { haltung: haltungWortVon(ch.kurs) }) : "";
     e.einfluss = 0;
     if (bleibt) {
       notiz(w, m, {
-        art: "wahl", id: d.id, titel: `${wahl.art} ${d.inLand}: ${d.regierung} bleibt`,
-        fakt: `Bei der ${wahl.art} ${d.inLand} setzt sich die bisherige Führung durch (${stand}).${haltungText}`,
+        art: "wahl", id: d.id, titel: tx("tag_t8.welt.wahl.titel", { art: wahlArtName(wahl.art), land: formenVon(d.id), regierung: d.regierung }),
+        fakt: tx("tag_t8.welt.wahl.fakt", { art: wahlArtName(wahl.art), land: formenVon(d.id), stand, herausforderer: haltungText }),
         wertung: 0, gewicht: WICHTIG_FUER_TUERKEI.has(d.id) ? 0.6 : 0.35,
       });
     } else {
-      machtwechsel(w, m, d, rng, `bei der ${wahl.art}`, ch?.kurs);
+      machtwechsel(w, m, d, rng, tx("tag_t8.welt.wie.wahl", { art: wahlArtName(wahl.art) }), ch?.kurs);
     }
     e.wahl = naechsteWahl(w, d);
     // Eine Übergangsphase, die nicht endet, wird verlängert: zwei Jahre später steht der nächste Anlauf an
@@ -773,7 +783,7 @@ function wahlPruefen(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
   // Wechsel außerhalb der Wahlen: Basisrate, bei Instabilität deutlich höher
   const basis = WELT_REGELN.wechselMonat[e.form];
   const hebel = 1 + 4 * Math.max(0, (40 - e.stabilitaet) / 40) + (e.krise?.art === "unruhen" ? 4 : 0);
-  if (rng.next() < basis * hebel) machtwechsel(w, m, d, rng, e.stabilitaet < 30 ? "nach Unruhen und Machtkampf" : e.form === "monarchie" ? "durch die Thronfolge" : "durch einen Machtwechsel im Inneren");
+  if (rng.next() < basis * hebel) machtwechsel(w, m, d, rng, tx(e.stabilitaet < 30 ? "tag_t8.welt.wie.machtkampf" : e.form === "monarchie" ? "tag_t8.welt.wie.thronfolge" : "tag_t8.welt.wie.innen"));
 }
 
 function machtwechsel(w: World, m: WeltModell, d: WeltDef, rng: Rng, wie: string, kursVorgabe?: -1 | 0 | 1): void {
@@ -787,13 +797,13 @@ function machtwechsel(w: World, m: WeltModell, d: WeltDef, rng: Rng, wie: string
   if (e.krise?.art === "unruhen") e.krise = undefined;
   // Die Beziehung zur Türkei bewegt sich sofort
   beziehungAendern(w, d.id, { vertrauen: e.kurs * 6, konflikt: -e.kurs * 4 });
-  const kursText = e.kurs === 1 ? "Die neue Führung sucht die Annäherung an Ankara." : e.kurs === -1 ? "Die neue Führung schlägt einen härteren Ton gegenüber Ankara an." : "Die neue Führung hält an der bisherigen Linie gegenüber Ankara fest.";
+  const kursText = tx(e.kurs === 1 ? "tag_t8.welt.kurs.freund" : e.kurs === -1 ? "tag_t8.welt.kurs.feind" : "tag_t8.welt.kurs.gleich");
   notiz(w, m, {
-    art: "machtwechsel", id: d.id, titel: `Machtwechsel ${d.inLand}`,
-    fakt: `Die Führung ${d.inLand} wechselt ${wie}. ${kursText} Die Lage: Rückhalt der neuen Führung ${Math.round(e.rueckhalt)} von 100, Wachstum ${nf(e.wachstum)} Prozent, Inflation ${nf(e.inflation)} Prozent.`,
+    art: "machtwechsel", id: d.id, titel: tx("tag_t8.welt.machtwechsel.titel", { land: formenVon(d.id) }),
+    fakt: tx("tag_t8.welt.machtwechsel.fakt", { land: formenVon(d.id), wie, kurs: kursText, rueckhalt: Math.round(e.rueckhalt), wachstum: nf(e.wachstum), inflation: nf(e.inflation) }),
     wertung: 0.25 * e.kurs, gewicht: WICHTIG_FUER_TUERKEI.has(d.id) ? 0.95 : 0.5,
   });
-  addLog(w, "ereignis", `Machtwechsel ${d.inLand}`, kursText);
+  addLog(w, "ereignis", tx("tag_t8.welt.machtwechsel.titel", { land: formenVon(d.id) }), kursText);
   m.ereignisKandidaten = [...(m.ereignisKandidaten ?? []), { art: "machtwechsel", id: d.id, kurs: e.kurs }];
 }
 
@@ -814,7 +824,7 @@ function krisePruefen(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
     e.krise = undefined;
     if (k.art === "unruhen") {
       if (e.stabilitaet < 25 && d.form !== "demokratie") {
-        machtwechsel(w, m, d, rng, "nach den Unruhen");
+        machtwechsel(w, m, d, rng, tx("tag_t8.welt.wie.nachUnruhen"));
         return;
       }
       e.stabilitaet = r1(clamp(e.stabilitaet + 8, 0, 100));
@@ -822,8 +832,8 @@ function krisePruefen(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       setzePaar(m, d.id, k.gegen, { spannung: -12 });
     }
     notiz(w, m, {
-      art: "krise_ende", id: d.id, titel: `${KRISE_NAME[k.art]} ${d.inLand} klingt ab`,
-      fakt: `Die Lage ${d.inLand} beruhigt sich: Stabilität ${Math.round(e.stabilitaet)} von 100, Inflation ${nf(e.inflation)} Prozent.`,
+      art: "krise_ende", id: d.id, titel: tx("tag_t8.welt.krise.ende.titel", { krise: KRISE_NAME[k.art], land: formenVon(d.id) }),
+      fakt: tx("tag_t8.welt.krise.ende.fakt", { land: formenVon(d.id), stabilitaet: Math.round(e.stabilitaet), inflation: nf(e.inflation) }),
       wertung: 0.1, gewicht: WICHTIG_FUER_TUERKEI.has(d.id) ? 0.5 : 0.25,
     });
     return;
@@ -850,20 +860,21 @@ function krisePruefen(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
   }
   const fakt =
     art === "waehrung"
-      ? `Die Inflation ${d.inLand} springt auf ${nf(e.inflation)} Prozent, das Defizit liegt bei ${nf(-e.defizit)} Prozent des BIP.`
+      ? tx("tag_t8.welt.krise.waehrung", { land: formenVon(d.id), inflation: nf(e.inflation), defizit: nf(-e.defizit) })
       : art === "zahlungsausfall"
-        ? `${akteurName(d.id)} kann seine Schulden von zuletzt ${nf(e.schulden + 20, 0)} Prozent des BIP nicht mehr bedienen; die Gläubiger verhandeln über einen Schuldenschnitt.`
-        : `Die Stabilität ${d.inLand} fällt auf ${Math.round(e.stabilitaet)} von 100, der Rückhalt der Führung auf ${Math.round(e.rueckhalt)}.`;
-  notiz(w, m, { art: "krise", id: d.id, titel: `${KRISE_NAME[art]} ${d.inLand}`, fakt, wertung: -0.3 * gewicht, gewicht });
-  addLog(w, "ereignis", `${KRISE_NAME[art]} ${d.inLand}`, fakt);
+        ? tx("tag_t8.welt.krise.zahlungsausfall", { name: akteurName(d.id), schulden: nf(e.schulden + 20, 0) })
+        : tx("tag_t8.welt.krise.unruhen", { land: formenVon(d.id), stabilitaet: Math.round(e.stabilitaet), rueckhalt: Math.round(e.rueckhalt) });
+  const kriseTitel = tx("tag_t8.welt.krise.titel", { krise: KRISE_NAME[art], land: formenVon(d.id) });
+  notiz(w, m, { art: "krise", id: d.id, titel: kriseTitel, fakt, wertung: -0.3 * gewicht, gewicht });
+  addLog(w, "ereignis", kriseTitel, fakt);
   m.ereignisKandidaten = [...(m.ereignisKandidaten ?? []), { art: "krise", id: d.id, krise: art }];
 }
 
 export const KRISE_NAME: Record<KriseArt, string> = {
-  waehrung: "Währungskrise",
-  zahlungsausfall: "Staatsbankrott",
-  unruhen: "Unruhen",
-  grenzkrise: "Grenzgefechte",
+  get waehrung() { return tx("tag_t8.welt.krise.name.waehrung"); },
+  get zahlungsausfall() { return tx("tag_t8.welt.krise.name.zahlungsausfall"); },
+  get unruhen() { return tx("tag_t8.welt.krise.name.unruhen"); },
+  get grenzkrise() { return tx("tag_t8.welt.krise.name.grenzkrise"); },
 };
 
 // ---------------------------------------------------------------------------
@@ -919,7 +930,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       const p = wahlAus(freunde);
       setzePaar(m, d.id, p, { buendnis: 5, spannung: -2 });
       if (WICHTIG_FUER_TUERKEI.has(d.id) && WICHTIG_FUER_TUERKEI.has(p) && rng.next() < 0.5) {
-        notiz(w, m, { art: "gipfel", id: d.id, gegen: p, titel: `Gipfel: ${akteurName(d.id)} und ${akteurName(p)}`, fakt: `${akteurName(d.id)} und ${akteurName(p)} vertiefen ihre Zusammenarbeit (Bündnis ${paarVon(w, d.id, p).buendnis}).`, wertung: 0, gewicht: 0.3 });
+        notiz(w, m, { art: "gipfel", id: d.id, gegen: p, titel: tx("tag_t8.welt.gipfel.titel", { a: akteurName(d.id), b: akteurName(p) }), fakt: tx("tag_t8.welt.gipfel.fakt", { a: akteurName(d.id), b: akteurName(p), n: paarVon(w, d.id, p).buendnis }), wertung: 0, gewicht: 0.3 });
       }
       break;
     }
@@ -930,7 +941,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       e.wachstum = r2(clamp(e.wachstum + 0.05, -15, 15));
       m.laender[p]!.wachstum = r2(clamp(m.laender[p]!.wachstum + 0.05, -15, 15));
       if (vorher < 60 && wichtig(d.id, p) > 0.5) {
-        notiz(w, m, { art: "gipfel", id: d.id, gegen: p, titel: `Handelsabkommen: ${akteurName(d.id)} und ${akteurName(p)}`, fakt: `Der Handel zwischen ${akteurDat(d.id)} und ${akteurDat(p)} wächst (Handelsverflechtung ${paarVon(w, d.id, p).handel} von 100).`, wertung: 0, gewicht: 0.3 });
+        notiz(w, m, { art: "gipfel", id: d.id, gegen: p, titel: tx("tag_t8.welt.handel.titel", { a: akteurName(d.id), b: akteurName(p) }), fakt: tx("tag_t8.welt.handel.fakt", { a: formenVon(d.id), b: formenVon(p), n: paarVon(w, d.id, p).handel }), wertung: 0, gewicht: 0.3 });
       }
       break;
     }
@@ -939,7 +950,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       setzePaar(m, d.id, p, { buendnis: 6, handel: 3 });
       m.laender[p]!.stabilitaet = r1(clamp(m.laender[p]!.stabilitaet + 2.5, 0, 100));
       e.schulden = r2(e.schulden + 0.1);
-      notiz(w, m, { art: "hilfe", id: d.id, gegen: p, titel: `${akteurName(d.id)} hilft ${akteurDat(p)}`, fakt: `${akteurName(d.id)} stützt ${akteurAkk(p)} mit Finanzhilfe; deren Stabilität steigt auf ${Math.round(m.laender[p]!.stabilitaet)} von 100.`, wertung: 0, gewicht: wichtig(d.id, p) * 0.7 });
+      notiz(w, m, { art: "hilfe", id: d.id, gegen: p, titel: tx("tag_t8.welt.hilfe.titel", { a: akteurName(d.id), b: formenVon(p) }), fakt: tx("tag_t8.welt.hilfe.fakt", { a: akteurName(d.id), b: formenVon(p), n: Math.round(m.laender[p]!.stabilitaet) }), wertung: 0, gewicht: wichtig(d.id, p) * 0.7 });
       break;
     }
     case "ruestung": {
@@ -948,7 +959,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       e.ruestung = r2(clamp(e.ruestung + plus, 0.3, 40));
       setzePaar(m, d.id, p, { spannung: 2 });
       if (plus > 0.22 && WICHTIG_FUER_TUERKEI.has(d.id)) {
-        notiz(w, m, { art: "ruestung", id: d.id, gegen: p, titel: `${akteurName(d.id)} rüstet auf`, fakt: `Die Rüstungsausgaben ${d.inLand} steigen auf ${nf(e.ruestung)} Prozent des BIP; ${akteurName(p)} gilt als wichtigster Rivale.`, wertung: -0.1, gewicht: 0.45 });
+        notiz(w, m, { art: "ruestung", id: d.id, gegen: p, titel: tx("tag_t8.welt.ruestung.titel", { a: akteurName(d.id) }), fakt: tx("tag_t8.welt.ruestung.fakt", { land: formenVon(d.id), n: nf(e.ruestung), rivale: akteurName(p) }), wertung: -0.1, gewicht: 0.45 });
       }
       break;
     }
@@ -958,7 +969,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       if (d.form !== "demokratie" && e.rueckhalt < 40) {
         e.rueckhalt = r1(clamp(e.rueckhalt + 1.5, 0, 100));
         if (WICHTIG_FUER_TUERKEI.has(d.id) && rng.next() < 0.4) {
-          notiz(w, m, { art: "bruch", id: d.id, gegen: p, titel: `${akteurName(d.id)} sucht den Streit mit ${akteurDat(p)}`, fakt: `Bei einem Rückhalt von nur ${Math.round(e.rueckhalt)} von 100 lenkt ${d.regierung} von den Problemen im Inneren ab; die Spannung mit ${akteurDat(p)} steigt auf ${paarVon(w, d.id, p).spannung}.`, wertung: -0.1, gewicht: 0.45 });
+          notiz(w, m, { art: "bruch", id: d.id, gegen: p, titel: tx("tag_t8.welt.bruch.titel", { a: akteurName(d.id), b: formenVon(p) }), fakt: tx("tag_t8.welt.bruch.fakt", { rueckhalt: Math.round(e.rueckhalt), regierung: d.regierung, a: akteurName(d.id), b: formenVon(p), n: paarVon(w, d.id, p).spannung }), wertung: -0.1, gewicht: 0.45 });
         }
       }
       break;
@@ -968,7 +979,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       const t = m.laender[p]!;
       t.sanktion = r2(clamp(t.sanktion + (d.id === "USA" ? 0.6 : d.id === "EU" ? 0.5 : 0.3), 0, 3));
       setzePaar(m, d.id, p, { spannung: 3, handel: -8, buendnis: -3 });
-      notiz(w, m, { art: "sanktion", id: d.id, gegen: p, titel: `${akteurName(d.id)} verschärft die Sanktionen gegen ${akteurAkk(p)}`, fakt: `Der Handel zwischen den beiden fällt auf ${paarVon(w, d.id, p).handel} von 100; die Sanktionslast ${p === "RUS" || p === "IRN" ? "des Zielstaats" : "für " + akteurAkk(p)} steigt auf ${nf(t.sanktion)} von 3.`, wertung: p === "RUS" || p === "IRN" || p === "CHN" ? -0.15 : -0.05, gewicht: wichtig(d.id, p) });
+      notiz(w, m, { art: "sanktion", id: d.id, gegen: p, titel: tx("tag_t8.welt.sanktion.titel", { a: akteurName(d.id), b: formenVon(p) }), fakt: tx("tag_t8.welt.sanktion.fakt", { handel: paarVon(w, d.id, p).handel, ziel: p === "RUS" || p === "IRN" ? "ziel" : "land", b: formenVon(p), n: nf(t.sanktion) }), wertung: p === "RUS" || p === "IRN" || p === "CHN" ? -0.15 : -0.05, gewicht: wichtig(d.id, p) });
       break;
     }
     case "buendnis": {
@@ -983,7 +994,7 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       }
       const nach = paarVon(w, d.id, p).buendnis;
       if (vor < 60 && nach >= 60) {
-        notiz(w, m, { art: "pakt", id: d.id, gegen: p, titel: `${akteurName(d.id)} und ${akteurName(p)} schließen enger zusammen`, fakt: `Das Bündnis zwischen den beiden steigt auf ${nach}; gemeinsamer Gegenspieler ist ${akteurName(gemeinsam[0]!)}.`, wertung: 0, gewicht: wichtig(d.id, p) });
+        notiz(w, m, { art: "pakt", id: d.id, gegen: p, titel: tx("tag_t8.welt.pakt.titel", { a: akteurName(d.id), b: akteurName(p) }), fakt: tx("tag_t8.welt.pakt.fakt", { n: nach, gegner: akteurName(gemeinsam[0]!) }), wertung: 0, gewicht: wichtig(d.id, p) });
       }
       break;
     }
@@ -992,14 +1003,14 @@ function handeln(w: World, m: WeltModell, d: WeltDef, rng: Rng): void {
       const vz = VERMITTLUNG_PAARE.some((v) => paarSchluessel(v.a, v.b) === paarSchluessel(d.id, p));
       if (vz) break;
       setzePaar(m, d.id, p, { spannung: -6, handel: 3 });
-      notiz(w, m, { art: "entspannung", id: d.id, gegen: p, titel: `${akteurName(d.id)} und ${akteurName(p)} nähern sich an`, fakt: `Wirtschaftliche Not drängt zur Entspannung: Die Spannung zwischen den beiden sinkt auf ${paarVon(w, d.id, p).spannung}.`, wertung: 0.1, gewicht: wichtig(d.id, p) * 0.8 });
+      notiz(w, m, { art: "entspannung", id: d.id, gegen: p, titel: tx("tag_t8.welt.entspannung.titel", { a: akteurName(d.id), b: akteurName(p) }), fakt: tx("tag_t8.welt.entspannung.fakt", { n: paarVon(w, d.id, p).spannung }), wertung: 0.1, gewicht: wichtig(d.id, p) * 0.8 });
       break;
     }
     case "repression": {
       e.stabilitaet = r1(clamp(e.stabilitaet + 4, 0, 100));
       e.rueckhalt = r1(clamp(e.rueckhalt - 2.5, 0, 100));
       if (WICHTIG_FUER_TUERKEI.has(d.id)) {
-        notiz(w, m, { art: "repression", id: d.id, titel: `${akteurName(d.id)} verschärft den Kurs im Inneren`, fakt: `Bei einer Stabilität von ${Math.round(e.stabilitaet)} von 100 setzt ${d.regierung} auf Härte; der Rückhalt sinkt auf ${Math.round(e.rueckhalt)}.`, wertung: -0.05, gewicht: 0.4 });
+        notiz(w, m, { art: "repression", id: d.id, titel: tx("tag_t8.welt.repression.titel", { a: akteurName(d.id) }), fakt: tx("tag_t8.welt.repression.fakt", { stabilitaet: Math.round(e.stabilitaet), regierung: d.regierung, a: akteurName(d.id), rueckhalt: Math.round(e.rueckhalt) }), wertung: -0.05, gewicht: 0.4 });
       }
       break;
     }
@@ -1142,63 +1153,62 @@ export function gestenFuerWeitere(w: World, id: string): GesteSicht[] {
     const def = AKTIONEN[a];
     const rest = (e.zuletzt?.[a] ?? -1e9) + def.abkuehlung - w.day;
     let grund: string | undefined;
-    if (rest > 0) grund = `Wieder möglich in ${rest} Tagen.`;
-    else if (spiel.kapital < def.pk) grund = "Dafür fehlt Kapital.";
-    else if (a === "handel" && tr.vertrauen < 40) grund = "Dafür ist das Vertrauen noch zu gering.";
-    else if (a === "ruestung" && tr.sicherheit < 35) grund = "Dafür ist die Sicherheitszusammenarbeit zu dünn.";
-    else if (a === "entspannen" && tr.konflikt < 30) grund = "Es gibt keinen Streit, der entschärft werden müsste.";
-    else if (a === "gipfel" && tr.konflikt >= 80) grund = "Solange der Konflikt so heftig ist, kommt kein Treffen zustande.";
-    else if (a === "gipfel" && tr.vertrauen >= 82) grund = "Das Verhältnis ist so gut, wie es allein durch Treffen wird.";
-    else if (a === "hilfe" && tr.handel >= 88 && tr.vertrauen >= 82) grund = "Mehr Hilfe würde das Verhältnis nicht mehr verbessern.";
+    if (rest > 0) grund = tx("tag_t8.verm.grund.wieder", { n: rest });
+    else if (spiel.kapital < def.pk) grund = tx("tag_t8.dienst.grund.kapital");
+    else if (a === "handel" && tr.vertrauen < 40) grund = tx("tag_t8.aussen.geste.vertrauen");
+    else if (a === "ruestung" && tr.sicherheit < 35) grund = tx("tag_t8.aussen.geste.sicherheit");
+    else if (a === "entspannen" && tr.konflikt < 30) grund = tx("tag_t8.aussen.geste.keinStreit");
+    else if (a === "gipfel" && tr.konflikt >= 80) grund = tx("tag_t8.aussen.geste.zuHeftig");
+    else if (a === "gipfel" && tr.vertrauen >= 82) grund = tx("tag_t8.aussen.geste.gipfelGenug");
+    else if (a === "hilfe" && tr.handel >= 88 && tr.vertrauen >= 82) grund = tx("tag_t8.aussen.geste.hilfeGenug");
     return { aktion: def, moeglich: !grund, ...(grund ? { grund } : {}) };
   });
 }
 
 export function fuehreGesteAus(w: World, id: string, aktion: AktionId): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es keine Außenpolitik." };
+  if (!spiel) return { ok: false, text: tx("tag_t8.block.fehlt.spiel") };
   const sicht = gestenFuerWeitere(w, id).find((x) => x.aktion.id === aktion);
-  if (!sicht) return { ok: false, text: "Diese Geste gibt es diesem Land gegenüber nicht." };
-  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "Das geht gerade nicht." };
+  if (!sicht) return { ok: false, text: tx("tag_t8.aussen.geste.gibtsNicht") };
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? tx("tag_t8.verm.geht_nicht") };
   const def = sicht.aktion;
   const e = eigenVon(w, id);
-  const dat = akteurDat(id);
-  const akk = akteurAkk(id);
+  const land = formenVon(id);
   spiel.kapital -= def.pk;
   (e.zuletzt ??= {})[aktion] = w.day;
   let text = "";
-  let why = `Kostet ${def.pk} Kapital.`;
+  let why = tx("tag_t8.aussen.kostet", { pk: def.pk });
   switch (aktion) {
     case "gipfel":
       beziehungAendern(w, id, { vertrauen: 8, konflikt: -3 });
-      text = `Gipfeltreffen mit ${dat}: Das Verhältnis wird wärmer (Vertrauen ${Math.round(e.tr!.vertrauen)}).`;
+      text = tx("tag_t8.aussen.geste.gipfel", { land, n: Math.round(e.tr!.vertrauen) });
       break;
     case "handel":
       beziehungAendern(w, id, { handel: 12, vertrauen: 3 });
       wirke(w, "export", 1.2);
-      text = `Handelsabkommen mit ${dat}: Der Handel wächst (Handel ${Math.round(e.tr!.handel)}).`;
+      text = tx("tag_t8.aussen.geste.handel", { land, n: Math.round(e.tr!.handel) });
       break;
     case "ruestung":
       beziehungAendern(w, id, { sicherheit: 12, vertrauen: 4 });
       bucheFinanzsaldo(w.economy, 0.1);
-      text = `Rüstungsgeschäft mit ${dat}: Die Zusammenarbeit wächst (Sicherheit ${Math.round(e.tr!.sicherheit)}).`;
-      why += " Etwa 0,1 % des BIP.";
+      text = tx("tag_t8.aussen.geste.ruestung", { land, n: Math.round(e.tr!.sicherheit) });
+      why += tx("tag_t8.aussen.bip", { n: 0.1 });
       break;
     case "druck":
       beziehungAendern(w, id, { vertrauen: -8, konflikt: 6 });
       wirke(w, "konservative", 0.8);
-      text = `Ankara macht öffentlich Druck auf ${akk}: Zu Hause gibt es Beifall, im Ausland Ärger.`;
+      text = tx("tag_t8.aussen.geste.druck", { land });
       break;
     case "entspannen":
       beziehungAendern(w, id, { konflikt: -12, vertrauen: 4 });
-      text = `Gespräche mit ${dat} entschärfen den Streit (Konflikt ${Math.round(e.tr!.konflikt)}).`;
-      why += " Nationalisten zu Hause sehen darin Schwäche.";
+      text = tx("tag_t8.aussen.geste.entspannen", { land, n: Math.round(e.tr!.konflikt) });
+      why += tx("tag_t8.aussen.geste.entspannen.why");
       break;
     case "hilfe":
       beziehungAendern(w, id, { vertrauen: 6, handel: 8, konflikt: -4 });
       bucheFinanzsaldo(w.economy, 0.1);
-      text = `Wirtschaftshilfe für ${akk}: Das Land rückt näher (Vertrauen ${Math.round(e.tr!.vertrauen)}).`;
-      why += " Etwa 0,1 % des BIP.";
+      text = tx("tag_t8.aussen.geste.hilfe", { land, n: Math.round(e.tr!.vertrauen) });
+      why += tx("tag_t8.aussen.bip", { n: 0.1 });
       break;
   }
   addLog(w, "entscheidung", text, why);

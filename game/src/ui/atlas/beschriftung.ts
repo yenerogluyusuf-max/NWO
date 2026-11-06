@@ -5,7 +5,7 @@
 
 import { lonLatToUv, type AtlasScene, type Relief } from "./scene";
 import type { KBesitzer } from "./daten";
-import { aktuelleSprache } from "../../i18n";
+import { aktuelleLocale, aktuelleSprache } from "../../i18n";
 import { landName } from "../ebenen";
 
 const MEERE_NAMEN: Record<string, { tr: string; en: string }> = {
@@ -396,7 +396,7 @@ export class Beschriftung {
       const uv = this.uv.get(g)!;
       const p = atlas.project(uv[0], uv[1]);
       if (!p.sichtbar || !sichtbar(p.x, p.y, 10) || p.y < 62) continue;
-      const text = `${g.n} ${g.ele.toLocaleString("de-DE")} m`;
+      const text = `${g.n} ${g.ele.toLocaleString(aktuelleLocale())} m`;
       const font = schrift(10.5, 500, true);
       const br = this.breite(font, text);
       const rect = { x: p.x + 6, y: p.y - 7, w: br + 4, h: 14 };
@@ -586,7 +586,7 @@ export class Beschriftung {
     ctx.fillStyle = "#f6ecd6";
     ctx.strokeText("0", x0, y - 3);
     ctx.fillText("0", x0, y - 3);
-    const text = `${km.toLocaleString("de-DE")} km`;
+    const text = `${km.toLocaleString(aktuelleLocale())} km`;
     ctx.textAlign = "right";
     ctx.strokeText(text, x0 + len, y - 3);
     ctx.fillText(text, x0 + len, y - 3);

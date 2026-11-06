@@ -11,7 +11,7 @@ import { Flagge } from "../art/Flaggen";
 import { kannZahlen } from "../../sim/kapital";
 
 import { t, zahl } from "../../i18n";
-const ZOPA_LABEL = { geschlossen: "geschlossen", schmal: "schmal", breit: "breit" } as const;
+const zopaLabel = (stufe: "geschlossen" | "schmal" | "breit"): string => t(`tag_t8.verm.zopaStufe.${stufe}`);
 
 function ParteiBlock({ seite, vertrauen, titel }: { seite: KonfliktSicht["def"]["a"]; vertrauen: number; titel: string }) {
   return (
@@ -77,7 +77,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
               <span aria-hidden>⇄</span>
               {k.def.b.land && <Flagge id={k.def.b.land} breite={26} titel={k.def.b.name} />}
               {/* Der Spielraum steht in der Zone möglicher Einigung des gewählten Konflikts */}
-              <span className="we-konflikt-zahlen" title={t("ui2.ui.welt.Vermittlung.63606da", { p0: Math.round(k.z.reif), p1: Math.round(k.z.konfliktIndex), p2: ZOPA_LABEL[k.zopa.stufe] })}>
+              <span className="we-konflikt-zahlen" title={t("ui2.ui.welt.Vermittlung.63606da", { p0: Math.round(k.z.reif), p1: Math.round(k.z.konfliktIndex), p2: zopaLabel(k.zopa.stufe) })}>
                 {t("tag_t7.verm.zahlen", { reife: Math.round(k.z.reif), konflikt: Math.round(k.z.konfliktIndex) })}
               </span>
             </span>
@@ -108,7 +108,7 @@ export function Vermittlung({ world, refresh }: { world: World; refresh: () => v
         <div className={`we-zopa zopa-${s.zopa.stufe}`}>
           <div className="we-zopa-kopf">
             <span>{t("ui.welt.Vermittlung.50a2ead")}</span>
-            <b>{ZOPA_LABEL[s.zopa.stufe]}</b>
+            <b>{zopaLabel(s.zopa.stufe)}</b>
           </div>
           <div className="we-zopa-band" aria-label={t("ui2.ui.welt.Vermittlung.d44ed47", { p0: s.zopa.breite })}>
             <i style={{ width: `${s.zopa.breite}%` }} />

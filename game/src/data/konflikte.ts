@@ -7,6 +7,8 @@
 // Alle Zahlen sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen; Tatsachen stehen
 // nur in den Texten und sind in der Recherche belegt (Feld „quelle").
 
+import { datenFelder, datenTexte } from "../i18n/daten";
+
 /** Eine Konfliktpartei: ein Spiel-Land oder ein nur benannter Akteur (Fraktion ohne eigene Länderakte). */
 export interface KonfliktPartei {
   /** Land-Kennung für die Beziehungsmechanik (Vertrauen, Konflikt-Ausstrahlung); null = kein Akteur der Länderliste */
@@ -335,3 +337,15 @@ export const VORBEREITUNGEN: Record<VorbereitungId, VorbereitungDef> = {
     pk: 6, aufmerksamkeit: 8, abkuehlung: 240, reif: 13, konflikt: 2, ansehen: 1,
   },
 };
+
+// Texte dreisprachig (Katalog tag_t8.json; Deutsch bleibt hier die Quelle, Kennungen sind die Konflikt-, Hebel- und Artkennungen).
+// Nur Anzeigefelder: Der Code vergleicht und würfelt ausschließlich über die Kennungen.
+datenTexte("konflikt", KONFLIKTE, (k) => k.id, ["titel", "text"]);
+datenFelder("konflikt.partei", KONFLIKTE.flatMap((k) => (["a", "b"] as const).flatMap((s) => (["name", "dat"] as const).map((feld) => ({ id: `${k.id}.${s}`, obj: k[s], feld })))));
+datenFelder("konflikt.forderung", KONFLIKTE.flatMap((k) => (["a", "b"] as const).flatMap((s) => k[s].forderungen.map((_, i) => ({ id: `${k.id}.${s}`, obj: k[s].forderungen, feld: String(i) })))));
+datenFelder("konflikt.rot", KONFLIKTE.flatMap((k) => (["a", "b"] as const).flatMap((s) => k[s].roteLinien.map((_, i) => ({ id: `${k.id}.${s}`, obj: k[s].roteLinien, feld: String(i) })))));
+datenFelder("konflikt.hebel", KONFLIKTE.flatMap((k) => k.hebel.flatMap((h) => (["label", "text", "richtung"] as const).map((feld) => ({ id: `${k.id}.${h.id}`, obj: h, feld })))));
+datenFelder("konflikt.paket", KONFLIKTE.flatMap((k) => k.paket.map((_, i) => ({ id: k.id, obj: k.paket, feld: String(i) }))));
+datenTexte("konflikt.spoiler", Object.values(SPOILER_ARTEN), (x) => x.id, ["label", "text"]);
+datenTexte("konflikt.garantie", Object.values(GARANTIEN), (x) => x.id, ["label", "text", "risiko"]);
+datenTexte("konflikt.vorbereitung", Object.values(VORBEREITUNGEN), (x) => x.id, ["label", "hinweis"]);

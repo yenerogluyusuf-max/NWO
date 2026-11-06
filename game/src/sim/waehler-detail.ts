@@ -20,6 +20,7 @@ import { vorlage } from "./ereignisse";
 import { verlaufVon } from "./waehler-verlauf";
 import type { EdgeSpec, NodeSpec } from "../data/politiknetz";
 import type { World } from "./types";
+import type { Zusage } from "./spiel-typen";
 import { t as tx } from "../i18n";
 
 const knoten = (id: string): NodeSpec => NET.nodes[NET.index.get(id)!]!;
@@ -702,7 +703,7 @@ export function schritteFuerZustimmung(world: World, n = 3, sprung = 20): Hilfe[
 
 export interface Handlungen {
   /** Offene Zusagen, deren Maßnahme der Gruppe wichtig ist */
-  zusagen: { id: string; von: string; text: string; faellig: number; massnahme: string; richtung: number }[];
+  zusagen: { id: string; von: string; text: string; msg?: Zusage["msg"]; faellig: number; massnahme: string; richtung: number }[];
   /** Offene Ereignisse, die mit einer Maßnahme geregelt werden können, an der die Gruppe hängt */
   ereignisse: { id: string; titel: string; massnahme: string }[];
   /** Wirkungsberichte zu Beschlüssen, die die Gruppe berühren */
@@ -719,7 +720,7 @@ export function handlungen(world: World, id: string): Handlungen {
   const spiel = world.spiel!;
   const zusagen = spiel.zusagen
     .filter((z) => !z.erfuellt && !z.gebrochen && z.massnahme && wichtig.has(z.massnahme))
-    .map((z) => ({ id: z.id, von: z.von, text: z.text, faellig: z.faellig, massnahme: z.massnahme!, richtung: z.richtung ?? 1 }));
+    .map((z) => ({ id: z.id, von: z.von, text: z.text, ...(z.msg ? { msg: z.msg } : {}), faellig: z.faellig, massnahme: z.massnahme!, richtung: z.richtung ?? 1 }));
   const ereignisse: Handlungen["ereignisse"] = [];
   for (const ev of spiel.ereignisse) {
     if (ev.vorlage.startsWith("start_")) continue;

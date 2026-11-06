@@ -15,6 +15,10 @@ import "../src/sim/personen-typen";
 import "../src/data/abkommen";
 import "../src/sim/verfassung";
 import "../src/data/gesetze";
+// tag_t8.json (T8): Konflikte der Vermittlung, Operationen des Dienstes und die übrigen Texte von T8 in drei Sprachen
+import "../src/sim/world";
+import "../src/data/konflikte";
+import "../src/sim/welt-dienst";
 
 type Tabelle = Record<string, string>;
 const lade = (s: string): Record<string, Tabelle> =>
@@ -26,7 +30,7 @@ const EN = lade("en");
 // Kataloge, die dieser Strang anlegt und vollständig in drei Sprachen führt
 // nacht_n4.json (N4): Namen der Verfassungsvarianten (sim/verfassung.ts, I-3) und die Texte der Gesetzgebung
 // nacht_int.json (Zusammenführung): Krisenrat beim Mindestlohn über die Kommission (sim/krisengesetze.ts)
-const VOLL = ["nacht_n4.json", "nacht_int.json", "netzknoten.json", "simtexte.json", "daten_skala.json", "daten_programm.json", "daten_amt.json", "daten_vorhaben.json", "daten_vorteil.json", "daten_erbe.json", "daten_region.json", "daten_person.json", "oberflaeche2.json", "simtexte2.json", "daten_abkommen.json"];
+const VOLL = ["nacht_n4.json", "nacht_int.json", "netzknoten.json", "simtexte.json", "daten_skala.json", "daten_programm.json", "daten_amt.json", "daten_vorhaben.json", "daten_vorteil.json", "daten_erbe.json", "daten_region.json", "daten_person.json", "oberflaeche2.json", "simtexte2.json", "daten_abkommen.json", "tag_t8.json"];
 
 describe("Datentexte", () => {
   it("der deutsche Katalog entspricht den angemeldeten Daten", () => {

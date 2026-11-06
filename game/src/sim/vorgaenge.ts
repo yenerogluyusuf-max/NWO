@@ -26,7 +26,7 @@ import { addLog } from "./log";
 import { pausiere, reichZustand, vorhabenSicht } from "./reich";
 import { katastrophenZustand } from "./katastrophe";
 import { istLagerPartei } from "./kommunen";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 import type { World } from "./types";
 import type { Figur } from "./spiel-typen";
 
@@ -273,7 +273,7 @@ export function wegeFuer(w: World, v: Vorgang): WegSicht[] {
   if (k.art === "finanzierung") {
     const vd = verdraengbares(w);
     return [
-      { id: "haushalt", pk: 0, k: "vorgang.weg.haushalt", p: { bip: bip.toLocaleString("de-DE") } },
+      { id: "haushalt", pk: 0, k: "vorgang.weg.haushalt", p: { bip: bip.toLocaleString(aktuelleLocale()) } },
       vd ? { id: "verdraengen", pk: 0, k: "vorgang.weg.verdraengen", p: { name: vd.name } } : { id: "verdraengen", pk: 0, grund: t("vorgang.grund.nichts_laufend"), k: "vorgang.weg.verdraengen", p: { name: "—" } },
       { id: "partner", pk: VORGANG.pkPartner, k: "vorgang.weg.partner" },
     ];

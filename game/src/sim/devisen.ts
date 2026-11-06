@@ -27,7 +27,7 @@ import { wirke } from "./wirkung";
 import { addMarke, defizitJetzt, defizitStrukturell, wirtschaftZustand } from "./wirtschaft";
 import { Rng } from "./rng";
 import { letzteVersorgung } from "./versorgung";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 import { bipUsdMrd } from "./staatsgeld";
 export { bipUsdMrd } from "./staatsgeld";
 
@@ -110,7 +110,7 @@ export const DEVISEN = {
   },
 } as const;
 
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nf = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
 /** Der Zustand der Devisen-Lage; ältere Spielstände legen ihn beim ersten Zugriff an. */
 export function devisenZustand(w: World): DevisenZustand {

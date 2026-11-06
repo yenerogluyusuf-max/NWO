@@ -8,7 +8,7 @@ import { ANBIETER, anbieterDef, erkenneAnbieter, schluesselWarnung } from "../ki
 import type { KiKonfig } from "../ki/typen";
 import type { KiZaehler } from "../ki/einstellungen";
 
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 interface Props {
   konfig: KiKonfig;
   aendere: (k: KiKonfig) => void;
@@ -144,7 +144,7 @@ export function KiEinstellungen({ konfig, aendere, weg, zaehler }: Props) {
           <input type="number" min={1} max={2000} value={konfig.maxAufrufe} onChange={(e) => setze({ maxAufrufe: Math.max(1, Number(e.target.value) || 1) })} />
         </label>
         <p className="gs-erkl klein">
-          {t("ui2.ui.KiEinstellungen.421418f", { p0: zaehler.aufrufe, p1: zaehler.tokensEin.toLocaleString("de-DE"), p2: zaehler.tokensAus.toLocaleString("de-DE") })}
+          {t("ui2.ui.KiEinstellungen.421418f", { p0: zaehler.aufrufe, p1: zaehler.tokensEin.toLocaleString(aktuelleLocale()), p2: zaehler.tokensAus.toLocaleString(aktuelleLocale()) })}
         </p>
       </div>
 

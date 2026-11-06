@@ -4,9 +4,9 @@
 
 import { Corners, Flourish } from "./art/Ornament";
 import type { KennzahlDelta, StandDerDinge as Stand } from "./standderdinge";
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 
-const nf = (x: number, d = 1) => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nf = (x: number, d = 1) => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });
 
 function DeltaChip({ d }: { d: KennzahlDelta }) {
   const bewegt = Math.abs(d.delta) >= 0.05;

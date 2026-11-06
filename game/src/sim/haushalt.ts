@@ -578,34 +578,34 @@ export function setzeEntwurf(w: World, idRoh: string, stufe: number): Ergebnis {
   const spiel = w.spiel;
   const id = postenId(idRoh);
   const p = POSTEN_NACH_ID[id];
-  if (!spiel || !p) return { ok: false, text: "Diesen Haushaltsposten gibt es nicht." };
+  if (!spiel || !p) return { ok: false, text: t("tag_t8.haushalt.keinPosten") };
   const z = haushaltZustand(w);
   const fenster = haushaltsfenster(w);
-  if (z.gesetz) return { ok: false, text: "Der Entwurf liegt schon im Parlament und lässt sich nicht mehr ändern." };
-  if (!fenster.offen) return { ok: false, text: `Der Entwurf ist nur im Haushaltsfenster möglich (Oktober, ${HAUSHALT_ZYKLUS.fensterTage} Tage); nächstes Fenster: Oktober ${fenster.naechsterStart.slice(0, 4)}.` };
+  if (z.gesetz) return { ok: false, text: t("tag_t8.haushalt.imParlamentFest") };
+  if (!fenster.offen) return { ok: false, text: t("tag_t8.haushalt.nurImFenster", { tage: HAUSHALT_ZYKLUS.fensterTage, jahr: fenster.naechsterStart.slice(0, 4) }) };
   const ziel = inSpanne(p, stufe);
   z.entwurf ??= {};
   if (ziel === (z.stufen[id] ?? 0)) delete z.entwurf[id];
   else z.entwurf[id] = ziel;
   const geaendert = Object.keys(z.entwurf).length;
   const text = ziel === (z.stufen[id] ?? 0) ? t("haushalt.entwurf.unveraendert", { posten: p.name }) : t("haushalt.entwurf.gestellt", { posten: p.name, stufe: `${ziel > 0 ? "+" : "−"}${Math.abs(ziel)}` });
-  return { ok: true, text, why: `Kostenlos im Haushaltsfenster. Wirkt erst, wenn das Haushaltsgesetz das Parlament passiert — der Entwurf umfasst jetzt ${geaendert} ${geaendert === 1 ? "Posten" : "Posten"}.` };
+  return { ok: true, text, why: t("tag_t8.haushalt.entwurfWhy", { n: geaendert }) };
 }
 
 /** Die Paketvorschläge des Finanzministeriums als Entwurf übernehmen (ersetzt den bisherigen Entwurf). */
 export function paketInEntwurf(w: World, id: string): Ergebnis {
   const paket = PAKETE[id];
-  if (!paket) return { ok: false, text: "Dieses Paket gibt es nicht." };
+  if (!paket) return { ok: false, text: t("tag_t8.haushalt.keinPaket") };
   const z = haushaltZustand(w);
   const fenster = haushaltsfenster(w);
-  if (!fenster.offen || z.gesetz) return { ok: false, text: "Das geht nur im offenen Haushaltsfenster, bevor der Entwurf im Parlament liegt." };
+  if (!fenster.offen || z.gesetz) return { ok: false, text: t("tag_t8.haushalt.nurOffen") };
   z.entwurf = {};
   for (const [posten, delta] of Object.entries(paket.schritte)) {
     const ziel = inSpanne(POSTEN_NACH_ID[posten]!, stufeVon(w, posten) + delta);
     if (ziel !== stufeVon(w, posten)) z.entwurf[posten] = ziel;
   }
-  const text = `Entwurf übernommen: Paket „${paket.name}“ (${Object.keys(z.entwurf).length} Posten).`;
-  return { ok: true, text, why: "Die Regler stehen jetzt im Entwurf; Sie können sie einzeln nachjustieren, bevor das Gesetz eingebracht wird." };
+  const text = t("tag_t8.haushalt.paket", { name: paket.name, n: Object.keys(z.entwurf).length });
+  return { ok: true, text, why: t("tag_t8.haushalt.paketWhy") };
 }
 
 /** Wie es um das eingebrachte Haushaltsgesetz steht (Mehrheitslogik wie bei Gesetzen). */
@@ -632,21 +632,21 @@ export function haushaltsEntwurfsSicht(w:World):HaushaltsGesetzSicht|null {
 /** Das Haushaltsgesetz (Summe der Entwurfs-Änderungen) ins Parlament einbringen. */
 export function bringeHaushaltsgesetzEin(w: World): Ergebnis {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es kein Parlament." };
+  if (!spiel) return { ok: false, text: t("tag_t8.haushalt.keinSpiel") };
   if (spiel.ende) return { ok:false,text:t("hm.beendet") };
   const z = haushaltZustand(w);
   const fenster = haushaltsfenster(w);
-  if (z.gesetz) return { ok: false, text: "Der Entwurf liegt schon im Parlament." };
-  if (!fenster.kalenderOffen) return { ok: false, text: `Das Haushaltsfenster ist geschlossen; es öffnet jedes Jahr im Oktober (${HAUSHALT_ZYKLUS.fensterTage} Tage).` };
-  if (fenster.erledigt) return { ok: false, text: "Der Haushalt dieses Jahres ist bereits entschieden; der nächste Entwurf beginnt im kommenden Oktober." };
+  if (z.gesetz) return { ok: false, text: t("tag_t8.haushalt.imParlament") };
+  if (!fenster.kalenderOffen) return { ok: false, text: t("tag_t8.haushalt.geschlossen", { tage: HAUSHALT_ZYKLUS.fensterTage }) };
+  if (fenster.erledigt) return { ok: false, text: t("tag_t8.haushalt.entschieden") };
   const entwurf = z.entwurf ?? {};
   const aenderungen = Object.entries(entwurf).filter(([id, s]) => (z.stufen[id] ?? 0) !== s);
-  if (!aenderungen.length) return { ok: false, text: "Der Entwurf ist leer: Erst Regler stellen — im Fenster kostenlos.", why: "Ohne Änderung braucht es kein Gesetz; der Vorjahrshaushalt läuft von selbst weiter." };
+  if (!aenderungen.length) return { ok: false, text: t("tag_t8.haushalt.leer"), why: t("tag_t8.haushalt.leerWhy") };
   const jahr = Number(w.date.slice(0, 4));
   z.gesetz = { jahr, schritte: { ...entwurf }, eingebracht: w.day, abstimmung: w.day + REGELN.tageBisAbstimmung, absprachen: 0 };
   z.entwurf = {};
   const sicht = haushaltsGesetzSicht(w)!;
-  const text = `Haushaltsgesetz ${jahr + 1} eingebracht: ${aenderungen.length} ${aenderungen.length === 1 ? "Posten" : "Posten"} geändert; die Abstimmung ist in ${REGELN.tageBisAbstimmung} Tagen.`;
+  const text = t("tag_t8.haushalt.eingebracht", { jahr: String(jahr + 1), n: aenderungen.length, tage: REGELN.tageBisAbstimmung });
   const why = t("hm.einbringenWarum",{ja:sicht.ja,datum:sicht.datum,noetig:REGELN.mehrheit});
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
@@ -657,17 +657,17 @@ export function haushaltsStimmenKaufen(w: World, anzahl: number): Ergebnis {
   const spiel = w.spiel;
   const z = haushaltZustand(w);
   const g = z.gesetz;
-  if (!spiel || !g) return { ok: false, text: "Es liegt kein Haushaltsgesetz zur Abstimmung vor." };
+  if (!spiel || !g) return { ok: false, text: t("tag_t8.haushalt.keinGesetz") };
   if (spiel.ende) return { ok:false,text:t("hm.beendet") };
   if (!Number.isFinite(anzahl) || anzahl<1 || anzahl>600) return {ok:false,text:t("hm.anzahl")};
   const n = Math.round(anzahl);
   const kosten = Math.ceil(n * REGELN.kaufKostenProStimme);
-  if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: `Für ${n} Stimmen fehlt Politisches Kapital (nötig ${kosten}, vorhanden ${Math.floor(spiel.kapital)}).` };
+  if (!kannZahlen(spiel.kapital, kosten)) return { ok: false, text: t("tag_t8.haushalt.stimmenKapital", { n, kosten, da: Math.floor(spiel.kapital) }) };
   spiel.kapital -= kosten;
   g.absprachen += n;
-  const text = `${n} Stimmen für das Haushaltsgesetz gesichert.`;
-  addLog(w, "entscheidung", text, `Kostet ${kosten} Kapital, sofort bezahlt; danach schuldet niemand jemandem etwas.`);
-  return { ok: true, text, why: `Kostet ${kosten} Kapital.` };
+  const text = t("tag_t8.haushalt.stimmen", { n });
+  addLog(w, "entscheidung", text, t("tag_t8.haushalt.stimmenLog", { kosten }));
+  return { ok: true, text, why: t("tag_t8.aussen.kostet", { pk: kosten }) };
 }
 
 /** Wendet einen beschlossenen Entwurf an: Regler-Stufen, Nachfrage-Impuls und Sofortwirkungen je Posten. */
@@ -719,8 +719,8 @@ export function haushaltszyklusTag(w: World, rng: Rng): void {
     addLog(
       w,
       "ereignis",
-      `Das Haushaltsfenster schließt ungenutzt: Der Haushalt ${jahr} läuft weiter.`,
-      "Die Posten stehen in Prozent der Wirtschaftsleistung und gleichen die Inflation damit automatisch aus. Wer etwas ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.",
+      t("tag_t8.haushalt.ungenutzt", { jahr: String(jahr) }),
+      t("tag_t8.haushalt.ungenutztWhy"),
     );
   }
 
@@ -738,14 +738,14 @@ export function haushaltszyklusTag(w: World, rng: Rng): void {
     const n = wendeEntwurfAn(w, g.schritte, g.jahr, g.krisenpaket?titel:undefined);
     if (!g.krisenpaket) z.letztesErgebnis = "angenommen";
     addLog(w, "entscheidung", t("protokoll.haushalt.ja", { titel, ja, nein, n }), t("protokoll.haushalt.ja_warum", { defizit: fmt(defizitJetzt(w)) })).abstimmung = { art: "haushalt", name: titel, ort: "", ja, nein, angenommen: true };
-    addMarke(w, "haushalt", `${titel} beschlossen`);
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `Mit ${ja} zu ${nein} Stimmen angenommen.` });
+    addMarke(w, "haushalt", t("tag_t8.haushalt.marke", { titel }));
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: t("tag_t8.haushalt.angenommen", { ja, nein }) });
   } else {
     if (!g.krisenpaket) z.letztesErgebnis = "gescheitert";
     wirke(w, "legitimitaet", HAUSHALT_ZYKLUS.scheiternLegitimitaet);
     spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
     addLog(w, "entscheidung", t("protokoll.haushalt.nein", { titel, ja, nein }), t("protokoll.haushalt.nein_warum", { legitimitaet: HAUSHALT_ZYKLUS.scheiternLegitimitaet, fehlen: REGELN.mehrheit - ja })).abstimmung = { art: "haushalt", name: titel, ort: "", ja, nein, angenommen: false };
-    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: `Mit ${ja} zu ${nein} Stimmen abgelehnt; der Vorjahrshaushalt läuft weiter.` });
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel, ausgang: t("tag_t8.haushalt.abgelehnt", { ja, nein }) });
   }
   schliesseHaushaltsBeleg(w,beleg);
 }
@@ -755,8 +755,8 @@ export function naechsteHaushaltstermine(w: World): { datum: string; text: strin
   const fenster = haushaltsfenster(w);
   const z = haushaltZustand(w);
   const out: { datum: string; text: string }[] = [];
-  if (z.gesetz) out.push({ datum: addDays(w.date, z.gesetz.abstimmung - w.day), text: `Abstimmung über ${haushaltsTitel(z.gesetz)}` });
-  if (!fenster.kalenderOffen) out.push({ datum: fenster.naechsterStart, text: `Haushaltsfenster öffnet (Oktober, ${HAUSHALT_ZYKLUS.fensterTage} Tage)` });
+  if (z.gesetz) out.push({ datum: addDays(w.date, z.gesetz.abstimmung - w.day), text: t("tag_t8.haushalt.kalAbstimmung", { titel: haushaltsTitel(z.gesetz) }) });
+  if (!fenster.kalenderOffen) out.push({ datum: fenster.naechsterStart, text: t("tag_t8.haushalt.kalFenster", { tage: HAUSHALT_ZYKLUS.fensterTage }) });
   return out;
 }
 
@@ -770,8 +770,8 @@ export function schreibeHaushaltFort(w: World): void {
   addLog(
     w,
     "entscheidung",
-    `Der Haushalt ${jahr + 1} wird fortgeschrieben.`,
-    "Die Posten bleiben unverändert und laufen mit der Inflation automatisch mit; wer später ändern will, nutzt den (teuren) Nachtragshaushalt oder wartet auf den nächsten Oktober.",
+    t("tag_t8.haushalt.fort", { jahr: String(jahr + 1) }),
+    t("tag_t8.haushalt.fortWhy"),
   );
 }
 

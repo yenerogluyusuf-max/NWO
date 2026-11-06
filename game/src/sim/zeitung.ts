@@ -648,10 +648,10 @@ function hinweis(world: World, ausgabe: ZeitungAusgabe): void {
   spiel.hinweise.push({
     // Präfix „zeitung-": Klasse C der Auto-Stopp-Taxonomie — Umlauf, die Zeit läuft weiter
     id: `zeitung-${ausgabe.anlass === "eilmeldung" ? "eil-" : ""}${world.day}-${ausgabe.nummer}`,
-    titel: ausgabe.anlass === "eilmeldung" ? tx("sim2.sim.zeitung.8df18d7") : "Die Zeitung: Neue Ausgabe",
+    titel: ausgabe.anlass === "eilmeldung" ? tx("sim2.sim.zeitung.8df18d7") : tx("tag_t8.zeitung.neu"),
     szene: "istanbul",
     text: [
-      `Ausgabe Nr. ${ausgabe.nummer}: ${ausgabe.blaetter.map((b) => b.name).join(", ")}.${lead ? ` Leitartikel: „${lead.schlagzeile}" (${ausgabe.blaetter[0]!.name}).` : ""}`,
+      tx("tag_t8.zeitung.ausgabe", { nr: ausgabe.nummer, blaetter: ausgabe.blaetter.map((b) => b.name).join(", "), lead: lead ? tx("tag_t8.zeitung.lead", { titel: lead.schlagzeile, blatt: ausgabe.blaetter[0]!.name }) : "" }),
     ],
   });
 }

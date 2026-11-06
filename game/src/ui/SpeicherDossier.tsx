@@ -18,7 +18,7 @@ import {
 } from "./speicher";
 import { Icon } from "./icons";
 
-import { t } from "../i18n";
+import { aktuelleLocale, t } from "../i18n";
 interface Props {
   world: World;
   onLaden: (w: World) => void;
@@ -43,7 +43,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
 
   /** Zeigt das echte Ergebnis einer Sicherung im Reiter selbst (Meldungen sind hinter einer offenen Akte unsichtbar). */
   const zeige = (r: Ergebnis, wasGesichert: string) => {
-    const uhr = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const uhr = new Date().toLocaleTimeString(aktuelleLocale(), { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     if (r.ok) {
       setStatus({ art: "ok", text: `${wasGesichert} gesichert um ${uhr} Uhr (${r.wo}).` });
       onGespeichert(`${wasGesichert} gesichert`);
@@ -167,7 +167,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
           {status
             ? status.text
             : auto
-              ? t("ui2.ui.SpeicherDossier.933a58b", { p0: formatDateDe(auto.datum), p1: auto.gespeichert ? `, gesichert am ${new Date(auto.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })} Uhr` : "" })
+              ? t("ui2.ui.SpeicherDossier.933a58b", { p0: formatDateDe(auto.datum), p1: auto.gespeichert ? t("tag_t8.speicher.gesichert", { zeit: new Date(auto.gespeichert).toLocaleString(aktuelleLocale(), { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }) : "" })
               : t("ui2.ui.SpeicherDossier.a62015d")}
         </p>
         {importFehler && <p style={{ color: "var(--seal)", margin: "10px 0 0", fontStyle: "italic" }}>{importFehler}</p>}
@@ -185,7 +185,7 @@ export function SpeicherDossier({ world, onLaden, onGespeichert, onClose }: Prop
                 <span>
                   <strong>{r.art === "hoechst" ? t("ui2.ui.SpeicherDossier.126ee5b") : t("ui2.ui.SpeicherDossier.e93ae2b")}</strong> · {formatDateDe(r.info.datum)}
                   {r.info.zustimmung !== undefined ? t("ui2.ui.SpeicherDossier.6f8ded0", { p0: Math.round(r.info.zustimmung) }) : ""}
-                  {r.info.gespeichert ? t("ui2.ui.SpeicherDossier.9321161", { p0: new Date(r.info.gespeichert).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }) : ""}
+                  {r.info.gespeichert ? t("ui2.ui.SpeicherDossier.9321161", { p0: new Date(r.info.gespeichert).toLocaleString(aktuelleLocale(), { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) }) : ""}
                 </span>
                 <button type="button" className="leather-button" onClick={() => void ladeFrueher(r.key)}>
                   {t("ui2.ui.SpeicherDossier.32ee84b")}

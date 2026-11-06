@@ -163,7 +163,9 @@ export function Diagramm({ punkte, startMonat, jetztMonat, band, linien = [], ma
     return { p, b, bm, ms };
   }, [hover, punkte, band, g.jetztI, markenNachMonat]);
 
-  const beschreibung = punkte.length ? `${name}: von ${nf(punkte[0]!.wert)} ${einheit} im ${lang(mi(punkte[0]!.monat))} auf ${nf(letzter!.wert)} ${einheit} im ${lang(mi(letzter!.monat))}.` : `${name}: noch keine Werte.`;
+  const beschreibung = punkte.length
+    ? t("tag_t8.diagramm.beschreibung", { name, von: nf(punkte[0]!.wert), einheit, vonMonat: lang(mi(punkte[0]!.monat)), bis: nf(letzter!.wert), bisMonat: lang(mi(letzter!.monat)) })
+    : t("tag_t8.diagramm.leer", { name });
 
   return (
     <div className="wi-diagramm" ref={box}>

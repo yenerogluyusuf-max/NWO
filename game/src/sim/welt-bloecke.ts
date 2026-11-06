@@ -10,6 +10,7 @@
 import { INSTITUTION_NACH_ID, INSTITUTIONEN, STATUS_NAME, type InstitutionDef, type TuerkeiStatus } from "../data/welt-institutionen";
 import { WEITERE, type EuThema } from "../data/welt-weitere";
 import { NET } from "./modell";
+import { t } from "../i18n";
 import { nationalAverage } from "./netz";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
@@ -38,13 +39,14 @@ export interface RatStimme {
   konflikt?: boolean;
 }
 
+// Namen in der Sprache des Spiels (Getter: der Text entsteht beim Lesen)
 export const THEMA_NAME: Record<EuThema, string> = {
-  rechtsstaat: "Rechtsstaat und Grundrechte",
-  migration: "Migration und Grenzen",
-  handel: "Handel und Zollunion",
-  sicherheit: "Sicherheit und Verteidigung",
-  erweiterung: "Beitrittsperspektive",
-  region: "Ägäis, Zypern und Mittelmeer",
+  get rechtsstaat() { return t("tag_t8.block.thema.rechtsstaat"); },
+  get migration() { return t("tag_t8.block.thema.migration"); },
+  get handel() { return t("tag_t8.block.thema.handel"); },
+  get sicherheit() { return t("tag_t8.block.thema.sicherheit"); },
+  get erweiterung() { return t("tag_t8.block.thema.erweiterung"); },
+  get region() { return t("tag_t8.block.thema.region"); },
 };
 
 /** Welches Thema ein Beitrittskapitel berührt (Kapitel-Kennungen aus sim/eu.ts). */
@@ -68,13 +70,13 @@ const RAT_HAUPT: { id: string; gewicht: Partial<Record<EuThema, number>>; neigun
 ];
 
 function grundText(thema: EuThema, wert: number, konflikt: number, vertrauen: number): string {
-  if (wert >= 10) return vertrauen >= 55 ? "Das Verhältnis trägt: Fürsprecher im Rat." : "Hält die Zusammenarbeit für wichtiger als die Vorbehalte.";
-  if (wert > -15) return "Keine feste Linie: wartet auf die Lage.";
-  if (thema === "rechtsstaat") return "Verlangt sichtbare Fortschritte bei Justiz und Grundrechten.";
-  if (thema === "migration") return "Sorgt sich um Grenzschutz und Rücknahmen.";
-  if (thema === "region") return "Stellt Zugeständnisse in der Ägäis und in der Zypernfrage voran.";
-  if (konflikt >= 40) return "Offene Streitpunkte belasten das Verhältnis.";
-  return "Das Vertrauen in Ankara ist gering.";
+  if (wert >= 10) return t(vertrauen >= 55 ? "tag_t8.block.grund.fuersprecher" : "tag_t8.block.grund.zusammenarbeit");
+  if (wert > -15) return t("tag_t8.block.grund.offen");
+  if (thema === "rechtsstaat") return t("tag_t8.block.grund.rechtsstaat");
+  if (thema === "migration") return t("tag_t8.block.grund.migration");
+  if (thema === "region") return t("tag_t8.block.grund.region");
+  if (konflikt >= 40) return t("tag_t8.block.grund.streit");
+  return t("tag_t8.block.grund.misstrauen");
 }
 
 /** Die Positionen der Mitgliedstaaten zu einem Thema. */
@@ -137,10 +139,10 @@ export function ratPruefung(w: World, kapitelId: string): { blockiert: boolean; 
   if (b.length === 0) return null;
   const m = weltModell(w);
   const hinweise = (m.ratHinweise ??= {});
-  const text = `${b.map((s) => s.name).join(" und ")} verweiger${b.length === 1 ? "t" : "n"} im Rat die Einstimmigkeit (${THEMA_NAME[thema]}): ${b[0]!.grund}`;
+  const text = t("tag_t8.block.veto.text", { namen: b.map((s) => s.name).join(t("tag_t8.block.und")), n: b.length, thema: THEMA_NAME[thema], grund: b[0]!.grund });
   if (w.day - (hinweise[kapitelId] ?? -1e9) > 90) {
     hinweise[kapitelId] = w.day;
-    addLog(w, "ereignis", `Der Rat blockiert ein Beitrittskapitel`, text);
+    addLog(w, "ereignis", t("tag_t8.block.veto.log"), text);
   }
   return { blockiert: true, text };
 }
@@ -181,11 +183,11 @@ export function institutionsAktionen(w: World, institution: string): Institution
     return [
       {
         id: "brics_partner",
-        label: "Partnerland der BRICS werden",
-        hinweis: "Der Süden öffnet Märkte und Finanzierung (Russland, China, Indien, Brasilien, Südafrika, die Emirate), Washington und Brüssel lesen es als Abwendung vom Westen: Vertrauen in NATO- und EU-Staaten sinkt, Auslandskapital zögert.",
+        label: t("tag_t8.block.brics.label"),
+        hinweis: t("tag_t8.block.brics.hinweis"),
         pk,
         moeglich: st === "keiner" && spiel.kapital >= pk,
-        ...(st !== "keiner" ? { grund: "Die Türkei ist bereits Partnerland." } : spiel.kapital < pk ? { grund: "Dafür fehlt Kapital." } : {}),
+        ...(st !== "keiner" ? { grund: t("tag_t8.block.brics.schon") } : spiel.kapital < pk ? { grund: t("tag_t8.dienst.grund.kapital") } : {}),
       },
     ];
   }
@@ -195,11 +197,11 @@ export function institutionsAktionen(w: World, institution: string): Institution
     return [
       {
         id: "turk_gipfel",
-        label: "Gipfel der Turkstaaten ausrichten",
-        hinweis: "Der Mittlere Korridor, Rüstungsgeschäfte und Handel unter den Turkstaaten; Moskau und Peking sehen es mit Misstrauen.",
+        label: t("tag_t8.block.ots.label"),
+        hinweis: t("tag_t8.block.ots.hinweis"),
         pk,
         moeglich: rest <= 0 && spiel.kapital >= pk,
-        ...(rest > 0 ? { grund: `Wieder möglich in ${rest} Tagen.` } : spiel.kapital < pk ? { grund: "Dafür fehlt Kapital." } : {}),
+        ...(rest > 0 ? { grund: t("tag_t8.verm.grund.wieder", { n: rest }) } : spiel.kapital < pk ? { grund: t("tag_t8.dienst.grund.kapital") } : {}),
       },
     ];
   }
@@ -208,12 +210,12 @@ export function institutionsAktionen(w: World, institution: string): Institution
 
 export function fuehreInstitutionsAktionAus(w: World, id: InstitutionsAktion["id"]): { ok: boolean; text: string; why?: string } {
   const spiel = w.spiel;
-  if (!spiel) return { ok: false, text: "Ohne Spielschleife gibt es keine Außenpolitik." };
+  if (!spiel) return { ok: false, text: t("tag_t8.block.fehlt.spiel") };
   const m = weltModell(w);
   const inst = id === "brics_partner" ? "brics" : "ots";
   const sicht = institutionsAktionen(w, inst).find((a) => a.id === id);
-  if (!sicht) return { ok: false, text: "Diese Handlung gibt es nicht." };
-  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? "Das geht gerade nicht." };
+  if (!sicht) return { ok: false, text: t("tag_t8.verm.fehlt.handlung") };
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? t("tag_t8.verm.geht_nicht") };
   spiel.kapital -= sicht.pk;
   if (id === "brics_partner") {
     m.institutionen.brics = { tuerkei: "partner", seit: w.day };
@@ -227,10 +229,10 @@ export function fuehreInstitutionsAktionAus(w: World, id: InstitutionsAktion["id
     wirke(w, "export", 1);
     if (NET.index.has("auslandskapital")) wirke(w, "auslandskapital", -1.5);
     wirke(w, "ansehen", 0.5);
-    const text = "Die Türkei wird Partnerland der BRICS: Moskau, Peking, Neu-Delhi und Brasília begrüßen den Schritt, Washington und Brüssel reagieren verschnupft.";
-    const why = `Kostet ${sicht.pk} Kapital. Das Vertrauen in ${westen.size} NATO- und EU-Staaten sinkt; Auslandskapital zögert, Export und Märkte im Süden gewinnen.`;
+    const text = t("tag_t8.block.brics.text");
+    const why = t("tag_t8.block.brics.why", { pk: sicht.pk, n: westen.size });
     addLog(w, "entscheidung", text, why);
-    weltModell(w).nachrichten.push({ tag: w.day, datum: w.date, art: "institution", id: "RUS", titel: "Die Türkei wird Partnerland der BRICS", fakt: text, wertung: 0.05, gewicht: 0.9 });
+    weltModell(w).nachrichten.push({ tag: w.day, datum: w.date, art: "institution", id: "RUS", titel: t("tag_t8.block.brics.titel"), fakt: text, wertung: 0.05, gewicht: 0.9 });
     return { ok: true, text, why };
   }
   // Gipfel der Turkstaaten
@@ -241,8 +243,8 @@ export function fuehreInstitutionsAktionAus(w: World, id: InstitutionsAktion["id
   wirke(w, "export", 0.6);
   beziehungAendern(w, "RUS", { vertrauen: -1.5 });
   beziehungAendern(w, "CHN", { vertrauen: -0.5 });
-  const text = "Der Gipfel der Turkstaaten in Istanbul bringt Zusagen zum Mittleren Korridor und zu gemeinsamen Rüstungsvorhaben.";
-  const why = `Kostet ${sicht.pk} Kapital. Moskau und Peking sehen die wachsende Verflechtung mit Misstrauen.`;
+  const text = t("tag_t8.block.ots.text");
+  const why = t("tag_t8.block.ots.why", { pk: sicht.pk });
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
 }

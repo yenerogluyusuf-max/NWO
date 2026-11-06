@@ -9,7 +9,10 @@ import { skala, skalenArt } from "../data/skalen";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
 import type { World } from "./types";
+import { rendere, t } from "../i18n";
 import type { Zusage } from "./spiel-typen";
+// Text der Zusage in der Sprache des Spiels (wie zusageText in sim/zusagen.ts; kein Import dorthin, sonst entsteht ein Ladezyklus)
+const zusageText = (z: Pick<Zusage, "text" | "msg">): string => (z.msg ? rendere(z.msg) : z.text);
 
 /** Ein festgelegtes Ziel wandert bei späteren Teilfortschritten nicht weiter. */
 export function zusageZiel(z: Pick<Zusage, "massnahme" | "richtung" | "stufeStart" | "stufeZiel">, jetzt: number): number {
@@ -70,13 +73,13 @@ export function zusageAbschluss(w: World, z: Zusage, art: "erfuellt" | "gebroche
   if (art === "erfuellt") {
     wirke(w, "legitimitaet", 0.6);
     wirke(w, "vertrauen_regierung", 0.3);
-    if (bezug.art === "land") landAendern(w, bezug.id!, { vertrauen: 6 }, `Zusage gehalten: ${z.text}`);
+    if (bezug.art === "land") landAendern(w, bezug.id!, { vertrauen: 6 }, t("tag_t8.zusage.gehalten", { text: zusageText(z) }));
   } else {
     wirke(w, "legitimitaet", -1.2);
     wirke(w, "vertrauen_regierung", -0.6);
-    if (bezug.art === "land") landAendern(w, bezug.id!, { vertrauen: -12, konflikt: 4 }, `Zusage gebrochen: ${z.text}`);
+    if (bezug.art === "land") landAendern(w, bezug.id!, { vertrauen: -12, konflikt: 4 }, t("tag_t8.zusage.gebrochen", { text: zusageText(z) }));
   }
-  for(const f of aktiveParteivorsitzende(w,z.von)) merke(w, f, art === "erfuellt" ? `Zusage gehalten: ${z.text}` : `Zusage gebrochen: ${z.text}`);
+  for(const f of aktiveParteivorsitzende(w,z.von)) merke(w, f, t(art === "erfuellt" ? "tag_t8.zusage.gehalten" : "tag_t8.zusage.gebrochen", { text: zusageText(z) }));
 }
 
 /** Neue Erfüllung: persönliche und politische Anerkennung einmalig beim erreichten Beschlussziel buchen.

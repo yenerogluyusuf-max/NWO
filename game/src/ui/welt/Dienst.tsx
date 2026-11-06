@@ -4,7 +4,7 @@
 
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
-import { OP_DEFS, EINGEHEND_NAME, dienstSicht, opsOptionen, ordneAn } from "../../sim/welt-dienst";
+import { OP_DEFS, EINGEHEND_NAME, dienstSicht, opsOptionen, ordneAn, wahlFaktor } from "../../sim/welt-dienst";
 import { akteurListe, ANZEIGE_GRUPPEN, gruppenName, wahlSicht } from "../../sim/welt-sicht";
 import { akteurName } from "../../sim/welt-modell";
 import { formatDateDe } from "../../sim/dates";
@@ -12,7 +12,7 @@ import { Flagge } from "../art/Flaggen";
 import type { Operation } from "../../sim/welt-modell";
 
 import { t } from "../../i18n";
-const AUSGANG: Record<string, string> = { erfolg: "Erfolg", fehlschlag: "Fehlschlag", aufgedeckt: "Aufgedeckt", info: "Vermerk" };
+const ausgangName = (a: string): string => t(`tag_t8.dienst.bericht.${a}`);
 
 export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; refresh: () => void; ziel?: string; onLand: (id: string) => void }) {
   const liste = useMemo(() => akteurListe(), []);
@@ -25,7 +25,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
   // Lage im Zielstaat, die für jede Operation gleich ist (Sicherheitsapparat, Medien, Einflussnetz): einmal beim Zielstaat statt in jeder Karte
   const gemeinsam = optionen.length > 1 ? optionen[0]!.aussicht.faktoren.filter((f) => optionen.every((o) => o.aussicht.faktoren.includes(f))) : [];
   // „Wahl in N Monaten“ ohne Zusatz wiederholt nur die Wahlzeile des Zielstaats; mit Zusatz („das Fenster ist offen“) bleibt er stehen
-  const eigene = (faktoren: string[]) => faktoren.filter((f) => !gemeinsam.includes(f) && !(wahl && /^Wahl in \d+ Monaten$/.test(f)));
+  const eigene = (faktoren: string[]) => faktoren.filter((f) => !gemeinsam.includes(f) && !(wahl && f === wahlFaktor(Math.max(1, wahl.monate))));
   const kapitalOk = world.spiel!.kapital;
 
   const anordnen = (art: Operation["art"]) => {
@@ -89,7 +89,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
               {t("ui2.ui.welt.Dienst.03d2e63", { p0: wahl.art, p1: wahl.datumDe })}
             </b>{" "}
             {t("ui2.ui.welt.Dienst.bd63467", { p0: wahl.monate, p1: wahl.fuehrung.wort })}
-            {wahl.herausforderer ? `, Herausforderer: ${wahl.herausforderer.wort} (${wahl.herausforderer.staerke})` : ""}.{" "}
+            {wahl.herausforderer ? t("tag_t8.dienst.wahl.herausforderer", { haltung: wahl.herausforderer.wort, staerke: wahl.herausforderer.staerke }) : ""}.{" "}
             {wahl.lagebild ? t("ui2.ui.welt.Dienst.dae5ff2", { p0: wahl.lagebild.prozent }) : t("ui2.ui.welt.Dienst.8b6c72f")}
           </p>
         ) : (
@@ -124,10 +124,10 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
             <p>{o.def.text}</p>
             <div className="we-op-aussicht">
               <span>
-                {t("ui2.ui.welt.Dienst.ee42fd2")} <b className={`aus-${o.aussicht.wort}`}>{o.aussicht.wort}</b>
+                {t("ui2.ui.welt.Dienst.ee42fd2")} <b className={`aus-${o.aussicht.stufe}`}>{o.aussicht.wort}</b>
               </span>
               <span>
-                {t("ui2.ui.welt.Dienst.733a033")} <b className={`risiko-${o.aussicht.aufWort.replace(" ", "-")}`}>{o.aussicht.aufWort}</b>
+                {t("ui2.ui.welt.Dienst.733a033")} <b className={`risiko-${o.aussicht.aufStufe.replace("_", "-")}`}>{o.aussicht.aufWort}</b>
               </span>
             </div>
             {eigene(o.aussicht.faktoren).length > 0 && <p className="we-op-faktor">{eigene(o.aussicht.faktoren).join(" · ")}</p>}
@@ -187,7 +187,7 @@ export function Dienst({ world, refresh, ziel: start, onLand }: { world: World; 
           <ul>
             {sicht.bericht.slice(0, 12).map((b, i) => (
               <li key={`${b.tag}-${i}`} className={`ausgang-${b.ausgang}`}>
-                <span className="we-datum">{formatDateDe(b.datum)}</span> <span className={`we-chip ausgang-${b.ausgang}`}>{AUSGANG[b.ausgang]}</span> <strong>{b.titel}</strong>
+                <span className="we-datum">{formatDateDe(b.datum)}</span> <span className={`we-chip ausgang-${b.ausgang}`}>{ausgangName(b.ausgang)}</span> <strong>{b.titel}</strong>
                 <br />
                 <span>{b.text}</span>
               </li>

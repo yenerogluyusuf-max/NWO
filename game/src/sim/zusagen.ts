@@ -251,7 +251,7 @@ export function vertroesteZusage(w: World, z: Zusage): string {
   for(const f of aktiveParteivorsitzende(w,z.von)) {
     loyalitaetVerschieben(f, -8);
     grollVerschieben(w, f, 4);
-    merke(w, f, t("sim2.sim.zusagen.ec4fc4f", { p0: z.text, p1: z.vertroestet }));
+    merke(w, f, t("sim2.sim.zusagen.ec4fc4f", { p0: zusageText(z), p1: z.vertroestet }));
   }
   vertrauenAendern(w, -0.5);
   wirke(w, "legitimitaet", -0.2);
@@ -270,7 +270,7 @@ export function brecheZusage(w: World, z: Zusage, verfall = false): string {
   }
   if (!verfall) vertrauenAendern(w, -1);
   zusageAbschluss(w, z, "gebrochen");
-  addLog(w, "entscheidung", t("protokoll.zusage.gebrochen", { text: z.text }), t("sim2.sim.zusagen.4c39914"));
+  addLog(w, "entscheidung", t("protokoll.zusage.gebrochen", { text: zusageText(z) }), t("sim2.sim.zusagen.4c39914"));
   return verfall ? t("sim2.sim.zusagen.26feba7") : t("sim2.sim.zusagen.ad79f58");
 }
 
@@ -305,7 +305,7 @@ export function loeseEin(w: World, z: Zusage, wahl?: readonly Figur["amt"][]): Z
   if (pk && !kannZahlen(sp.kapital, pk)) return { ok: false, text: t("sim2.sim.zusagen.183af97", { p0: pk, p1: Math.floor(sp.kapital) }) };
   const r = loeseZusageEin(w, z, wahl);
   if (r.ok && pk) sp.kapital -= pk;
-  if (r.ok) addLog(w, "entscheidung", t(z.erfuellt ? "sim2.sim.zusagen.1e43ef2" : "zusage.gesetz.log", { p0: z.text }), !z.erfuellt ? t("zusage.gesetz.belohnung") : undefined);
+  if (r.ok) addLog(w, "entscheidung", t(z.erfuellt ? "sim2.sim.zusagen.1e43ef2" : "zusage.gesetz.log", { p0: zusageText(z) }), !z.erfuellt ? t("zusage.gesetz.belohnung") : undefined);
   return { ok: r.ok, text: r.text, ...(pk && r.ok ? { why: t("sim2.sim.zusagen.6ae7385", { p0: pk }) } : {}) };
 }
 
@@ -317,7 +317,7 @@ export function vertroesteFrei(w: World, z: Zusage): ZusageAntwort {
   if (!kannZahlen(sp.kapital, 1)) return { ok: false, text: t("sim2.sim.zusagen.6555b2b") };
   sp.kapital -= 1;
   const text = vertroesteZusage(w, z);
-  addLog(w, "entscheidung", t("protokoll.zusage.vertagt", { text: z.text }), t("sim2.sim.zusagen.834013c"));
+  addLog(w, "entscheidung", t("protokoll.zusage.vertagt", { text: zusageText(z) }), t("sim2.sim.zusagen.834013c"));
   return { ok: true, text, why: t("sim2.sim.zusagen.347aa21") };
 }
 
