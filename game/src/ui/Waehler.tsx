@@ -85,7 +85,7 @@ function Prognose({ world, onGehe, onAenderung }: { world: World; onGehe?: (z: Z
           <strong>{nf(p.erwartet, 1)} %</strong>
         </li>
       </ol>
-      {p.quelle !== "rohdaten" && (
+      {p.quelle === "institut" && (
         <p className="wa-rohdaten">
           {bestellt && roh ? t("medien.rohdaten.bestellt", { tage: Math.max(0, roh.bereitTag - world.day) }) : t("nacht_n2.prognose.rohdaten", { kapital: ROHDATEN.kapital, tage: ROHDATEN.wartetage })}{" "}
           {!bestellt && (
