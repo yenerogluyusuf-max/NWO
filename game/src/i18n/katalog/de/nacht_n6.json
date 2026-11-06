@@ -3,7 +3,7 @@
  "n6.bau.aufgabeFehlt": "Dieses Vorhaben läuft nicht.",
  "n6.bau.aufgegeben": "Aufgegeben: {name}.",
  "n6.bau.aufgabeErstattet": "Noch kein Spatenstich: {pk} Kapital kommen zurück, der Rest des Preises ist verloren.",
- "n6.bau.aufgabeVerloren": "Bezahltes Kapital und gebuchte Schulden sind verloren, dazu {bau} erreichte Baupunkte. Vertragsstrafe: {strafe} Prozentpunkte Schuldenquote.",
+ "n6.bau.aufgabeVerloren": "Bezahltes Kapital und gebuchte Schulden sind verloren, dazu {bau} erreichte Baupunkte.",
  "n6.voraus.mindestens": "mindestens {n}",
  "n6.voraus.hoechstens": "höchstens {n}",
  "n6.voraus.land.handel": "Handel mit {land} {grenze} (jetzt {jetzt})",
@@ -12,8 +12,8 @@
  "n6.voraus.land.konflikt": "Spannung mit {land} {grenze} (jetzt {jetzt})",
  "n6.bau.aufgeben": "Aufgeben",
  "n6.bau.folgenErstattung": "Noch kein Spatenstich: {pk} Kapital kommen zurück, der Rest des Preises ist verloren.",
- "n6.bau.folgenVerlust": "Verloren sind das bezahlte Kapital und {anteil} % Fortschritt ({bau} Baupunkte); die Firmen verlangen eine Vertragsstrafe von {strafe} Prozentpunkten Schuldenquote, und die Unternehmer verlieren Vertrauen",
- "n6.bau.ruine": ". Die Bauruine kostet Legitimität",
+ "n6.bau.folgenVerlust": "Verloren sind das bezahlte Kapital und {anteil} % Fortschritt ({bau} Baupunkte)",
+ "n6.bau.ruine": "; die Bauruine kostet Legitimität",
  "n6.bau.jaAufgeben": "Ja, aufgeben",
  "n6.bau.nein": "Weiterbauen",
  "n6.bau.pauseTitel": "Ruht der Bau, wird die Kapazität frei, aber er verliert jeden Monat etwa {bau} Baupunkte.",
@@ -45,7 +45,6 @@
  "n6.platz.titel": "Platz in der Baureihenfolge",
  "n6.vk.bau": "{n} Baupunkte",
  "n6.neu.bereit": "Jetzt bereit",
- "n6.neu.bereitSatz": "Alles, dessen Voraussetzungen erfüllt sind. Ein Klick auf eine Kachel zeigt rechts Wirkung, Preis und Vergabe.",
  "n6.neu.weitere": "Weitere",
  "n6.neu.laufend": "Im Bau",
  "n6.neu.fertig": "Fertig",
@@ -182,5 +181,8 @@
  "n6.dim.konflikt": "Spannung",
  "n6.eff.jeMonat": " je Monat",
  "n6.eff.inProvinzen": " in {n, plural, one {# Provinz} other {# Provinzen}}",
- "n6.eff.provinzen": "{n} Provinzen"
+ "n6.eff.provinzen": "{n} Provinzen",
+ "n6.bau.folgenStrafe": "; die Firmen verlangen eine Vertragsstrafe von {strafe} Prozentpunkten Schuldenquote",
+ "n6.bau.folgenVertrauen": ", und die Unternehmer verlieren Vertrauen",
+ "n6.bau.aufgabeStrafe": " Vertragsstrafe: {strafe} Prozentpunkte Schuldenquote."
 }

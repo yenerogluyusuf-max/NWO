@@ -114,7 +114,7 @@ function BauKnoepfe({ world, id, pausiert, refresh, onText }: { world: World; id
           {f && f.erstattung > 0
             ? t("n6.bau.folgenErstattung", { pk: zahl(f.erstattung) })
             : f
-              ? t("n6.bau.folgenVerlust", { anteil: Math.round(f.anteil * 100), bau: f.verlorenBau, strafe: zahl(f.strafe) }) + (f.ruine ? t("n6.bau.ruine") : "")
+              ? t("n6.bau.folgenVerlust", { anteil: Math.round(f.anteil * 100), bau: zahl(f.verlorenBau) }) + (f.strafe > 0 ? t("n6.bau.folgenStrafe", { strafe: zahl(f.strafe) }) : "") + t("n6.bau.folgenVertrauen") + (f.ruine ? t("n6.bau.ruine") : "") + "."
               : ""}
         </p>
         <span>

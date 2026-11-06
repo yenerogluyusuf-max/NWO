@@ -3,7 +3,7 @@
  "n6.bau.aufgabeFehlt": "This project is not under way.",
  "n6.bau.aufgegeben": "Abandoned: {name}.",
  "n6.bau.aufgabeErstattet": "No ground broken yet: {pk} capital is returned, the rest of the price is lost.",
- "n6.bau.aufgabeVerloren": "Capital paid and debt booked are lost, along with {bau} building points already done. Contract penalty: {strafe} percentage points of debt ratio.",
+ "n6.bau.aufgabeVerloren": "Capital paid and debt booked are lost, along with {bau} building points already done.",
  "n6.voraus.mindestens": "at least {n}",
  "n6.voraus.hoechstens": "at most {n}",
  "n6.voraus.land.handel": "Trade with {land} {grenze} (now {jetzt})",
@@ -12,8 +12,8 @@
  "n6.voraus.land.konflikt": "Tension with {land} {grenze} (now {jetzt})",
  "n6.bau.aufgeben": "Abandon",
  "n6.bau.folgenErstattung": "No ground broken yet: {pk} capital is returned, the rest of the price is lost.",
- "n6.bau.folgenVerlust": "You lose the capital paid and {anteil} % of the progress ({bau} building points); the contractors demand a penalty of {strafe} percentage points of debt ratio, and business loses trust",
- "n6.bau.ruine": ". The abandoned site costs legitimacy",
+ "n6.bau.folgenVerlust": "You lose the capital paid and {anteil} % of the progress ({bau} building points)",
+ "n6.bau.ruine": "; the abandoned site costs legitimacy",
  "n6.bau.jaAufgeben": "Yes, abandon",
  "n6.bau.nein": "Keep building",
  "n6.bau.pauseTitel": "A paused site frees its capacity but loses about {bau} building points every month.",
@@ -45,7 +45,6 @@
  "n6.platz.titel": "Place in the build queue",
  "n6.vk.bau": "{n} building points",
  "n6.neu.bereit": "Ready now",
- "n6.neu.bereitSatz": "Everything whose requirements are met. Click a tile to see its effect, price and tender on the right.",
  "n6.neu.weitere": "Other",
  "n6.neu.laufend": "Under construction",
  "n6.neu.fertig": "Completed",
@@ -182,5 +181,8 @@
  "n6.dim.konflikt": "tension",
  "n6.eff.jeMonat": " a month",
  "n6.eff.inProvinzen": " in {n, plural, one {# province} other {# provinces}}",
- "n6.eff.provinzen": "{n} provinces"
+ "n6.eff.provinzen": "{n} provinces",
+ "n6.bau.folgenStrafe": "; the contractors demand a penalty of {strafe} percentage points of debt ratio",
+ "n6.bau.folgenVertrauen": ", and business loses trust",
+ "n6.bau.aufgabeStrafe": " Contract penalty: {strafe} percentage points of debt ratio."
 }

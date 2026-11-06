@@ -3,7 +3,7 @@
  "n6.bau.aufgabeFehlt": "Bu proje yürümüyor.",
  "n6.bau.aufgegeben": "Vazgeçildi: {name}.",
  "n6.bau.aufgabeErstattet": "Henüz temel atılmadı: {pk} sermaye geri döner, bedelin geri kalanı kaybolur.",
- "n6.bau.aufgabeVerloren": "Ödenen sermaye ve kaydedilen borç kaybolur, tamamlanmış {bau} inşaat puanı da gider. Sözleşme cezası: borç oranında {strafe} puan.",
+ "n6.bau.aufgabeVerloren": "Ödenen sermaye ve kaydedilen borç kaybolur, tamamlanmış {bau} inşaat puanı da gider.",
  "n6.voraus.mindestens": "en az {n}",
  "n6.voraus.hoechstens": "en fazla {n}",
  "n6.voraus.land.handel": "{land} ile ticaret {grenze} (şu an {jetzt})",
@@ -12,8 +12,8 @@
  "n6.voraus.land.konflikt": "{land} ile gerilim {grenze} (şu an {jetzt})",
  "n6.bau.aufgeben": "Vazgeç",
  "n6.bau.folgenErstattung": "Henüz temel atılmadı: {pk} sermaye geri döner, bedelin geri kalanı kaybolur.",
- "n6.bau.folgenVerlust": "Ödenen sermaye ve ilerlemenin % {anteil} kadarı ({bau} inşaat puanı) kaybolur; firmalar borç oranında {strafe} puanlık sözleşme cezası ister ve iş dünyası güven kaybeder",
- "n6.bau.ruine": ". Yarım kalan inşaat meşruiyete mal olur",
+ "n6.bau.folgenVerlust": "Ödenen sermaye ve ilerlemenin % {anteil} kadarı ({bau} inşaat puanı) kaybolur",
+ "n6.bau.ruine": "; yarım kalan inşaat meşruiyete mal olur",
  "n6.bau.jaAufgeben": "Evet, vazgeç",
  "n6.bau.nein": "İnşaata devam",
  "n6.bau.pauseTitel": "Duran inşaat kapasiteyi boşaltır ama her ay yaklaşık {bau} inşaat puanı kaybeder.",
@@ -45,7 +45,6 @@
  "n6.platz.titel": "İnşaat sırasındaki yeri",
  "n6.vk.bau": "{n} inşaat puanı",
  "n6.neu.bereit": "Şimdi hazır",
- "n6.neu.bereitSatz": "Ön koşulları sağlanan her şey. Bir karta tıklayın; sağda etkisi, bedeli ve ihalesi görünür.",
  "n6.neu.weitere": "Diğer",
  "n6.neu.laufend": "İnşaatta",
  "n6.neu.fertig": "Tamamlanan",
@@ -182,5 +181,8 @@
  "n6.dim.konflikt": "gerilim",
  "n6.eff.jeMonat": " ayda",
  "n6.eff.inProvinzen": ", {n} ilde",
- "n6.eff.provinzen": "{n} il"
+ "n6.eff.provinzen": "{n} il",
+ "n6.bau.folgenStrafe": "; firmalar borç oranında {strafe} puanlık sözleşme cezası ister",
+ "n6.bau.folgenVertrauen": " ve iş dünyası güven kaybeder",
+ "n6.bau.aufgabeStrafe": " Sözleşme cezası: borç oranında {strafe} puan."
 }

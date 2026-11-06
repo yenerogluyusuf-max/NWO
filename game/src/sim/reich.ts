@@ -952,7 +952,7 @@ export function gibAuf(w: World, id: string): { ok: boolean; text: string; why?:
   if (f.anteil > 0 && f.erstattung === 0) wirke(w, "unternehmer", -1);
   if (f.ruine) wirke(w, "legitimitaet", -0.5);
   const text = tx("n6.bau.aufgegeben", { name: v.name });
-  const why = f.erstattung > 0 ? tx("n6.bau.aufgabeErstattet", { pk: zahl(f.erstattung) }) : tx("n6.bau.aufgabeVerloren", { bau: f.verlorenBau, strafe: zahl(f.strafe) });
+  const why = f.erstattung > 0 ? tx("n6.bau.aufgabeErstattet", { pk: zahl(f.erstattung) }) : tx("n6.bau.aufgabeVerloren", { bau: zahl(f.verlorenBau) }) + (f.strafe > 0 ? tx("n6.bau.aufgabeStrafe", { strafe: zahl(f.strafe) }) : "");
   meldung(w, "gescheitert", text);
   addLog(w, "entscheidung", text, why);
   return { ok: true, text, why };
