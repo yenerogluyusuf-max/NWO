@@ -155,3 +155,20 @@
 }
 /* Plakette der Vergabe in der Rüstung: Messingtinte auf Messing lag knapp unter 4,5 : 1, Leder trägt (die Varianten behalten ihre Farben) */
 .ak-sicherheit .rr-plakette[class="rr-plakette"] { color: var(--leder-hell); }
+/* Mit offener Detailleiste (Tag 6. November): drei schmalere Kacheln je Zeile, die Leiste klebt oben und rollt in sich, statt die Seite
+   auf fast zwei Bildschirme zu strecken (vier Instrumente mit Preis und Wirkung sind länger als ein Bildschirm) */
+@container (min-width: 900px) {
+  .streitkraefte .ub.mit-detail .ub-raster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* In den schmaleren Kacheln steht der Wert unter dem Namen statt umbrochen rechts daneben */
+  .streitkraefte .ub.mit-detail .ub-kopf { flex-direction: column; align-items: flex-start; gap: 0; }
+  .streitkraefte .ub.mit-detail .ub-kopf .ub-wert { margin-left: 0; text-align: left; font-size: var(--schrift-4); }
+  .streitkraefte .ub.mit-detail .ub-kopf .ub-wert * { text-align: left; }
+  .streitkraefte .ub.mit-detail .ub-detail { position: sticky; top: 0; max-height: calc(100vh - 230px); overflow-y: auto; overscroll-behavior: contain; }
+}
+/* Solange eine Gattung offen ist, schrumpft das Bild oben auf eine Zeile (Kampfkraft, Etat, Forschung); Radar und Zeilen je Teilstreitkraft
+   kehren beim Schließen zurück. So bleiben Kacheln und Detail auf einem Bildschirm. */
+@container (min-width: 900px) {
+  .streitkraefte:has(.ub.mit-detail) .sk-oben { grid-template-columns: minmax(0, 1fr); padding-block: var(--abstand-2); }
+  .streitkraefte:has(.ub.mit-detail) :is(.sk-radar, .sk-achsen, .sk-radar-legende) { display: none; }
+  .streitkraefte:has(.ub.mit-detail) .sk-oben-text { flex-direction: row; flex-wrap: wrap; align-items: baseline; column-gap: var(--abstand-6); }
+}
