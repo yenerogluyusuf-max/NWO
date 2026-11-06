@@ -1,0 +1,12 @@
+{
+ "tag_t3.zuklappen": "Zuklappen",
+ "tag_t3.kat.nachMonaten": " nach etwa {n, plural, one {# Monat} other {# Monaten}}",
+ "tag_t3.kat.sofort": " sofort",
+ "tag_t3.kat.wirkungIn": "{n, plural, one {# Monat} other {# Monate}} bis zur vollen Wirkung",
+ "tag_t3.kat.rest": "Noch etwa {n, plural, one {# Monat} other {# Monate}} bis zur vollen Umsetzung",
+ "tag_t3.vorteileUnter": "{n} von {gesamt} erreicht · sie gelten, solange ihre Bedingungen gelten",
+ "tag_t3.weitere": "und {n} weitere",
+ "tag_t3.weniger": "Weniger zeigen",
+ "tag_t3.bau.leer": "nichts im Bau · {cap} Baupunkte im Monat frei",
+ "tag_t3.bau.schaetzung": "Die Schätzungen gelten, solange Kapazität und Reihenfolge gleich bleiben."
+}

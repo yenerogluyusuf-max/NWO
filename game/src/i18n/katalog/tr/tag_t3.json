@@ -1,0 +1,12 @@
+{
+ "tag_t3.zuklappen": "Kapat",
+ "tag_t3.kat.nachMonaten": " yaklaşık {n} ay sonra",
+ "tag_t3.kat.sofort": " hemen",
+ "tag_t3.kat.wirkungIn": "Tam etkiye kadar {n} ay",
+ "tag_t3.kat.rest": "Tam uygulamaya yaklaşık {n} ay kaldı",
+ "tag_t3.vorteileUnter": "{gesamt} avantajdan {n} tanesi elde edildi · koşulları sürdükçe geçerlidir",
+ "tag_t3.weitere": "ve {n} tane daha",
+ "tag_t3.weniger": "Daha az göster",
+ "tag_t3.bau.leer": "inşa hâlinde proje yok · ayda {cap} inşa puanı boşta",
+ "tag_t3.bau.schaetzung": "Tahminler, kapasite ve sıra değişmediği sürece geçerlidir."
+}

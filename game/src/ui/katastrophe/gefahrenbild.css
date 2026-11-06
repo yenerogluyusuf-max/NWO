@@ -1,5 +1,5 @@
 /* Gefahrenbild (Rundgang 05.11.2026): dasselbe Muster wie die Netze – Ringe, Karte, Akte rechts */
-.kg { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+.kg { display: flex; flex-direction: column; gap: var(--abstand-3); margin-bottom: var(--abstand-2); }
 .kg-ringe { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 6px; }
 .kg-ringe > li { display: flex; }
 .kg-bereit, .dossier button.kg-gefahr { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px 8px; border-radius: 8px; color: var(--tinte-1); text-align: center; }
@@ -7,8 +7,8 @@
 .dossier button.kg-gefahr { min-height: 0; border: 1px solid transparent; background: transparent; box-shadow: none; cursor: pointer; text-transform: none; letter-spacing: 0; transition: background 140ms ease, border-color 140ms ease; }
 .dossier button.kg-gefahr:hover { background: rgba(201, 162, 90, 0.14); }
 .dossier button.kg-gefahr.on { background: var(--papier-1); border-color: rgba(138, 106, 42, 0.6); box-shadow: 0 4px 12px rgba(60, 40, 20, 0.14); }
-.kg-ring-feld { position: relative; width: 82px; height: 82px; display: grid; place-items: center; }
-.kg-ring-feld > b { position: absolute; font: 700 var(--schrift-3) var(--serif); color: var(--tinte-1); }
+.kg-ring-feld { position: relative; width: 68px; height: 68px; display: grid; place-items: center; }
+.kg-ring-feld > b { position: absolute; font: 700 var(--schrift-2) var(--serif); color: var(--tinte-1); }
 .kg-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
 .kg-ring circle { fill: none; stroke-width: 10; stroke-linecap: round; }
 .kg-ring .grund { stroke: var(--papier-4); }
@@ -19,7 +19,7 @@
 .kg-ringe strong { font: 600 var(--schrift-2)/1.2 var(--serif); }
 .kg-ringe small { font: var(--schrift-2)/1.2 var(--serif); color: var(--tinte-3); }
 
-.kg-buehne { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+.kg-buehne { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(320px, 1fr); gap: 16px; align-items: start; }
 .kg-karte-feld { padding: 10px; border-radius: 6px; background: radial-gradient(ellipse at 50% 40%, #d9e6ea, #b9cdd4); box-shadow: inset 0 0 0 1px rgba(60, 80, 90, 0.25); }
 .kg-karte { display: block; width: 100%; height: auto; }
 .kg-karte path { stroke: var(--papier-1); stroke-width: 0.8; cursor: pointer; transition: fill 300ms ease, filter 120ms ease; }
@@ -28,19 +28,23 @@
 .kg-karte path.gewaehlt { stroke: var(--leder-tief); stroke-width: 2.4; }
 .dossier p.kg-legende { margin: 6px 0 0; font: var(--schrift-2) var(--serif); color: #2e3a3e; }
 
-.kg-akte { position: sticky; top: 8px; padding: 14px 16px; border-radius: 6px; background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); border: 1px solid rgba(160, 130, 80, 0.45); box-shadow: 0 8px 22px rgba(60, 40, 20, 0.12); display: flex; flex-direction: column; gap: 6px; }
+.kg-akte { position: sticky; top: 8px; padding: var(--abstand-3) var(--abstand-4); border-radius: 6px; background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); border: 1px solid rgba(160, 130, 80, 0.45); box-shadow: 0 8px 22px rgba(60, 40, 20, 0.12); display: flex; flex-direction: column; gap: 6px; }
 .kg-kicker { font: 400 var(--schrift-1) var(--kapitaelchen, serif); letter-spacing: 0.12em; color: var(--seal, var(--siegel)); }
 .kg-akte h4 { margin: 0; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; font: 600 var(--schrift-5)/1.2 var(--serif); color: var(--tinte-1); }
 .kg-akte h4 b { font: 700 var(--schrift-5) var(--serif); }
-.kg-akte h4 b.hoch { color: var(--siegel-hell); } .kg-akte h4 b.mittel { color: #9a7425; } .kg-akte h4 b.niedrig { color: #3d6b4e; }
+.kg-akte h4 b.hoch { color: var(--siegel-hell); } .kg-akte h4 b.mittel { color: var(--messing-3); } .kg-akte h4 b.niedrig { color: var(--gut); }
 .dossier p.kg-zeile { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
-.kg-akte h5 { margin: 8px 0 2px; font: 600 var(--schrift-3) var(--serif); color: var(--tinte-1); }
+.kg-akte h5 { margin: var(--abstand-1) 0 0; font: 600 var(--schrift-3) var(--serif); color: var(--tinte-1); }
 .kg-staerke { display: flex; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 4px; overflow: hidden; align-self: flex-start; }
 .dossier .kg-staerke button { padding: 4px 12px; min-height: 0; border: 0; border-radius: 0; background: var(--papier-2); box-shadow: none; font: var(--schrift-2) var(--serif); color: var(--leder); cursor: pointer; text-transform: none; letter-spacing: 0; }
 .dossier .kg-staerke button + button { border-left: 1px solid rgba(90, 64, 40, 0.3); }
 .dossier .kg-staerke button.on { background: var(--tinte-weich); color: var(--leder-text); }
-.kg-folgen { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.kg-folgen li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 6px 8px; border-radius: 4px; background: var(--papier-1); }
+.kg-folgen { list-style: none; margin: var(--abstand-1) 0 0; padding: 0; display: flex; flex-direction: column; gap: var(--abstand-1); }
+/* Je Stand eine Zeile: Name links, Tote und Obdachlose rechts, der Balken darunter (Tagarbeit 6. November, vorher drei Zeilen) */
+.kg-folgen li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: 2px var(--abstand-2); padding: var(--abstand-1) var(--abstand-2); border-radius: var(--rund-1); background: var(--papier-1); }
+.kg-folgen-name { grid-row: 1; grid-column: 1; }
+.kg-folgen-zahl { grid-row: 1; grid-column: 2; text-align: right; }
+.kg-folgen-balken { grid-row: 2; grid-column: 1 / -1; }
 .kg-folgen li.heute { box-shadow: inset 3px 0 0 var(--warnung); }
 .kg-folgen-name { font: 600 var(--schrift-1) var(--serif); color: var(--tinte-1); }
 .kg-folgen-name small { font: var(--schrift-1) var(--serif); color: var(--tinte-3); }

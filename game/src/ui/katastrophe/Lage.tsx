@@ -21,79 +21,94 @@ import { hebel, nf, type HebelZeile } from "./daten";
 import { t } from "../../i18n";
 // ---------------------------------------------------------------------------
 
-function HebelKarte({ h, w, refresh, melde, onGehe }: { h: HebelZeile; w: World; refresh: () => void; melde: (m: string) => void; onGehe?: (z: Ziel) => void }) {
+/**
+ * Ein Hebel der Vorsorge als Kachel (Tagarbeit 6. November: fünf Karten füllten zwei Bildschirme): Name, Stufe mit Ziel und der
+ * Hauptknopf mit seinem Preis. Beschreibung, Wirkung, Jahreskosten und der Weg ins Politikfenster stehen in der Detailfläche darunter.
+ */
+function HebelKachel({ h, w, offen, onOeffne, refresh, melde }: { h: HebelZeile; w: World; offen: boolean; onOeffne: () => void; refresh: () => void; melde: (m: string) => void }) {
   const laeuft = h.umsetzung < 100;
   return (
-    <article className="kr-hebel">
-      <header>
-        <h4>{h.name}</h4>
-        <span className="kr-chip">{t("ui2.ui.katastrophe.Lage.875014d", { p0: h.stufe })}</span>
-      </header>
-      <p className="kr-hebel-text">{h.text}</p>
-      <div className="kr-hebel-stufen" aria-hidden>
-        <div className="kr-balken">
-          <i style={{ width: `${h.stufe}%` }} />
-        </div>
-        {!h.ausgeschoepft && <span className="ziel" style={{ left: `${h.ziel}%` }} />}
-      </div>
-      <p className="kr-hebel-schritt">
-        {h.ausgeschoepft ? t("ui2.ui.katastrophe.Lage.4f775ff") : (
-          <>
-            {t("ui2.ui.katastrophe.Lage.4a5d07e", { p0: h.stufe })} <span aria-hidden>→</span> <strong>{h.ziel}</strong>
-          </>
-        )}
-      </p>
-      <ul className="kr-wirkung">
-        {h.wirkung.map((x) => (
-          <li key={x.auf}>
-            {t("ui2.ui.katastrophe.Lage.67e5184")} <strong>{x.auf}</strong>
-            {x.lag > 0 ? t("ui2.ui.katastrophe.Lage.7207a4e", { p0: x.lag, p1: x.lag === 1 ? "Monat" : "Monaten" }) : " sofort"}: {x.warum}
-          </li>
-        ))}
-      </ul>
-      {!h.ausgeschoepft && (
-        <p className="kr-preis">
-          <span>
-            <b>{h.pk}</b> {t("ui2.ui.katastrophe.Lage.28d438e")}
+    <article className={`kr-kachel${offen ? " on" : ""}`}>
+      {/* Die ganze obere Fläche öffnet die Einzelheiten: Name, Stand und nächster Schritt */}
+      <button type="button" className="kr-kachel-kopf" aria-expanded={offen} aria-controls="kr-hebel-detail" onClick={onOeffne}>
+        <strong>{h.name}</strong>
+        <span className="kr-hebel-stufen" aria-hidden>
+          <span className="kr-balken">
+            <i style={{ width: `${h.stufe}%` }} />
           </span>
+          {!h.ausgeschoepft && <span className="kr-ziel" style={{ left: `${h.ziel}%` }} />}
+        </span>
+        <span className="kr-hebel-schritt">
           <span>
-            <b>{nf(h.bip, h.bip < 0.1 ? 3 : 2)}</b> {t("ui2.ui.katastrophe.Lage.fb307c6")}
+            {h.ausgeschoepft ? t("ui2.ui.katastrophe.Lage.4f775ff") : (
+              <>
+                {t("ui2.ui.katastrophe.Lage.875014d", { p0: h.stufe })} <span aria-hidden>→</span> <b>{h.ziel}</b>
+              </>
+            )}
           </span>
-          <span>
-            <b>{h.monate}</b> {h.monate === 1 ? t("ui2.ui.katastrophe.Lage.da13625") : t("ui2.ui.katastrophe.Lage.1c561ae")} {t("ui2.ui.katastrophe.Lage.2dd5af2")}
-          </span>
-        </p>
-      )}
-      {laeuft && (
-        <p className="kr-umsetzung">
-          {t("ui2.ui.katastrophe.Lage.964a093", { p0: h.umsetzung })}{h.restMonate ? t("ui2.ui.katastrophe.Lage.829dd4a", { p0: h.restMonate, p1: h.restMonate === 1 ? "Monat" : "Monate" }) : ""}.
-        </p>
-      )}
+          <span className="kr-kachel-mehr" aria-hidden>{offen ? "▴" : "▾"}</span>
+        </span>
+      </button>
+      {laeuft && <p className="kr-umsetzung">{t("ui2.ui.katastrophe.Lage.964a093", { p0: h.umsetzung })}</p>}
       {h.imParlament && <p className="kr-umsetzung">{t("ui2.ui.katastrophe.Lage.4a67db6")}</p>}
       {!h.moeglich && h.grund && <p className="kr-warn">{h.grund}</p>}
       {!h.ausgeschoepft && (
-        <div className="kr-aktionen">
-          <button
-            type="button"
-            className="kr-knopf haupt"
-            disabled={!h.moeglich || !h.bezahlbar || h.imParlament}
-            title={!h.bezahlbar ? t("ui2.ui.katastrophe.Lage.d5ee02f", { p0: h.pk, p1: Math.floor(w.spiel?.kapital ?? 0) }) : undefined}
-            onClick={() => {
-              const r = bringeEin(w, h.id, h.ziel, null, "gesetz");
-              melde(r.why ? `${r.text} ${r.why}` : r.text);
-              refresh();
-            }}
-          >
-            {t("ui2.ui.katastrophe.Lage.abaa171")} <em>{t("ui2.ui.katastrophe.Lage.87b52bd", { p0: h.pk })}</em>
-          </button>
-          {onGehe && (
-            <button type="button" className="kr-knopf" onClick={() => onGehe({ art: "politik", massnahme: { id: h.id, level: h.ziel } })}>
+        <button
+          type="button"
+          className="knopf kr-kachel-knopf"
+          disabled={!h.moeglich || !h.bezahlbar || h.imParlament}
+          title={!h.bezahlbar ? t("ui2.ui.katastrophe.Lage.d5ee02f", { p0: h.pk, p1: Math.floor(w.spiel?.kapital ?? 0) }) : undefined}
+          onClick={() => {
+            const r = bringeEin(w, h.id, h.ziel, null, "gesetz");
+            melde(r.why ? `${r.text} ${r.why}` : r.text);
+            refresh();
+          }}
+        >
+          {t("ui2.ui.katastrophe.Lage.abaa171")} <em>{t("ui2.ui.katastrophe.Lage.87b52bd", { p0: h.pk })}</em>
+        </button>
+      )}
+    </article>
+  );
+}
+
+/** Die Einzelheiten des gewählten Hebels: wozu er dient, worauf er wirkt, was er im Jahr kostet und wie lange er braucht. */
+function HebelDetail({ h, onZu, onGehe }: { h: HebelZeile; onZu: () => void; onGehe?: (z: Ziel) => void }) {
+  return (
+    <section id="kr-hebel-detail" className="kr-hebel-detail" aria-label={h.name}>
+      <header>
+        <h4>{h.name}</h4>
+        <button type="button" className="knopf-leise" onClick={onZu}>{t("tag_t3.zuklappen")}</button>
+      </header>
+      <div className="kr-hebel-spalten">
+        <div>
+          <p className="kr-hebel-text">{h.text}</p>
+          <ul className="kr-wirkung">
+            {h.wirkung.map((x) => (
+              <li key={x.auf}>
+                {t("ui2.ui.katastrophe.Lage.67e5184")} <strong>{x.auf}</strong>
+                {x.lag > 0 ? t("tag_t3.kat.nachMonaten", { n: x.lag }) : t("tag_t3.kat.sofort")}: {x.warum}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="kr-hebel-seite">
+          {!h.ausgeschoepft && (
+            <p className="kr-preis">
+              <span>
+                <b>{nf(h.bip, h.bip < 0.1 ? 3 : 2)}</b> {t("ui2.ui.katastrophe.Lage.fb307c6")}
+              </span>
+              <span>{t("tag_t3.kat.wirkungIn", { n: h.monate })}</span>
+            </p>
+          )}
+          {h.umsetzung < 100 && h.restMonate ? <p className="kr-umsetzung">{t("tag_t3.kat.rest", { n: h.restMonate })}</p> : null}
+          {onGehe && !h.ausgeschoepft && (
+            <button type="button" className="knopf" onClick={() => onGehe({ art: "politik", massnahme: { id: h.id, level: h.ziel } })}>
               {t("ui2.ui.katastrophe.Lage.d4cfbbf")}
             </button>
           )}
         </div>
-      )}
-    </article>
+      </div>
+    </section>
   );
 }
 
@@ -215,6 +230,8 @@ export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh:
   const stand = Math.round(bereitschaft(world));
   const risiken = risikoUebersicht(world);
   const hebelListe = hebel(world);
+  const [offen, setOffen] = useState<string | null>(null);
+  const gewaehlt = hebelListe.find((h) => h.id === offen);
   return (
     <div className="kr-lage">
       <Gefahrenbild world={world} risiken={risiken} stand={stand} />
@@ -223,11 +240,11 @@ export function Lage({ world, refresh, melde, onGehe }: { world: World; refresh:
         <h3>{t("ui.katastrophe.Lage.7338818")}</h3>
         <div className="kr-hebel-raster">
           {hebelListe.map((h) => (
-            <HebelKarte key={h.id} h={h} w={world} refresh={refresh} melde={melde} {...(onGehe ? { onGehe } : {})} />
+            <HebelKachel key={h.id} h={h} w={world} offen={h.id === offen} onOeffne={() => setOffen(h.id === offen ? null : h.id)} refresh={refresh} melde={melde} />
           ))}
         </div>
+        {gewaehlt && <HebelDetail h={gewaehlt} onZu={() => setOffen(null)} {...(onGehe ? { onGehe } : {})} />}
       </section>
-
     </div>
   );
 }

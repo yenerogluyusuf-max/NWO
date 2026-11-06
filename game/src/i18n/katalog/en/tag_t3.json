@@ -1,0 +1,12 @@
+{
+ "tag_t3.zuklappen": "Collapse",
+ "tag_t3.kat.nachMonaten": " after about {n, plural, one {# month} other {# months}}",
+ "tag_t3.kat.sofort": " immediately",
+ "tag_t3.kat.wirkungIn": "{n, plural, one {# month} other {# months}} to full effect",
+ "tag_t3.kat.rest": "About {n, plural, one {# month} other {# months}} until fully in place",
+ "tag_t3.vorteileUnter": "{n} of {gesamt} reached · they hold as long as their conditions hold",
+ "tag_t3.weitere": "and {n} more",
+ "tag_t3.weniger": "Show less",
+ "tag_t3.bau.leer": "nothing under construction · {cap} build points a month free",
+ "tag_t3.bau.schaetzung": "The estimates hold as long as capacity and order stay the same."
+}

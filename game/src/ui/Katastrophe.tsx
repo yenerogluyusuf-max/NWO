@@ -4,7 +4,7 @@
 import { useState } from "react";
 import type { World } from "../sim/types";
 import { formatDateDe } from "../sim/dates";
-import { bereitschaft, fallSicht, versprechensLage } from "../sim/katastrophe";
+import { fallSicht, versprechensLage } from "../sim/katastrophe";
 import type { Ziel } from "./schreibtisch/briefing";
 import { Lage } from "./katastrophe/Lage";
 import { Faelle } from "./katastrophe/Faelle";
@@ -28,7 +28,6 @@ export function Katastrophe({ world, refresh, onGehe }: { world: World; refresh:
   const aktive = faelle.filter((f) => !f.bewaeltigt);
   // Ohne laufenden Fall ist die Vorsorge die Hauptsache; mit einem Fall zuerst der Fall
   const reiter: Reiter = reiterGewaehlt ?? (aktive.length > 0 ? "faelle" : "lage");
-  const stand = Math.round(bereitschaft(world));
   const offeneVersprechen = versprechensLage(world).filter((z) => z.quote < 0.95).length;
 
   const reiterListe: { id: Reiter; name: string; anzahl?: number }[] = [
@@ -42,22 +41,9 @@ export function Katastrophe({ world, refresh, onGehe }: { world: World; refresh:
   return (
     <div className="kr">
       <header className="kr-kopf">
-        <div className="kr-merker">
-          <span className={stand < 30 ? "warn" : ""}>
-            {t("ui2.ui.Katastrophe.99cafe1")} <b>{stand}</b> {t("ui2.ui.Katastrophe.18df22a")}
-          </span>
-          <span className={aktive.length ? "warn" : ""}>
-            {t("ui2.ui.Katastrophe.e805c0a")} <b>{aktive.length}</b>
-          </span>
-          <span>
-            {t("ui2.ui.Katastrophe.ae69ecb")} <b>{Math.floor(spiel.kapital)}</b>
-          </span>
-          {faelle.length > 0 && (
-            <span>
-              {t("ui2.ui.Katastrophe.b06d65d")} <b>{formatDateDe([...faelle].sort((a, b) => b.tag - a.tag)[0]!.datum)}</b>
-            </span>
-          )}
-        </div>
+        {/* Die Merkerzeile (Bereitschaft, laufende Fälle, Kapital) entfiel (Tagarbeit 6. November): Die Bereitschaft steht im ersten
+            Ring der Lage, die laufenden Fälle stehen als Zahl am Reiter und im Kopf der Akte, das Kapital in der Kopfleiste des Spiels.
+            Nur das Datum des letzten Falls hat keinen anderen Platz; es steht rechts in der Reiterzeile. */}
         <div className="kr-tabs" role="tablist" aria-label={t("ui2.ui.Katastrophe.7eadd22")}>
           {reiterListe.map((r) => (
             <button key={r.id} type="button" role="tab" aria-selected={reiter === r.id} className={reiter === r.id ? "on" : ""} onClick={() => setReiter(r.id)}>
@@ -65,6 +51,11 @@ export function Katastrophe({ world, refresh, onGehe }: { world: World; refresh:
               {r.anzahl !== undefined && <span className="anzahl">{r.anzahl}</span>}
             </button>
           ))}
+          {faelle.length > 0 && (
+            <span className="kr-letzter">
+              {t("ui2.ui.Katastrophe.b06d65d")} <b>{formatDateDe([...faelle].sort((a, b) => b.tag - a.tag)[0]!.datum)}</b>
+            </span>
+          )}
         </div>
         {notiz && (
           <p className={`kr-status${warn ? " warn" : ""}`} role="status">

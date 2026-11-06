@@ -5,6 +5,7 @@ import { NET } from "../../sim/modell";
 import type { World } from "../../sim/types";
 import { pruefeVorhaben, stufeIn } from "../../sim/handeln";
 import { restMonate, umsetzungsStand } from "../../sim/umsetzung";
+import { aktuelleLocale } from "../../i18n";
 
 /** Die Maßnahmen, die Schaden und Opferzahlen einer Katastrophe senken (Bereitschaft und Gebäudebestand). */
 export const HEBEL_IDS = ["m_afad_ausbau", "m_fruehwarnsystem", "m_versicherungspflicht", "m_gebaeudeverstaerkung", "m_bauaufsicht"] as const;
@@ -86,4 +87,5 @@ export function hebel(w: World): HebelZeile[] {
   return out;
 }
 
-export const nf = (x: number, d = 0): string => x.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+/** Zahl im Format der eingestellten Sprache (früher fest de-DE). */
+export const nf = (x: number, d = 0): string => x.toLocaleString(aktuelleLocale(), { minimumFractionDigits: d, maximumFractionDigits: d });

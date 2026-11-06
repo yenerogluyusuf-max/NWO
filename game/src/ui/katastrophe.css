@@ -10,11 +10,10 @@
 
 /* Kopfleiste: Kennzahlen und Reiter */
 .kr-kopf { display: grid; gap: 10px; }
-.kr-merker { display: flex; flex-wrap: wrap; gap: 8px; }
-.kr-merker span { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 11px; border: 1px solid rgba(90, 64, 40, 0.4); border-radius: 999px; background: rgba(255, 252, 240, 0.7); font: var(--schrift-2) var(--serif); color: var(--ink-soft); white-space: nowrap; }
-.kr-merker b { font: 700 var(--schrift-3) var(--display); color: var(--ink); }
-.kr-merker .warn b { color: var(--seal); }
-.kr-tabs { display: flex; flex-wrap: wrap; gap: 2px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
+.kr-tabs { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2px; border-bottom: 1px solid rgba(90, 64, 40, 0.35); }
+/* Datum des letzten Falls rechts in der Reiterzeile (die übrige Merkerzeile stand schon an anderer Stelle) */
+.kr-letzter { margin-left: auto; padding: 0 var(--abstand-1) var(--abstand-2); font: italic var(--schrift-2) var(--serif); color: var(--tinte-3); }
+.kr-letzter b { font-style: normal; color: var(--tinte-1); }
 .kr .kr-tabs button { border: none; background: none; box-shadow: none; border-radius: 0; padding: 8px 16px; margin-bottom: -1px; font: 600 var(--schrift-3) var(--display); color: var(--ink-soft); border-bottom: 3px solid transparent; white-space: nowrap; cursor: pointer; }
 .kr .kr-tabs button:hover { color: var(--ink); border-color: transparent transparent rgba(142, 42, 34, 0.35) transparent; }
 .kr .kr-tabs button.on { color: var(--seal); border-bottom-color: var(--seal); }
@@ -69,20 +68,35 @@
 .kr-gefahr-meta .gut { color: var(--gut); font-weight: 600; }
 .kr-gefahr-meta .schlecht { color: var(--seal); font-weight: 600; }
 
-/* Hebel der Vorsorge */
-.kr-hebel-raster { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 14px; align-items: stretch; }
-.kr-hebel { display: flex; flex-direction: column; gap: 9px; padding: 14px 16px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.8); }
-.kr-hebel header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.kr-hebel-text { font-size: var(--schrift-3); color: var(--ink-soft); line-height: 1.4; }
+/* Hebel der Vorsorge als Kacheln mit Detailfläche (Tagarbeit 6. November) */
+.kr-hebel-raster { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: var(--abstand-3); align-items: stretch; }
+.kr-kachel { display: flex; flex-direction: column; gap: var(--abstand-2); padding: var(--abstand-3); border: 1px solid var(--linie-stark); border-radius: var(--rund-2); background: var(--papier-1); box-shadow: var(--schatten-flach); transition: border-color 140ms ease, box-shadow 140ms ease; min-width: 0; }
+.kr-kachel:hover { border-color: var(--messing-2); }
+.kr-kachel.on { border-color: var(--messing-3); box-shadow: var(--schatten-hoch), inset 0 3px 0 var(--messing-2); }
+.dossier .kr button.kr-kachel-kopf { display: flex; flex-direction: column; align-items: stretch; gap: var(--abstand-2); width: 100%; padding: 0; min-height: 0; border: 0; border-radius: 0; background: none; box-shadow: none; text-align: left; cursor: pointer; text-transform: none; letter-spacing: 0; color: var(--tinte-1); }
+.kr-kachel-kopf strong { font: 600 var(--schrift-3)/1.25 var(--display); overflow-wrap: break-word; hyphens: auto; }
+.kr-kachel-kopf:hover strong { color: var(--siegel); }
+.kr-kachel-mehr { flex: none; font: var(--schrift-2) var(--serif); color: var(--tinte-3); }
+.kr-kachel .kr-hebel-schritt { display: flex; justify-content: space-between; gap: var(--abstand-2); font: var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.kr-kachel .kr-hebel-schritt b { color: var(--tinte-1); }
+.kr-kachel .kr-hebel-stufen, .kr-kachel .kr-balken { display: block; }
+.dossier .kr button.kr-kachel-knopf { margin-top: auto; flex-wrap: wrap; gap: 2px var(--abstand-2); width: 100%; padding: 7px 10px; }
+.kr-kachel-knopf em { font: italic var(--schrift-2) var(--serif); }
 .kr-hebel-stufen { position: relative; }
-.kr-hebel-stufen .ziel { position: absolute; top: -4px; width: 0; height: 16px; border-left: 2px dashed var(--seal); }
+/* Zielmarke des nächsten Schritts; eigene Klasse, weil .ziel die Zielwahl des Amtsantritts gestaltet */
+.kr-hebel-stufen .kr-ziel { position: absolute; top: -4px; width: 0; height: 16px; border-left: 2px dashed var(--seal); }
 .kr-hebel-schritt { font-size: var(--schrift-3); }
+.kr-hebel-detail { display: grid; gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); border: 1px solid var(--messing-2); border-radius: var(--rund-2); background: linear-gradient(180deg, var(--papier-1), var(--leder-text)); }
+.kr-hebel-detail header { display: flex; justify-content: space-between; align-items: baseline; gap: var(--abstand-3); }
+.kr-hebel-detail h4 { font-size: var(--schrift-4); }
+.kr-hebel-spalten { display: grid; grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr); gap: var(--abstand-2) var(--abstand-5); align-items: start; }
+.kr-hebel-seite { display: grid; gap: var(--abstand-2); justify-items: start; }
+.kr-hebel-detail .kr-hebel-text { font-size: var(--schrift-3); color: var(--tinte-2); line-height: 1.4; margin-bottom: var(--abstand-2); }
 .kr-wirkung { margin: 0; padding: 0 0 0 18px; display: grid; gap: 4px; font-size: var(--schrift-2); line-height: 1.4; color: var(--ink); }
-.kr-preis { display: flex; flex-wrap: wrap; gap: 4px 14px; padding-top: 6px; border-top: 1px dotted rgba(90, 64, 40, 0.45); font: var(--schrift-2) var(--serif); color: var(--ink-soft); }
+.kr-preis { display: flex; flex-direction: column; gap: 2px; font: var(--schrift-2) var(--serif); color: var(--tinte-2); }
 .kr-preis b { font: 700 var(--schrift-3) var(--display); color: var(--ink); }
 .kr-umsetzung { font-size: var(--schrift-2); font-style: italic; color: var(--teal); }
 .kr-warn { font-size: var(--schrift-2); color: var(--seal); }
-.kr-hebel .kr-aktionen { margin-top: auto; padding-top: 4px; }
 
 /* Szenario */
 .kr-szenario { display: grid; gap: 10px; padding: 16px 18px; border: 1px solid rgba(90, 64, 40, 0.4); background: rgba(255, 252, 240, 0.7); }
@@ -174,4 +188,5 @@
   .kr-zahlen, .kr-kette { grid-template-columns: minmax(0, 1fr); }
   .kr-stufe .kr-stufe-kopf::after { display: none; }
   .kr-hebel-raster { grid-template-columns: minmax(0, 1fr); }
+  .kr-hebel-spalten { grid-template-columns: minmax(0, 1fr); }
 }
