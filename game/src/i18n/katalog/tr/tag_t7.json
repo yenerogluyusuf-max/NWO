@@ -11,5 +11,6 @@
  "tag_t7.verm.umfang": "Kapsam ve risk",
  "tag_t7.verm.satz": "Ankara'nın her iki tarafla da bağı var. Durumun olgunlaşması gerekir, bozguncular buna karşı çalışır ve bir uzlaşma ancak biri onu garanti ederse tutar.",
  "tag_t7.verm.zahlen": "Olgunluk {reife} · çatışma {konflikt}",
- "tag_t7.verm.preis": "Kuruluş GSYH'nin %{bip} kadarı, ardından ayda {monat} sermaye · şans +{aussicht}"
+ "tag_t7.verm.preis": "Kuruluş GSYH'nin %{bip} kadarı, ardından ayda {monat} sermaye · şans +{aussicht}",
+ "tag_t7.tisch.dauerhaft": "{text} kalıcı"
 }

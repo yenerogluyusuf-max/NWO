@@ -11,5 +11,6 @@
  "tag_t7.verm.umfang": "Umfang und Risiko",
  "tag_t7.verm.satz": "Ankara hat einen Draht zu beiden Seiten. Die Lage muss reifen, Spoiler arbeiten dagegen, und eine Einigung hält nur, wenn jemand sie garantiert.",
  "tag_t7.verm.zahlen": "Reife {reife} · Konflikt {konflikt}",
- "tag_t7.verm.preis": "Aufbau {bip} % des BIP, danach {monat} Kapital im Monat · Aussicht +{aussicht}"
+ "tag_t7.verm.preis": "Aufbau {bip} % des BIP, danach {monat} Kapital im Monat · Aussicht +{aussicht}",
+ "tag_t7.tisch.dauerhaft": "{text} dauerhaft"
 }

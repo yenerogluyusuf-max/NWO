@@ -25,7 +25,7 @@ function Punkte({ n, ton }: { n: number; ton: "gut" | "schlecht" }) {
 
 function KlauselKarte({ k, gewaehlt, veto, onToggle, partner }: { k: KlauselSicht; gewaehlt: boolean; veto: boolean; onToggle: () => void; partner: string }) {
   const wirkung = useMemo(() => heimWirkung(k.def), [k.def]);
-  const zeilen = [...wirkung.sofort, ...wirkung.dauer.map((z) => ({ ...z, text: `${z.text} dauerhaft` }))].slice(0, 5);
+  const zeilen = [...wirkung.sofort, ...wirkung.dauer.map((z) => ({ ...z, text: t("tag_t7.tisch.dauerhaft", { text: z.text }) }))].slice(0, 5);
   const gibt = k.def.seite === "gibt";
   return (
     <li>
