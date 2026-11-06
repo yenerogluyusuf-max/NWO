@@ -6,7 +6,7 @@ import { useState } from "react";
 import type { World } from "../../sim/types";
 import type { Bereich } from "../../sim/reich-typen";
 import { beginne, pflegeStand, reichZustand, type EffektZeile, type PflegeStand } from "../../sim/reich";
-import { t } from "../../i18n";
+import { t, zahl } from "../../i18n";
 
 /** Die Wirkungszeilen als Plaketten, mit der Ausgangslage („heute 58“) wo bekannt. */
 export function Zeilen({ zeilen, leer }: { zeilen: EffektZeile[]; leer?: string | undefined }) {
@@ -133,7 +133,7 @@ export function PflegeKarte({ s, world, refresh }: { s: PflegeStand; world: Worl
                 <li><b>{pv.kosten.pk}</b> {t("ui2.ui.reich.Pflege.28d438e")}</li>
                 <li><b>{pv.kosten.bau}</b> {t("ui2.ui.reich.Pflege.f4466ae")}</li>
                 <li><b>{pv.kosten.monate}</b> {t("ui2.ui.reich.Pflege.1c561ae")}</li>
-                {pv.kosten.verwaltung ? <li><b>{pv.kosten.verwaltung}</b> {t("ui2.ui.reich.Pflege.48ddb61")}</li> : null}
+                {pv.kosten.verwaltung ? <li><b>{zahl(pv.kosten.verwaltung, 1)}</b> {t("ui2.ui.reich.Pflege.48ddb61")}</li> : null}
               </ul>
               {offen.length > 0 ? (
                 <p className="rp-satz rp-nicht">{t("ui2.ui.reich.Pflege.7c76cde", { p0: offen.map((x) => x.text).join("; ") })}</p>

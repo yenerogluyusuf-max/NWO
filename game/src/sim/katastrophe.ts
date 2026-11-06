@@ -23,7 +23,7 @@ import { nationalAverage, PROVINCES } from "./netz";
 import { PROVINZEN } from "./regional";
 import { wirke, wertIn, vertrauenAendern } from "./wirkung";
 import { addLog } from "./log";
-import { liste, t, zahl } from "../i18n";
+import { aktuelleLocale, liste, t, zahl } from "../i18n";
 import { clamp } from "./economy";
 import { hashWert } from "./aufmerksamkeit";
 import { addDays, formatDateDe } from "./dates";
@@ -865,7 +865,6 @@ export function bereitGegenReferenz(stand: number): number {
   return Math.round((1 - bereitFaktor(clamp(stand, 0, 100)) / bereitFaktor(KATASTROPHE.bereitReferenz)) * 1000) / 10;
 }
 
-const MONATSNAMEN = ["Januar", "Februar", t("sim2.sim.katastrophe.0b30c92"), "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
 export interface RisikoGebiet {
   plaka: number;
@@ -921,7 +920,10 @@ function gebietListe(plakas: number[], mitRisiko: boolean): RisikoGebiet[] {
     .sort((a, b) => gewicht(b) - gewicht(a));
 }
 
-const saisonText = (von: number, bis: number): string => `${MONATSNAMEN[von - 1]} bis ${MONATSNAMEN[bis - 1]}`;
+/** Monatsname in der Sprache des Spiels (fest gewähltes Jahr, also unabhängig vom Spieltag und deterministisch). */
+const monatsName = (m: number): string =>
+  new Intl.DateTimeFormat(aktuelleLocale(), { month: "long", timeZone: "UTC" }).format(new Date(Date.UTC(2000, m - 1, 1)));
+const saisonText = (von: number, bis: number): string => t("tag_int.saison.spanne", { von: monatsName(von), bis: monatsName(bis) });
 
 /** Die Gefährdungslage des Landes: je Bruchzone und je leichter Gefahr eine Zeile (Chance, Saison, Abkühlzeit, tragende Kennzahl). */
 export function risikoUebersicht(w: World): RisikoSicht[] {
@@ -945,7 +947,7 @@ export function risikoUebersicht(w: World): RisikoSicht[] {
       gebiet,
       bevoelkerung: summe(gebiet),
       jahresChance: jahresChance(w, "erdbeben", () => KATASTROPHE.bebenChance[zone]),
-      saison: "ganzjährig",
+      saison: t("tag_int.saison.ganzjaehrig"),
       ...abk("erdbeben"),
       ...(Number.isFinite(vorsorge) ? { kennzahl: { name: t("sim2.sim.katastrophe.b5d36d2"), wert: Math.round(vorsorge), gut: "hoch" as const } } : {}),
     });
