@@ -20,7 +20,7 @@ import { EuDossier } from "./welt/EuDossier";
 import { WeltLage } from "./welt/WeltLage";
 import { Dienst } from "./welt/Dienst";
 import { Block, BlockListe } from "./welt/Block";
-import { aktiveKriege, kriegMit, PHASEN_NAME } from "../sim/krieg";
+import { aktiveKriege, kriegMit, ohneKriegsvorgang, PHASEN_NAME } from "../sim/krieg";
 import { beziehungZurTuerkei, fuehreGesteAus, gestenFuerWeitere, istHauptakteur, akteurName } from "../sim/welt-modell";
 import { ratStimmen, THEMA_NAME } from "../sim/welt-bloecke";
 import { ANZEIGE_GRUPPEN, akteurListe, gruppenName, haltungWortAlle, imFilter, trifft } from "../sim/welt-sicht";
@@ -217,7 +217,8 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
                   </button>
                 );
               })}
-              {kriegMit(world, gewaehlt) && (
+              {/* Welle 3, K1: Der Reiter steht für jedes Land, mit dem ein Konflikt möglich ist, nicht erst bei laufendem Vorgang (krieg.md A1) */}
+              {(kriegMit(world, gewaehlt) || !ohneKriegsvorgang(gewaehlt)) && (
                 <button role="tab" type="button" aria-selected={tab === "konflikt"} className={tab === "konflikt" ? "on" : ""} onClick={() => setTab("konflikt")}>
                   ⚔ {tx("reste.welt.konflikt")}
                 </button>

@@ -2,6 +2,7 @@
 // (Kaufen, Produzieren, Entwickeln, Modernisieren, Ausmustern) mit Vorschau, der Wehrdienst, die laufenden Vorhaben und die
 // Zielräume eines Krieges. Rechnet nichts selbst: alles kommt aus sim/streitkraefte.ts und sim/krieg.ts.
 
+import { UbVerweis } from "../akte/Uebersicht";
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { t, zahl as zahlI18n } from "../../i18n";
@@ -100,24 +101,11 @@ function Zielraeume({ world, onTat }: { world: World; onTat: (text: string) => v
               {/* Dieselbe Unsicherheit wie im Konfliktdossier (Befund G-19): Die Gegenwehr ist nur so genau, wie das Lagebild reicht */}
               <span className="sk-klein">{t("nacht_n7.ziel_staerke", { e: zahl(eigenStaerke(world, k)), g: gegnerSicht(world, gegnerStaerke(world, k.land)) })}</span>
             </div>
-            {raeume.length === 0 && <p className="sk-leer">{t("militaer.ui.ziel_allgemein")}</p>}
-            <ul className="sk-ziele">
-              {raeume.map((z) => {
-                const an = k.zielraum === z.id;
-                return (
-                  <li key={z.id}>
-                    <button type="button" className={an ? "on" : ""} disabled={an} onClick={() => onTat(waehleZielraum(world, k.id, z.id).text)}>
-                      <strong>{t(`militaer.zielraum.${z.id}`)}</strong>
-                      <span>
-                        {t("militaer.ui.ziel_gegenwehr", { f: zahl(z.schwierigkeit, 2) })} · {t(`militaer.ui.ziel_bedeutung.${z.bedeutung}`)}
-                        {an ? ` · ${t("militaer.ui.gewaehlt")}` : ""}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-            {k.phase === "krieg" && k.zielraum && <p className="sk-klein">{t("militaer.ui.ziel_wechsel")}</p>}
+            {/* Welle 3, K1 (krieg.md B8): Der Zielraum wird in der Konfliktakte gewählt; hier steht nur, was gilt, und der Weg dorthin */}
+            <p className="sk-klein">
+              {k.zielraum ? t("welle_k1.sicherheit.ziel", { ziel: t(`militaer.zielraum.${k.zielraum}`) }) : t(raeume.length ? "welle_k1.sicherheit.ziel_keins" : "militaer.ui.ziel_allgemein")}{" "}
+              <UbVerweis ziel={{ art: "konflikt", land: k.land }}>{t("welle_k1.sicherheit.zur_akte")}</UbVerweis>
+            </p>
             <Schauplatz world={world} k={k} onTat={onTat} />
           </div>
         );

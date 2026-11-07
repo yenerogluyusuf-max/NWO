@@ -24,8 +24,8 @@ import {
   kriegsVorschau,
   kriseEroeffnen,
   kriseGrund,
+  krisePreis,
   KRISE_AB,
-  KRISE_PK,
   lagebild,
   mobilStand,
   phasenLeiter,
@@ -44,6 +44,10 @@ import { datum, t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
 import { Schauplatz } from "../krieg/Schauplatz";
 import { Besatzung } from "../krieg/Besatzung";
+import { Kriegsziel, Leiter } from "../krieg/Leiter";
+import { Pakete } from "../krieg/Pakete";
+import { Fernkonflikt } from "../krieg/Fernkonflikt";
+import { istFernkonflikt } from "../../sim/fernkonflikt";
 import { VersorgungsLage } from "../gueter/VersorgungsLage";
 import { UbVerweis } from "../akte/Uebersicht";
 const nf = (x: number) => zahl(Math.round(x), 0);
@@ -60,11 +64,13 @@ function einordnung(eigen: number, gegner: number): string {
 
 /** Welche Schritte je Phase oben stehen (die übrigen liegen unter „Weitere Schritte“); höchstens vier (Befund G-30). */
 const VORRANG: Partial<Record<KriegVorgang["phase"], KriegHandlungId[]>> = {
-  spannung: ["vermittlung", "deeskalation", "ultimatum", "bereitschaft"],
+  // Welle 3, K1: die nächste Sprosse der Leiter steht vorn (Drohkulisse, dann Ultimatum, dann Einsatz)
+  spannung: ["drohkulisse", "vermittlung", "deeskalation", "bereitschaft"],
   // Ohne Kriegsziel gibt es keinen Beschluss: Dann rücken Beruhigen und Vermittlung nach oben (Welle H2, der Verlauf verweist auf sie)
-  drohkulisse: ["beschluss", "mobil_teil", "mobil_voll", "beschluss_erlass", "deeskalation", "vermittlung"],
-  krieg: ["verstaerkung", "waffenruhe", "koalition_rufen", "mobil_voll"],
-  waffenruhe: ["paket_sieg", "paket_ausgewogen", "paket_weiss", "paket_zugestaendnis"],
+  drohkulisse: ["ultimatum", "beschluss_vollmacht", "beschluss", "mobil_teil", "mobil_voll", "beschluss_erlass", "deeskalation", "vermittlung"],
+  krieg: ["waffenruhe", "verstaerkung", "koalition_rufen", "mobil_voll"],
+  // Die Pakete stehen als Karten darüber (ui/krieg/Pakete.tsx)
+  waffenruhe: ["weiterkaempfen"],
 };
 
 function Handlung({ h, tun }: { h: KriegHandlungSicht; tun: (id: KriegHandlungId) => void }) {
@@ -134,16 +140,31 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
   if (!k) {
     // Ohne laufenden Vorgang: erklären, wie ein Konflikt entsteht, und die eigene Krise anbieten (PRUEFUNG_GESAMT_2026-11-04)
     const grund = kriseGrund(world, landId);
+    const preis = krisePreis(world, landId);
+    const fern = istFernkonflikt(landId);
     return (
       <section className="kd" aria-label={t("krieg.d.aria", { land: land(landId).name })}>
         {streifen}
-        <p className="subtitle">{t("krieg.k.krise.erklaerung", { anlage: KRIEG.anlageAb, ab: KRISE_AB })}</p>
+        {/* Welle 3, K1: die erste Sprosse der Leiter mit ihrem Preis; die übrigen Sprossen stehen als Vorschau darunter */}
+        <div className="kl kl-start">
+          <h5>{t("welle_k1.leiter.titel")}</h5>
+          <ol className="kl-sprossen">
+            {(["druck", "drohkulisse", "ultimatum", "einsatz"] as const).map((id, i) => (
+              <li key={id} className={`kl-sprosse ${i === 0 ? "jetzt" : "kommt"}`}>
+                <b><i aria-hidden>{i + 1}</i>{t(`welle_k1.leiter.${id}`)}</b>
+                <span>{t(`welle_k1.leiter.start.${id}`, { spannung: KRIEG.spannungMinTage, droh: KRIEG.drohkulisseMinTage })}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="kl-hinweis">{t(fern ? "welle_k1.leiter.start.fern" : "welle_k1.leiter.start.land", { land: land(landId).name })}</p>
+        </div>
         <div className="we-aktionen kd-handlungen">
           <button type="button" className="aktion-knopf" disabled={!!grund} onClick={() => melde(kriseEroeffnen(world, landId))}>
-            {t("krieg.k.krise.knopf", { pk: KRISE_PK })}
+            {t("welle_k1.krise.knopf")} <b>{preis.pk}</b>
           </button>
-          {grund && <span>{grund}</span>}
+          <span>{grund ?? t(preis.aufschlag ? "welle_k1.krise.preis_aufschlag" : "welle_k1.krise.preis", { ansehen: zahlZeichen1(preis.ansehen), vertrauen: zahlZeichen1(preis.vertrauen), land: land(landId).name, ab: KRISE_AB })}</span>
         </div>
+        <p className="subtitle">{t("welle_k1.krise.erklaerung", { anlage: KRIEG.anlageAb })}</p>
         <Besatzung world={world} onTat={(text) => melde({ ok: true, text })} nurLand={landId} />
       </section>
     );
@@ -165,7 +186,8 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
 
   // Befehle ordnen: das Kriegsziel als eine Reihe, dann bis zu vier Hauptschritte nach Vorrang, der Rest zugeklappt
   const ziele = handlungen.filter((h) => h.id.startsWith("ziel_"));
-  const uebrig = handlungen.filter((h) => !h.id.startsWith("ziel_"));
+  const uebrig = handlungen.filter((h) => !h.id.startsWith("ziel_") && !h.id.startsWith("paket_"));
+  const fern = istFernkonflikt(k.land);
   const vorrang = VORRANG[k.phase] ?? [];
   const haupt = [...uebrig].filter((h) => vorrang.includes(h.id)).sort((a, b) => vorrang.indexOf(a.id) - vorrang.indexOf(b.id)).slice(0, 4);
   const weitere = uebrig.filter((h) => !haupt.includes(h));
@@ -197,6 +219,8 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
 
       {streifen}
 
+      {vorKrieg && <Leiter world={world} k={k} />}
+
       {!imKrieg && (
         <div className="kd-zeile" title={t("ui.welt.KriegDossier.c4f3a82")}>
           <span>{t("krieg.d.eskalation")}</span>
@@ -221,7 +245,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
       {imKrieg && (
         <>
           <div className="kd-zeile" title={t("nacht_n7.d.front.titel", { woche: k.woche })}>
-            <span>{t("krieg.d.front")}</span>
+            <span>{fern ? t("welle_k1.fern.lage") : t("krieg.d.front")}</span>
             <span className="kd-balken kd-front" aria-hidden>
               <i style={{ width: `${k.front}%` }} />
               <u style={{ left: "50%" }} />
@@ -244,19 +268,9 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
         </>
       )}
 
-      {ziele.length > 0 && (
-        <div className="kd-ziele">
-          <h5>{t("nacht_n7.d.kriegsziel")}</h5>
-          <div className="kd-ziele-knoepfe" role="group">
-            {ziele.map((h) => (
-              <button key={h.id} type="button" disabled={!h.moeglich} title={h.moeglich ? h.hinweis : h.grund} onClick={() => tun(h.id)}>
-                <strong>{RAHMUNG[h.id.slice(5) as keyof typeof RAHMUNG].name}</strong>
-                <span>{t("nacht_n7.d.ziel_preis", { pk: h.pk, stimmen: zahlZeichen(RAHMUNG[h.id.slice(5) as keyof typeof RAHMUNG].stimmen), ansehen: zahlZeichen(RAHMUNG[h.id.slice(5) as keyof typeof RAHMUNG].ansehen) })}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {k.phase !== "frieden" && k.phase !== "beendet" && <Kriegsziel world={world} k={k} ziele={ziele} tun={tun} onTat={(text) => melde({ ok: true, text })} />}
+
+      {k.phase === "waffenruhe" && <Pakete world={world} k={k} handlungen={handlungen} tun={tun} />}
 
       {haupt.length > 0 && (
         <ul className="we-aktionen kd-handlungen">
@@ -291,6 +305,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
       )}
 
       <Schauplatz world={world} k={k} onTat={(text) => melde({ ok: true, text })} />
+      <Fernkonflikt world={world} k={k} onTat={(text) => melde({ ok: true, text })} />
 
       <details className="kd-lagebild">
         <summary>
@@ -333,4 +348,4 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
   );
 }
 
-const zahlZeichen = (x: number): string => (x > 0 ? "+" : x < 0 ? "−" : "") + zahl(Math.abs(x), 0);
+const zahlZeichen1 = (x: number): string => (x > 0 ? "+" : x < 0 ? "−" : "") + zahl(Math.abs(x), Number.isInteger(x) ? 0 : 1);

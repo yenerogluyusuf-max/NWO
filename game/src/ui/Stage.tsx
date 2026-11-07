@@ -302,9 +302,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   }, [speed, refresh, melde, sichere, umlaufPush]);
 
   // Nur im Entwicklungsmodus: Weltzustand für Browsertests erreichbar machen
+  // Welle 3, K1: nach jedem Zeichnen, damit auch ein aus der Datei geladener Stand erreichbar ist (vorher blieb die alte Welt stehen)
   useEffect(() => {
     if (import.meta.env.DEV) (window as unknown as { __welt?: World; __neu?: () => void }).__welt = world.current;
-  }, []);
+  });
 
   // Beim Laden beginnt eine neue Sitzung: Der geladene Stand wird zur Vergleichsbasis der nächsten Rückkehr
   const sitzungMarkiert = useRef(false);

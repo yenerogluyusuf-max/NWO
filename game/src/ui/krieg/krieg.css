@@ -51,3 +51,69 @@
 /* Welle B3 (ENTSCHEIDUNGEN Z): Schauplatz in Pergament statt Weiß */
 .ks { background: var(--papier-2); border-color: rgba(90, 64, 40, 0.3); border-radius: 6px; box-shadow: 0 1px 2px rgba(60, 40, 20, 0.1); }
 .ks-region { background: var(--papier-3); }
+
+/* Welle 3, K1: Leiter zum Einsatz, Kriegsziel, Friedenspakete als Karten, Fernkonflikt (ENTSCHEIDUNGEN Z: Karten, Zahlen statt Sätze) */
+.kl, .kz, .kp { container-type: inline-size; margin: var(--abstand-2) 0; padding: var(--abstand-2) var(--abstand-3); background: var(--papier-2);
+  border: 1px solid var(--linie); border-radius: var(--rund-2); box-shadow: var(--schatten-flach); }
+.kl h5, .kz h5, .kp h5, .kf h5 { margin: 0 0 var(--abstand-1); font: 600 var(--schrift-2) var(--display); color: var(--tinte-1); }
+.kl-sprossen { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--abstand-1); }
+.kl-sprosse { display: flex; flex-direction: column; gap: 2px; padding: var(--abstand-1) var(--abstand-2); border-radius: var(--rund-1);
+  background: var(--papier-3); border: 1px solid var(--linie); font: var(--schrift-1)/1.35 var(--serif); color: var(--tinte-3); }
+.kl-sprosse b { display: flex; align-items: center; gap: 6px; font: 600 var(--schrift-2) var(--serif); color: var(--tinte-1); }
+.kl-sprosse b i { flex: none; width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; font: 600 var(--schrift-1) var(--serif);
+  font-style: normal; background: var(--papier-1); border: 1px solid var(--linie-stark); color: var(--tinte-2); }
+.kl-sprosse.vorbei { background: var(--gut-flaeche); border-color: var(--gut-linie); }
+.kl-sprosse.vorbei b i { background: var(--gut); border-color: var(--gut); color: var(--papier-1); }
+.kl-sprosse.jetzt { background: var(--papier-1); border-color: var(--siegel); box-shadow: inset 0 -2px 0 var(--siegel); }
+.kl-sprosse.jetzt b i { background: var(--siegel); border-color: var(--siegel); color: var(--papier-1); }
+.kl-sprosse.entfaellt { opacity: 0.75; }
+.kl-sprosse.entfaellt b { text-decoration: line-through; text-decoration-color: var(--linie-stark); }
+.kl-hinweis, .kz-hinweis { margin: var(--abstand-1) 0 0; font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-3); }
+@container (max-width: 520px) { .kl-sprossen { grid-template-columns: 1fr 1fr; } }
+
+.kz-reihe { display: grid; grid-template-columns: 8.5em 1fr; gap: var(--abstand-1) var(--abstand-3); align-items: start; margin: var(--abstand-1) 0; }
+.kz-reihe > .kz-hinweis { grid-column: 2; }
+.kz-etikett { padding-top: 6px; font: 600 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-2); }
+.kz-gewaehlt { margin: 0; padding-top: 4px; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-1); }
+.kz-erreicht { margin: var(--abstand-1) 0 0; padding: var(--abstand-1) var(--abstand-2); border-left: 3px solid var(--gut); background: var(--gut-flaeche);
+  font: 600 var(--schrift-2)/1.4 var(--serif); color: var(--tinte-1); }
+@container (max-width: 520px) { .kz-reihe { grid-template-columns: 1fr; } .kz-reihe > .kz-hinweis { grid-column: 1; } }
+
+.kp-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--abstand-1) var(--abstand-3); margin-bottom: var(--abstand-2); }
+.kp-kopf h5 { margin: 0; }
+.kp-kopf span { font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.kp-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--abstand-2); grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.kp-karte { display: flex; flex-direction: column; gap: var(--abstand-1); padding: var(--abstand-2) var(--abstand-3); background: var(--papier-1);
+  border: 1px solid var(--linie); border-radius: var(--rund-2); }
+.kp-karte.ja { border-color: var(--gut-linie); }
+.kp-karte.angebot { box-shadow: inset 3px 0 0 var(--gut); }
+.kp-karte.nein { background: var(--papier-3); }
+.kp-titel { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px var(--abstand-2); }
+.kp-titel strong { font: 600 var(--schrift-3) var(--display); color: var(--tinte-1); }
+.kp-titel em { font: italic var(--schrift-1) var(--serif); color: var(--gut); }
+.kp-text { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.kp-aussicht { display: grid; grid-template-columns: 1fr auto; gap: 2px var(--abstand-2); align-items: center; }
+.kp-aussicht b { font: 600 var(--schrift-4) var(--display); color: var(--tinte-1); }
+.kp-aussicht > span:last-child { grid-column: 1 / -1; font: 600 var(--schrift-1) var(--serif); }
+.kp-balken { position: relative; display: block; height: 10px; border-radius: var(--rund-pille); background: var(--papier-4); }
+.kp-balken i { display: block; height: 100%; border-radius: var(--rund-pille); background: var(--daten-2); }
+.kp-karte.ja .kp-balken i, .kf-zeile.ok .kp-balken i { background: var(--gut); }
+.kp-balken u { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--tinte-1); text-decoration: none; }
+.kp-ja { color: var(--gut); }
+.kp-nein { color: var(--schlecht); }
+.kp-preis { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--abstand-2); margin: 0; font: var(--schrift-1)/1.4 var(--serif); }
+.kp-preis dt { color: var(--tinte-3); }
+.kp-preis dd { margin: 0; color: var(--tinte-1); }
+.kp-rechnung summary { cursor: pointer; font: var(--schrift-1) var(--serif); color: var(--tinte-2); }
+.kp-rechnung table { width: 100%; margin-top: var(--abstand-1); border-collapse: collapse; font: var(--schrift-1)/1.4 var(--serif); }
+.kp-rechnung td { padding: 1px 0; border-bottom: 1px dotted var(--linie); color: var(--tinte-2); }
+.kp-rechnung td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.kp-plus { color: var(--gut) !important; }
+.kp-minus { color: var(--schlecht) !important; }
+.kp-summe td { font-weight: 600; color: var(--tinte-1); border-bottom: 0; }
+.kp-karte .aktion-knopf { align-self: flex-start; margin-top: auto; }
+
+.kf-ziel { display: flex; flex-direction: column; gap: var(--abstand-1); }
+.kf-zeile { display: grid; grid-template-columns: 11em 1fr auto; gap: var(--abstand-2); align-items: center; font: var(--schrift-2) var(--serif); color: var(--tinte-2); }
+.kf-zeile b { font: 600 var(--schrift-2) var(--serif); color: var(--tinte-1); font-variant-numeric: tabular-nums; }
+@container (max-width: 520px) { .kf-zeile { grid-template-columns: 1fr auto; } .kf-zeile .kp-balken { grid-column: 1 / -1; grid-row: 2; } }
