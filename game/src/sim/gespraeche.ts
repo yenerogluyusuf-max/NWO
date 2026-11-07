@@ -120,6 +120,10 @@ export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string
   medien_kampagne: { amt: ["stab"], titel: t("welle_h3.gs.medien_kampagne"), groessen: ["vertrauen_regierung", "pressefreiheit"] },
   zentralbank_vertrauen: { amt: ["zentralbank", "finanzen"], titel: t("welle_h3.gs.zentralbank_vertrauen"), groessen: ["vertrauen_maerkte"] },
   erbe_verfall: { amt: ["kultur"], titel: t("welle_h3.gs.erbe_verfall"), groessen: ["kulturerbe", "tourismus"] },
+  // Welle E2: Forschung und Große Ziele (sim/ereignisse-forschung.ts)
+  forschungsrat: { amt: ["wirtschaft"], titel: t("welle_e2.gs.forschungsrat"), groessen: ["hochschule", "modernisierung"] },
+  forschung_verwaltung: { amt: ["wirtschaft", "stab"], titel: t("welle_e2.gs.forschung_verwaltung"), groessen: ["hochschule"] },
+  grossziel_gelegenheit: { amt: ["stab", "aussen"], titel: t("welle_e2.gs.grossziel_gelegenheit"), groessen: ["ansehen"] },
 };
 
 // ---------------------------------------------------------------------------

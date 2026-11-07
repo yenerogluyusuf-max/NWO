@@ -173,7 +173,7 @@
  "wissen.e.partnerGrund": "Partner in the {name} plant",
  "wissen.e.weg.lizenz": "under licence from {land}",
  "wissen.e.weg.selbst": "through our own research",
- "wissen.e.begonnen": "Started: {name}, {weg}. About {monate} months are planned.",
+ "wissen.e.begonnen": "Started: {name}, {weg}. About {monate} months at today's pace.",
  "wissen.e.lizenzWarum": "A licence saves years, costs capital and fees and creates dependence: if the licensor blocks, construction and plant stall. Its rival takes offence.",
  "wissen.e.selbstWarum": "Our own research is slower and less certain, but the knowledge stays in the country.",
  "wissen.e.nichtLaufend": "This is not running right now.",

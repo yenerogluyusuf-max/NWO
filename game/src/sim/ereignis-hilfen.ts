@@ -23,7 +23,11 @@ export type Stelle =
   | { art: "zentralbank"; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" }
   | { art: "staette"; id: string }
   /** Welle E1: die Außenakte, auf ein Land (mit Reiter), einen Block oder die Vermittlung gestellt */
-  | { art: "welt"; land?: string; tab?: "beitritt" | "verhandeln" | "handeln"; block?: string; vermittlung?: true };
+  | { art: "welt"; land?: string; tab?: "beitritt" | "verhandeln" | "handeln"; block?: string; vermittlung?: true }
+  // Welle E2: Wissensbaum (mit Knoten), Große Ziele (mit Ziel), Baustelle des Landes (Verwaltungskraft)
+  | { art: "wissen"; knoten?: string }
+  | { art: "grossziel"; ziel?: string }
+  | { art: "baustelle" };
 
 export interface Option {
   id: string;

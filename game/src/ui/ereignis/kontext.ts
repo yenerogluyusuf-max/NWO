@@ -214,6 +214,7 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     leitzins: () => zahl("leitzins", t("welle_h3.kz.leitzins"), pz(w.economy.policyRate), reihe(w, (h) => h.policyRate)),
     glaubwuerdigkeit: () => zahl("glaubwuerdigkeit", t("welle_h3.kz.glaubwuerdigkeit"), t("welle_h3.kz.glaubwuerdigkeitWert", { n: Math.round(w.economy.credibility * 100), wort: glaubwuerdigkeitWort(w.economy.credibility) })),
     tourismus: knot("tourismus", t("welle_h3.kz.tourismus")),
+    hochschule: knot("hochschule", t("welle_e2.kz.hochschule")),
   };
 }
 
@@ -222,6 +223,10 @@ const VORLAGE_ZAHLEN: Record<string, string[]> = {
   medien_kampagne: ["pressefreiheit", "zustimmung", "vertrauen"],
   zentralbank_vertrauen: ["inflation", "leitzins", "glaubwuerdigkeit", "lira"],
   erbe_verfall: ["staette", "tourismus", "ansehen"],
+  // Welle E2: Forschung und Große Ziele
+  forschungsrat: ["hochschule", "ansehen", "zustimmung"],
+  forschung_verwaltung: ["hochschule", "vertrauen", "zustimmung"],
+  grossziel_gelegenheit: ["ansehen", "zustimmung"],
 };
 
 /** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */
@@ -235,6 +240,12 @@ export function stelleLabel(s: Stelle): string {
       return t("welle_h3.stelle.staette", { name: ERBE_NACH_ID[s.id]?.name ?? s.id });
     case "welt":
       return t(s.vermittlung ? "welle_e1.stelle.vermittlung" : s.block ? "welle_e1.stelle.block" : s.tab === "beitritt" ? "welle_e1.stelle.eu" : "welle_e1.stelle.land");
+    case "wissen":
+      return t("welle_e2.stelle.wissen");
+    case "grossziel":
+      return t("welle_e2.stelle.grossziel");
+    case "baustelle":
+      return t("welle_e2.stelle.baustelle");
   }
 }
 

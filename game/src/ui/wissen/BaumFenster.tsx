@@ -119,7 +119,8 @@ export function BaumFenster({ world: w, start, onZu, onGeaendert, onAussen }: Ba
         const zz = z ?? b.z;
         const breit = el.clientWidth;
         const hoch = el.clientHeight;
-        return { z: zz, x: breit * 0.42 - (p.x + M.nodeW / 2) * zz, y: hoch * 0.45 - (p.y + M.nodeH / 2) * zz };
+        // Welle E2: nie über den oberen Rand des Baums hinaus (vorher stand über dem ersten Zweig ein leeres Band von 300 Bildpunkten)
+        return { z: zz, x: breit * 0.42 - (p.x + M.nodeW / 2) * zz, y: Math.min(36, hoch * 0.45 - (p.y + M.nodeH / 2) * zz) };
       });
     },
     [lage],
@@ -236,7 +237,7 @@ export function BaumFenster({ world: w, start, onZu, onGeaendert, onAussen }: Ba
       setMeldung({ ok: false, text: t("wissen.civ.sprung.kapital", { pk: s.pk, kapital: Math.floor(w.spiel?.kapital ?? 0) }) });
       return;
     }
-    if (s.art === "verwaltung") {
+    if (s.art === "verwaltung" && !onAussen) {
       setMeldung({ ok: false, text: t("wissen.civ.sprung.verwaltung") });
       return;
     }
@@ -351,13 +352,15 @@ export function BaumFenster({ world: w, start, onZu, onGeaendert, onAussen }: Ba
               const imPfad = pfad.has(k.id);
               const leise = !!ziel && k.id !== ziel && !imPfad;
               const zeit = knotenTermin(k);
+              // Welle E2: Möglich, aber blockiert (Verwaltung, Kapital) leuchtet nicht golden, sondern zeigt den Grund wie ein gesperrter Knoten
+              const blockiert = k.zustand === "moeglich" && !!k.grund;
               return (
                 <div
                   key={k.id}
                   role="button"
                   tabIndex={0}
                   aria-pressed={wahl === k.id}
-                  className={`wbf-k z-${k.zustand} b-${k.zweig}${wahl === k.id ? " auf" : ""}${imPfad ? " pfad" : ""}${leise ? " leise" : ""}`}
+                  className={`wbf-k z-${k.zustand}${blockiert ? " blockiert" : ""} b-${k.zweig}${wahl === k.id ? " auf" : ""}${imPfad ? " pfad" : ""}${leise ? " leise" : ""}`}
                   style={{ left: p.x, top: p.y, width: M.nodeW, height: M.nodeH }}
                   onClick={() => waehle(k.id)}
                   onKeyDown={(e) => {
@@ -398,7 +401,7 @@ export function BaumFenster({ world: w, start, onZu, onGeaendert, onAussen }: Ba
                         </span>
                       )}
                     </span>
-                    {k.zustand === "gesperrt" && k.hindernis ? (
+                    {(k.zustand === "gesperrt" || blockiert) && k.hindernis ? (
                       <button
                         type="button"
                         className={`wbf-k-grund h-${k.hindernis}`}

@@ -56,6 +56,12 @@ function bereite(w: World, id: string): void {
     if (v) v.ablauf = w.day + 100;
   }
   if (id === "land_drohkulisse") weltZustand(w).GRC!.konflikt = 90;
+  // Welle E2: Forschung und Große Ziele brauchen eine Lage (wie in ereignisse-texte.test.ts)
+  if (id === "forschung_verwaltung") w.spiel!.reich!.verwaltung = 0;
+  if (id === "grossziel_gelegenheit") {
+    const ziele = ["nahostordnung", "drehscheibe", "turkunion", "weltbuehne", "kornkammer", "seemacht", "technologie"];
+    w.spiel!.grosseZiele = { verfolgt: ziele, stand: Object.fromEntries(ziele.map((z) => [z, { stufe: 0, vorbereitung: 30, versuche: 0 }])), vertretungen: {} };
+  }
   if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") {
     const mk = machtkreis(w);
     const kandidat = personen(w).find((p) => p.rolle === "finanzen" && p.figur) ?? personen(w).find((p) => p.figur && p.rolle !== "opposition");

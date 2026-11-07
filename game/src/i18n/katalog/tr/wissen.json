@@ -173,7 +173,7 @@
  "wissen.e.partnerGrund": "{name} tesisinde ortaklık",
  "wissen.e.weg.lizenz": "lisansla, lisans veren {land}",
  "wissen.e.weg.selbst": "kendi araştırmamızla",
- "wissen.e.begonnen": "Başladı: {name}, {weg}. Yaklaşık {monate} ay planlanıyor.",
+ "wissen.e.begonnen": "Başladı: {name}, {weg}. Bugünkü hızla yaklaşık {monate} ay.",
  "wissen.e.lizenzWarum": "Lisans yıllar kazandırır, sermaye ve ücret ister ve bağımlı kılar: Lisans veren engellerse inşaat ve tesis durur. Rakibi de bunu hoş karşılamaz.",
  "wissen.e.selbstWarum": "Kendi araştırmamız daha yavaş ve belirsiz, ama bilgi ülkede kalır.",
  "wissen.e.nichtLaufend": "Bu şu anda sürmüyor.",

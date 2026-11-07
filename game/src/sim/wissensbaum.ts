@@ -12,8 +12,8 @@
 import { BAUM, HEUREKA, HEUREKA_VON, RIVALEN, STANDORT, WERK_VON, ZWEIGE, ZWEIG_VON, type Lizenzgeber, type Traeger, type ZweigId } from "../data/wissensbaum";
 import type { GattungId } from "../data/streitkraefte";
 import type { Voraussetzung } from "./reich-typen";
-import { beginne, groessenWert, reichZustand, vergabeAngebot, verwaltungBilanz, vorhabenSicht } from "./reich";
-import { baumZustand, landesTempo, lizenzgeber, partnerGesperrt, setzeSperrQuelle, standortVon, tempoTeile, werkErtrag, werkZusatz, type TempoTeile } from "./wissensbaum-kern";
+import { bauKapazitaet, bauPool, bauplan, beginne, groessenWert, inVergabePhase, laufBau, laufMonate, monatsBauleistung, reichZustand, ruestungsKapazitaet, vergabeAngebot, verwaltungBilanz, vorhabenDef, vorhabenSicht, vorschauFuer, warteschlange } from "./reich";
+import { baumZustand, forschungsTempo, landesTempo, lizenzgeber, partnerGesperrt, setzeSperrQuelle, standortVon, tempoTeile, werkErtrag, werkZusatz, type TempoTeile } from "./wissensbaum-kern";
 import { auslastung } from "./infrastruktur";
 import { PROVINZEN } from "./regional";
 import { aussenZustand } from "./diplomatie";
@@ -29,6 +29,8 @@ import { beziehungAendern, beziehungZurTuerkei } from "./welt-modell";
 import { kannZahlen } from "./kapital";
 import { wirke } from "./wirkung";
 import { addLog } from "./log";
+import { zeitungEreignis } from "./zeitung";
+import { momentaufnahme, rueckblickAnlegen } from "./berichte";
 import { t } from "../i18n";
 import { stufenName } from "../data/skalen";
 import type { World } from "./types";
@@ -48,6 +50,12 @@ export interface KnotenSicht {
   /** Kapital und geplante Monate beim Beginn (transparente Ausschreibung) */
   pk: number;
   monate: number;
+  /**
+   * Welle E2: Monate bis fertig bei heutigem Tempo (Forschungsetat, Bildung, Fokus, Heureka), hinten in der Reihe der Baustelle, mit der
+   * Vergabephase; fehlt sie, ist der Termin offen (die Reihe wird in 20 Jahren nicht frei). Vorher stand die geplante Bauzeit da: „etwa 42 Monate“
+   * für den Chip-Entwurf, gemessen bei Tempo 2,6 waren es etwa 23.
+   */
+  monateEcht?: number;
   /** Ein Satz, warum der Knoten gesperrt ist (leer, wenn möglich) */
   grund?: string;
   /** Die Art des ersten Hindernisses, für den Hinweis „Bildung erhöhen“ */
@@ -127,6 +135,125 @@ export interface BaumSicht {
   schwerpunktSperre: number;
   /** Ein Satz zur Lage */
   satz: string;
+  /**
+   * Welle E2: Was die Forschung aufhält, je Ursache eine Zeile mit Sprung (Verwaltung, Förderung, Bildung, Kapital, Partner).
+   * Gezählt werden Knoten, deren Vorstufen stehen: Sie wären ohne dieses Hindernis startbar oder sind es von der Sache her schon.
+   */
+  sperren: SperrGruppe[];
+}
+
+export interface SperrGruppe {
+  art: NonNullable<KnotenSicht["hindernis"]>;
+  /** Wie viele Knoten an diesem Hindernis warten */
+  n: number;
+  /** Ein Satz mit Zahlen: was fehlt und was es bindet */
+  text: string;
+  sprung?: Sprung;
+  /** Der Knoten, für den der Satz gilt (Rückweg nach dem Sprung) */
+  knoten: string;
+}
+
+/** Verwaltungskraft, die im Vorrat liegen muss, bevor ein Vorhaben beginnt: das Dreifache des Monatsbedarfs (sim/reich.ts, `vorhabenSicht`). */
+export const verwaltungsBedarf = (jeMonat: number): number => Math.round(jeMonat * 3 * 10) / 10;
+
+/**
+ * Wer die Verwaltung bindet: laufende Vorhaben mit Verwaltungsbedarf, davon die ohne Fortschritt in diesem Monat (sie warten auf Baukapazität,
+ * ziehen aber Verwaltungskraft). Im Spielstand des Inhabers (2043) waren es 16 Vorhaben, 9 ohne Fortschritt, darunter 13 Restaurierungen von 2036.
+ */
+export interface VerwaltungsLage {
+  vorrat: number;
+  netto: number;
+  /** Verwaltungskraft je Monat aller laufenden, nicht ruhenden Vorhaben */
+  bau: number;
+  laufend: number;
+  /** Vorhaben ohne Fortschritt in diesem Monat, die trotzdem Verwaltungskraft ziehen */
+  ohne: { id: string; verwaltung: number }[];
+  /** Verwaltungskraft je Monat, die frei würde, wenn diese ruhen */
+  frei: number;
+}
+
+export function verwaltungsLage(w: World): VerwaltungsLage {
+  const z = reichZustand(w);
+  const vb = verwaltungBilanz(w);
+  const plan = bauplan(w);
+  let laufend = 0;
+  const ohne: VerwaltungsLage["ohne"] = [];
+  for (const l of z.laufend) {
+    const bedarf = vorhabenDef(l.id)?.kosten.verwaltung ?? 0;
+    if (l.pausiert || bedarf <= 0) continue;
+    laufend++;
+    if ((plan[l.id] ?? 0) <= 0 && !(l.vergabeBis !== undefined && w.day < l.vergabeBis)) ohne.push({ id: l.id, verwaltung: bedarf });
+  }
+  const r1 = (x: number) => Math.round(x * 10) / 10;
+  return { vorrat: r1(z.verwaltung), netto: r1(vb.netto), bau: r1(vb.bau), laufend, ohne, frei: r1(ohne.reduce((a, b) => a + b.verwaltung, 0)) };
+}
+
+/** So weit rechnet die Schätzung voraus (Monate); was dann nicht fertig ist, hat keinen Termin. */
+const HORIZONT = 240;
+
+let freiGemerkt: { schluessel: string; frei: { land: number[]; ruestung: number[] }; verzug: number } | null = null;
+
+/**
+ * Was jeder Engpass in den kommenden Monaten frei hat, nachdem die laufenden Vorhaben in ihrer Reihenfolge bedient sind: dieselbe Rechnung wie
+ * die Schätzung der Baustelle (sim/reich.ts, `warteschlange`). Ein neues Vorhaben reiht sich hinten ein und bekommt nur, was übrig bleibt.
+ */
+function freieKapazitaet(w: World): { frei: { land: number[]; ruestung: number[] }; verzug: number } {
+  const z = reichZustand(w);
+  const cap = { land: bauKapazitaet(w), ruestung: ruestungsKapazitaet(w) };
+  const schluessel = `${w.seed}|${w.day}|${z.verwaltung}|${cap.land}|${cap.ruestung}|${z.laufend.map((l) => `${l.id}:${l.fortschritt}:${l.pausiert ? 1 : 0}:${l.vergabeBis ?? ""}`).join(",")}|${JSON.stringify(w.spiel?.wissensbaum?.lizenzen ?? {})}`;
+  if (freiGemerkt?.schluessel === schluessel) return freiGemerkt;
+  const verzug = z.verwaltung <= 0 ? 0.5 : 1;
+  const rest = new Map<string, number>();
+  for (const l of z.laufend) {
+    const v = vorhabenDef(l.id);
+    if (v) rest.set(l.id, Math.max(0, laufBau(l, v) - l.fortschritt));
+  }
+  const frei = { land: [] as number[], ruestung: [] as number[] };
+  for (let m = 1; m <= HORIZONT; m++) {
+    const f = { ...cap };
+    for (const l of z.laufend) {
+      const v = vorhabenDef(l.id);
+      const r = rest.get(l.id) ?? 0;
+      if (!v || l.pausiert || r <= 0) continue;
+      if (inVergabePhase(w, l) && Math.ceil((l.vergabeBis! - w.day) / 30) >= m) continue;
+      const pool = bauPool(v);
+      if (pool === "ohne") continue;
+      const aufnahme = monatsBauleistung((laufBau(l, v) / Math.max(1, laufMonate(l, v))) * forschungsTempo(w, l.id), f[pool], r, verzug);
+      rest.set(l.id, r - aufnahme <= 1e-6 ? 0 : r - aufnahme);
+      f[pool] -= aufnahme / verzug;
+    }
+    frei.land.push(f.land);
+    frei.ruestung.push(f.ruestung);
+  }
+  freiGemerkt = { schluessel, frei, verzug };
+  return freiGemerkt;
+}
+
+/**
+ * Monate bis fertig, wenn das Vorhaben heute beginnt: hinten in der Reihe der Baustelle, bei heutigem Tempo und heutiger Kapazität, mit der
+ * Vergabephase der Ausschreibung. Dieselbe Rechnung wie die Monatsleistung in sim/reich.ts (Bau je Monat mal Forschungstempo, begrenzt durch
+ * das, was der Engpass nach den laufenden Vorhaben frei hat). Künftige Änderungen von Etat und Kapazität sind nicht vorweggenommen.
+ * Mit `lizenz` gilt das Tempo der Lizenz. `undefined`: in 20 Jahren nicht fertig.
+ */
+export function dauerEcht(w: World, id: string, lizenz = false): number | undefined {
+  const v = vorhabenDef(id);
+  if (!v) return undefined;
+  const a = vergabeAngebot(v, "ausschreibung");
+  const tempo = (tempoTeile(w, id)?.gesamt ?? 1) * (lizenz ? BAUM.lizenzTempo : 1);
+  const rate = (a.bau / Math.max(1, a.monate)) * tempo;
+  const pool = bauPool(v);
+  if (pool === "ohne") return a.vorlauf + Math.max(1, Math.ceil(a.bau / Math.max(0.1, rate)));
+  const { frei, verzug } = freieKapazitaet(w);
+  // Wer Verwaltungskraft braucht, beginnt erst mit vollem Vorrat (das Dreifache des Bedarfs); dann bremst kein Verzug. Was der Engpass frei hat,
+  // hängt nicht am Verzug: Er zieht die volle Leistung der Vorhaben davor ab (sim/reich.ts, `bauplan`)
+  const eigenerVerzug = (v.kosten.verwaltung ?? 0) > 0 ? 1 : verzug;
+  let rest = a.bau;
+  for (let m = 1; m <= HORIZONT; m++) {
+    if (m <= a.vorlauf) continue;
+    rest -= monatsBauleistung(rate, frei[pool][m - 1]!, rest, eigenerVerzug);
+    if (rest <= 1e-6) return m;
+  }
+  return undefined;
 }
 
 const BILDUNG = new Set(["hochschule", "fachkraefte", "bildungsqualitaet"]);
@@ -138,7 +265,13 @@ export const knotenName = (id: string): string => t(`wissen.n.${id}.name`);
 /** Eine gerundete Gleichheit darf eine noch nicht erreichte Grenze nicht als erfüllt erscheinen lassen. */
 /** Stand einer Maßnahme in ihrer echten Einheit (N9, Befund B-1); „knapp unter …“ bleibt, nur mit der Einheit */
 function massnahmeStand(v: Extract<Voraussetzung, { art: "massnahme" }>, j: number | string): string {
-  if (typeof j === "number") return stufenName(v.id, j);
+  if (typeof j === "number") {
+    // Welle E2: Benannte Zustände fassen Stufen zusammen; liegt der Stand unter der Grenze im selben Zustand, hieß es vorher
+    // „Das erste Kraftwerk, nötig Das erste Kraftwerk“. Dann steht „knapp unter …“ da.
+    const grenze = v.min ?? v.max;
+    if (grenze !== undefined && j !== grenze && stufenName(v.id, j) === stufenName(v.id, grenze)) return t(j < grenze ? "balance.knappUnter" : "balance.knappUeber", { wert: stufenName(v.id, grenze) });
+    return stufenName(v.id, j);
+  }
   const grenze = "min" in v && v.min !== undefined ? v.min : "max" in v && v.max !== undefined ? v.max : 0;
   return t(j === t("balance.knappUnter", { wert: grenze }) ? "balance.knappUnter" : "balance.knappUeber", { wert: stufenName(v.id, grenze) });
 }
@@ -241,7 +374,8 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
       hindernis = "kapital";
       sprung = { art: "kapital", pk: angebot.pk };
     } else if (!s.verwaltungOk) {
-      grund = t("wissen.grund.verwaltung");
+      // Welle E2: Die Zeile nennt Vorrat und Bedarf (vorher nur „ausgelastet“; den Grund sah man erst im vierten Klick)
+      grund = t("welle_e2.grund.verwaltung", { vorrat: Math.floor(reichZustand(w).verwaltung), bedarf: verwaltungsBedarf(v.kosten.verwaltung ?? 0) });
       hindernis = "verwaltung";
       sprung = { art: "verwaltung" };
     }
@@ -257,6 +391,10 @@ export function knotenSicht(w: World, id: string): KnotenSicht | null {
     ...(s.restMonate !== undefined ? { restMonate: s.restMonate } : {}),
     pk: angebot.pk,
     monate: angebot.monate,
+    ...((): { monateEcht?: number } => {
+      const m = s.status === "fertig" ? 0 : s.status === "im_bau" || s.status === "pausiert" ? s.restMonate : dauerEcht(w, id);
+      return m === undefined ? {} : { monateEcht: m };
+    })(),
     ...(grund ? { grund } : {}),
     ...(hindernis ? { hindernis } : {}),
     ...(sprung ? { sprung } : {}),
@@ -315,7 +453,36 @@ export function baumSicht(w: World): BaumSicht {
             : gesamt <= 0.85
               ? t("wissen.satz.langsam", { tempo: Math.round(gesamt * 10) / 10 })
               : t("wissen.satz.normal");
-  return { zweige, tempo: { ...land, gesamt }, etat, abwanderung, wartenAufBildung, schwerpunkt: z.schwerpunkt, schwerpunktSperre: sperre, satz };
+  return { zweige, tempo: { ...land, gesamt }, etat, abwanderung, wartenAufBildung, schwerpunkt: z.schwerpunkt, schwerpunktSperre: sperre, satz, sperren: sperrGruppen(w, alle) };
+}
+
+/** Reihenfolge der Hindernisse in der Übersicht: was den ganzen Baum hält, zuerst. */
+const SPERR_RANG: NonNullable<KnotenSicht["hindernis"]>[] = ["verwaltung", "foerderung", "bildung", "kapital", "partner", "knoten"];
+
+/** Welle E2: gesperrte und blockierte Knoten nach Ursache, je eine Zeile mit Sprung (ehrliche Anzeige statt „Als Nächstes möglich“). */
+function sperrGruppen(w: World, alle: KnotenSicht[]): SperrGruppe[] {
+  const out: SperrGruppe[] = [];
+  for (const art of SPERR_RANG) {
+    // Nur Knoten, deren Vorstufen im Baum stehen; wer auf einen Vorgänger wartet, wartet auf die Forschung selbst
+    const ks = alle.filter((k) => k.hindernis === art && k.zustand !== "fertig" && k.zustand !== "laeuft" && !k.wunder && k.voraus.every((v) => v.erfuellt || v.sprung?.art !== "knoten"));
+    if (!ks.length) continue;
+    if (art === "verwaltung") {
+      const l = verwaltungsLage(w);
+      const bedarf = Math.min(...ks.map((k) => verwaltungsBedarf(vorhabenDef(k.id)?.kosten.verwaltung ?? 0)));
+      out.push({ art, n: ks.length, text: t("welle_e2.sperre.verwaltung", { vorrat: Math.floor(l.vorrat), bedarf, laufend: l.laufend, ohne: l.ohne.length, bau: l.bau }), sprung: { art: "verwaltung" }, knoten: ks[0]!.id });
+      continue;
+    }
+    if (art === "kapital") {
+      const pk = Math.min(...ks.map((k) => k.pk));
+      out.push({ art, n: ks.length, text: t("welle_e2.sperre.kapital", { pk, kapital: Math.floor(w.spiel?.kapital ?? 0) }), sprung: { art: "kapital", pk }, knoten: ks[0]!.id });
+      continue;
+    }
+    // Förderung, Bildung, Partner, Größen: die Zeile des Knotens mit der niedrigsten Hürde (die Sprungziele tragen den Zielwert)
+    const ziel = (k: KnotenSicht) => (k.sprung?.art === "massnahme" ? k.sprung.ziel : 0);
+    const k = [...ks].sort((a, b) => ziel(a) - ziel(b))[0]!;
+    out.push({ art, n: ks.length, text: k.grund ?? t("wissen.grund.sonst"), ...(k.sprung ? { sprung: k.sprung } : {}), knoten: k.id });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -498,7 +665,9 @@ export function beginneKnoten(w: World, id: string, o: BeginnOptionen = {}): Erg
   }
   const weg = o.lizenz ? t("wissen.e.weg.lizenz", { land: t(`wissen.partner.${o.lizenz}`) }) : t("wissen.e.weg.selbst");
   const traeger = o.traeger ? ` ${t(`wissen.traeger.${o.traeger}.kurz`)}.` : "";
-  const text = t("wissen.e.begonnen", { name, weg, monate: k.monate }) + traeger + ort;
+  // Welle E2: die Schätzung der Baustelle (Tempo, Kapazität, Reihe) statt der geplanten Bauzeit
+  const monate = warteschlange(w).find((e) => e.id === id)?.fertigIn;
+  const text = (monate === undefined ? t("welle_e2.begonnenOffen", { name, weg }) : t("wissen.e.begonnen", { name, weg, monate })) + traeger + ort;
   addLog(w, "entscheidung", text, o.lizenz ? t("wissen.e.lizenzWarum") : t("wissen.e.selbstWarum"));
   return { ok: true, text };
 }
@@ -588,6 +757,7 @@ export function wissensbaumMonat(w: World): void {
         ort = ` ${t("wissen.durchbruch.ort", { ort: PROVINZEN[pl - 1]?.name ?? String(pl) })}`;
       }
       addLog(w, "ereignis", t("wissen.durchbruch.log", { name: knotenName(id) }) + ort, werk ? t("wissen.durchbruch.werk") : t("wissen.durchbruch.wissen"));
+      if (!z.start.includes(id)) durchbruchMoment(w, id, d.id, ort.trim());
     }
   z.durchbrueche = z.durchbrueche.filter((x) => w.day - x.tag <= BAUM.durchbruchTage);
   // Heureka: Ist die Bedingung erfüllt, solange der Knoten noch nicht fertig ist, geht es dort dauerhaft schneller (einmal je Knoten)
@@ -612,6 +782,32 @@ export function wissensbaumMonat(w: World): void {
   }
 }
 
+/**
+ * Welle E2: Ein Durchbruch ist ein Moment wie ein vollendeter Fokus (sim/fokus.ts): eigenes Fenster mit dem, was er bewirkt und öffnet,
+ * eine Eilmeldung der Zeitung und ein Wirkungsbericht nach 6, 12 und 24 Monaten über die Größen, die das Vorhaben bewegt. Vorher war er nur
+ * eine Zeile im Protokoll (Analyse forschung.md, U5). Wunder, Großprojekte und Serien meldet die Zeitung schon beim Abschluss im Reich.
+ */
+function durchbruchMoment(w: World, id: string, zweig: ZweigId, ort: string): void {
+  const sp = w.spiel!;
+  const v = vorhabenDef(id);
+  const name = knotenName(id);
+  const vs = v ? vorschauFuer(w, v) : null;
+  const sofort = (vs?.sofort ?? []).slice(0, 3).map((e) => e.text);
+  const dauerhaft = (vs?.dauerhaft ?? []).slice(0, 3).map((e) => e.text);
+  const weiter = ZWEIGE.flatMap((d) => d.knoten).filter((k) => (vorhabenDef(k)?.voraus ?? []).some((x) => x.art === "bestand" && x.id === id)).map(knotenName);
+  const text = [t(`wissen.n.${id}.satz`)];
+  if (ort) text.push(ort);
+  if (sofort.length) text.push(t("welle_e2.durchbruch.sofort", { liste: sofort.join(" · ") }));
+  if (dauerhaft.length) text.push(t("welle_e2.durchbruch.dauerhaft", { liste: dauerhaft.join(" · ") }));
+  if (weiter.length) text.push(t("welle_e2.durchbruch.weiter", { liste: weiter.join(", ") }));
+  sp.hinweise.push({ id: `durchbruch-${id}-${w.day}`, titel: t("welle_e2.durchbruch.titel", { name }), szene: "istanbul", text });
+  const wichtig = v?.klasse === "wunder" || v?.klasse === "grossprojekt" || v?.klasse === "serie";
+  if (!wichtig) zeitungEreignis(w, { art: "fertigstellung", titel: name, fakt: t("welle_e2.durchbruch.fakt", { name, zweig: t(`wissen.z.${zweig}.name`) }), wertung: 0.6 });
+  // Beobachtet werden die Größen, die das Vorhaben bewegt (Abschluss und Dauerwirkung), Stand heute
+  const ids = [...new Set([...(v?.abschluss ?? []), ...(v?.dauer ?? [])].flatMap((e) => (e.t === "knoten" ? [e.id] : [])))].slice(0, 4);
+  if (ids.length) rueckblickAnlegen(w, "forschung", name, momentaufnahme(w), undefined, ids, id);
+}
+
 // ---------------------------------------------------------------------------
 // Für den Bot im Mess-Tor und für Tests: der nächste sinnvolle Schritt
 
@@ -630,5 +826,5 @@ export function naechsterKnoten(w: World): KnotenSicht | null {
 export function knotenTermin(k: KnotenSicht): string {
   if (k.zustand === "fertig") return t("wissen.ui.zustand.fertig");
   if (k.zustand === "laeuft") return k.pausiert ? t("wissen.ui.bauPause") : k.restMonate !== undefined ? t("wissen.civ.inMonaten", { n: k.restMonate }) : t("wissen.ui.terminOffen");
-  return t("wissen.civ.dauer", { n: k.monate });
+  return k.monateEcht === undefined ? t("wissen.ui.terminOffen") : t("wissen.civ.dauer", { n: k.monateEcht });
 }

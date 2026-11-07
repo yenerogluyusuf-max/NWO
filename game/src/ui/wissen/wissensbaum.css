@@ -34,6 +34,30 @@
 .wb-liste-balken { position: absolute; left: 8px; right: 8px; bottom: 2px; height: 3px; border-radius: 4px; background: rgba(90, 64, 40, 0.12); overflow: hidden; }
 .wb-liste-balken i { display: block; height: 100%; background: var(--gold-2, var(--messing-2)); }
 .wb-hinweis { margin: 0; font-size: var(--schrift-2); color: var(--ink-soft); }
+/* Welle E2: Was die Forschung aufhält, je Ursache eine Karte mit Zahl, Satz und Sprung zur Ursache (Entscheidung Z: Zahlen statt Sätze) */
+.wb-sperren h4 { margin: 0 0 4px; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.06em; color: var(--siegel); }
+.wb-sperren ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.wb-sperre {
+  display: grid; grid-template-columns: 72px 1fr auto; gap: 12px; align-items: center; padding: 8px 12px;
+  border: 1px solid var(--linie); border-left: 4px solid var(--warnung-linie); border-radius: var(--rund-1); background: var(--papier-1);
+}
+.wb-sperre.h-verwaltung, .wb-sperre.h-kapital { border-left-color: var(--schlecht-linie); }
+.wb-sperre-zahl { display: flex; flex-direction: column; align-items: center; line-height: 1; }
+.wb-sperre-zahl b { font: 700 var(--schrift-5) var(--display); color: var(--ink); }
+.wb-sperre-zahl small { margin-top: 3px; font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: 0.04em; color: var(--ink-soft); }
+.wb-sperre-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wb-sperre-text b { font: 600 var(--schrift-2)/1.25 var(--serif); color: var(--ink); }
+.wb-sperre-text span { font: var(--schrift-2)/1.35 var(--serif); color: var(--ink-soft); }
+.wb-sperre-knopf {
+  white-space: nowrap; cursor: pointer; font: 600 var(--schrift-2) var(--serif); padding: 6px 12px; border-radius: var(--rund-1);
+  color: var(--leder-text); background: var(--leder); border: 1px solid var(--messing-2);
+}
+.wb-sperre-knopf::after { content: " ›"; }
+.wb-sperre-knopf:hover { border-color: var(--messing-1); }
+@container (max-width: 560px) {
+  .wb-sperre { grid-template-columns: 56px 1fr; }
+  .wb-sperre-knopf { grid-column: 1 / -1; justify-self: start; }
+}
 @container (max-width: 560px) {
   .wb-vorschau { flex-wrap: wrap; }
   .wb-tempo { flex-direction: row; gap: 8px; border-right: none; }
@@ -169,6 +193,9 @@
 .wbf-k.z-laeuft { background: linear-gradient(180deg, var(--tinte-weich), var(--tinte-weich)); border-color: var(--gold-hell); animation: wbf-puls 2.2s ease-in-out infinite; }
 .wbf-k.z-moeglich { background: linear-gradient(180deg, var(--tinte-weich), var(--tinte-weich)); border-color: var(--blau-hell); box-shadow: 0 0 0 1px rgba(240,231,211, 0.25), 0 3px 12px rgba(213,175,109, 0.25); }
 .wbf-k.z-moeglich .wbf-k-zeit { color: var(--blau-hell); }
+/* Welle E2: von der Sache her möglich, aber blockiert (Verwaltung, Kapital): kein Gold, sondern Schloss mit Grund wie gesperrte Knoten */
+.wbf-k.z-moeglich.blockiert { background: linear-gradient(180deg, var(--leder-dunkel), var(--tinte-1)); border-color: var(--warnung-auf-leder); box-shadow: none; }
+.wbf-k.z-moeglich.blockiert .wbf-k-rund { filter: saturate(0.5) brightness(0.8); }
 .wbf-k.z-gesperrt { background: linear-gradient(180deg, var(--leder-dunkel), var(--tinte-1)); border-color: var(--tinte-2); color: #95a1b4; }
 .wbf-k.z-gesperrt .wbf-k-rund { filter: saturate(0.35) brightness(0.7); }
 .wbf-k.auf { outline: 2.5px solid var(--gold-hell); outline-offset: 2px; }
