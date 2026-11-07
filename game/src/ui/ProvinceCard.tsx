@@ -98,11 +98,11 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
           <dd className={regional < regionalLand - 4 ? "schwach" : ""}>{t("welle_e5.provinz.regional", { hier: nf(regional, 0), land: nf(regionalLand, 0) })}</dd>
           <dt>{t("ui2.ui.ProvinceCard.1cd606b")}</dt>
           <dd>{t("welle_e5.provinz.prozent", { p: nf(wert(world, "arbeitslosigkeit", plaka), 1) })}</dd>
-          <dt>{t("welle_e5.provinz.rathaus", { jahr: rathaus.jahr })}</dt>
+          <dt>{t("welle_e5.provinz.rathaus")}</dt>
           <dd>
             {rathaus.partei === own?.kurz ? own.name : rathaus.partei}
             {rathaus.verwalter ? t("welle_e5.provinz.verwalter") : ""}
-            {d.grossstadt ? t("ui2.ui.ProvinceCard.290242d") : ""}
+            <small className="province-wahl">{t("welle_e5.provinz.wahl", { jahr: rathaus.jahr })}</small>
           </dd>
           <dt>{t("ui2.ui.ProvinceCard.dc59932")}</dt>
           <dd>{d.sitze}</dd>

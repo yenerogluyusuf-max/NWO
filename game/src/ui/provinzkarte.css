@@ -5,3 +5,4 @@
 .province-card-float .province-steckbrief[open] > summary::before { content: "▾"; }
 .province-card-float dd.schwach { color: var(--seal); font-weight: 600; }
 .province-card-float .province-bauen { white-space: normal; line-height: 1.3; text-align: center; }
+.province-card-float .province-wahl { display: block; color: var(--ink-soft); font-size: var(--schrift-2); font-style: italic; }

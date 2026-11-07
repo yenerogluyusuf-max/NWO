@@ -17,6 +17,8 @@ export interface ProvinzUeberlast {
   summe: number;
   /** Zahl der Netze ab „überlastet“ (SCHWELLE.ueberlast) */
   anzahl: number;
+  /** Überlastete Netze, die nicht im ganzen Land überlastet sind: was gerade diese Provinz von den anderen unterscheidet */
+  eigene: number;
   /** Das am stärksten ausgelastete Netz */
   netz: NetzId;
   a: number;
@@ -34,24 +36,29 @@ export function ueberlastJeProvinz(w: World): { provinzen: ProvinzUeberlast[]; u
   if (!w.spiel) return { provinzen: [], ueberall: [] };
   const regional = NETZE.filter((n) => n.start.art !== "land");
   const ueberallOk = new Map<NetzId, boolean>(regional.map((n) => [n.id, true]));
-  const roh: Omit<ProvinzUeberlast, "not">[] = [];
+  const roh: (Omit<ProvinzUeberlast, "not" | "eigene"> & { ueber: NetzId[] })[] = [];
   for (let p = 1; p <= PROVINCES; p++) {
     let summe = 0;
     let anzahl = 0;
+    const ueber: NetzId[] = [];
     let best: { netz: NetzId; a: number } | null = null;
     for (const n of regional) {
       const a = auslastung(w, n.id, p);
       if (a === null) continue;
       summe += Math.max(0, a - SCHWELLE.voll);
-      if (a >= SCHWELLE.ueberlast) anzahl++;
+      if (a >= SCHWELLE.ueberlast) {
+        anzahl++;
+        ueber.push(n.id);
+      }
       else ueberallOk.set(n.id, false);
       if (!best || a > best.a) best = { netz: n.id, a };
     }
-    if (best) roh.push({ plaka: p, summe, anzahl, ...best });
+    if (best) roh.push({ plaka: p, summe, anzahl, ueber, ...best });
   }
   const massstab = Math.max(UEBERLAST_MASSSTAB, ...roh.map((x) => x.summe));
+  const ueberall = [...ueberallOk].filter(([, ok]) => ok).map(([id]) => id);
   return {
-    provinzen: roh.map((x) => ({ ...x, not: Math.min(1, x.summe / massstab) })),
-    ueberall: [...ueberallOk].filter(([, ok]) => ok).map(([id]) => id),
+    provinzen: roh.map(({ ueber, ...x }) => ({ ...x, eigene: ueber.filter((id) => !ueberall.includes(id)).length, not: Math.min(1, x.summe / massstab) })),
+    ueberall,
   };
 }

@@ -40,7 +40,8 @@ function werte(w: World, ebene: Ebene): Map<number, ProvinzWert> {
     for (const x of ueberlastJeProvinz(w).provinzen) {
       const netz = t(`infra.netz.${x.netz}`);
       const a = Math.round(x.a * 100);
-      out.set(x.plaka, { plaka: x.plaka, not: x.not, ueber: x.anzahl > 0, text: x.anzahl > 0 ? t("welle_e5.rl.netz", { n: x.anzahl, netz, a }) : t("n6.rl.netz", { netz, a }) });
+      // „Netze über 100 %“ in der Regionstabelle zählt nur Überlast, die nicht im ganzen Land gilt (sonst 81 von 81)
+      out.set(x.plaka, { plaka: x.plaka, not: x.not, ueber: x.eigene > 0, text: x.anzahl > 0 ? t("welle_e5.rl.netz", { n: x.anzahl, netz, a }) : t("n6.rl.netz", { netz, a }) });
     }
   } else if (ebene === "erbe") {
     const z = reichZustand(w);

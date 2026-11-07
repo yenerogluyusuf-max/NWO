@@ -60,10 +60,11 @@ describe("Rathaus, Wahl und Sitze aus dem Spielstand", () => {
     expect(rathausVon(w, 34)).toEqual({ partei: w.player!.partei.kurz, jahr: letzte, verwalter: false });
     const html = renderToStaticMarkup(<ProvinceCard world={w} plaka={34} onClose={() => undefined} onBauen={() => undefined} />);
     expect(html).not.toContain("Rathaus seit 2024");
-    expect(html).toContain("Rathaus (Wahl 2039)");
+    expect(html).toContain("<dt>Rathaus</dt>");
+    expect(html).toContain('<small class="province-wahl">Wahl 2039</small>');
     expect(html).toContain(w.player!.partei.name);
     // Wirtschaftskraft und Arbeitslosigkeit aus dem Spiel; die festen Werte von 2024 nur im aufklappbaren Steckbrief
-    expect(html).toContain(`<dd class="">${Math.round(wertIn(w, "wachstum_regional", 34))} · Land`);
+    expect(html).toContain(`<dd class="">${Math.round(wertIn(w, "wachstum_regional", 34))} (Land`);
     expect(html).toMatch(/<details class="province-steckbrief"><summary[^>]*>Steckbrief \(Stand 2024\)<\/summary>/);
     expect(html).not.toContain("Hier bauen oder fördern");
   });
@@ -119,6 +120,9 @@ describe("„Lage der Regionen“ und „Belastung“ zeigen Unterschiede", () =
     const stufen = new Set(provinzen.map((x) => Math.round(x.not * 10)));
     expect(stufen.size, "die Skala zeigt Unterschiede").toBeGreaterThanOrEqual(4);
     expect(ueberall).toContain("strom");
+    // Die Regionstabelle zählt nur Überlast, die nicht überall gilt
+    expect(provinzen.filter((x) => x.eigene > 0).length).toBeLessThan(81);
+    expect(provinzen.filter((x) => x.eigene > 0).length).toBeGreaterThan(0);
     const farben = new Set(Object.values(belastungFarben(w).fill!));
     expect(farben.size).toBeGreaterThanOrEqual(20);
     expect(belastungFarben(w).legende!.hinweis).toContain("Überall überlastet: Stromnetz");

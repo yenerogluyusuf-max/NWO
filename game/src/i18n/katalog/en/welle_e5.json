@@ -17,9 +17,9 @@
  "welle_e5.karte.infrastruktur.hinweis": "Best served: {hoch, list}. Worst served: {tief, list}.",
  "welle_e5.karte.risiko.unter": "Earthquake hazard times the state of the buildings; preparedness lowers it",
  "welle_e5.karte.risiko.hinweis": "Most at risk: {hoch, list}. Least: {tief, list}.",
- "welle_e5.provinz.regional": "{hier} · country {land}",
+ "welle_e5.provinz.regional": "{hier} (country {land})",
  "welle_e5.provinz.prozent": "{p}%",
- "welle_e5.provinz.rathaus": "City hall (election {jahr})",
+ "welle_e5.provinz.rathaus": "City hall",
  "welle_e5.provinz.verwalter": " · trustee",
  "welle_e5.provinz.steckbrief": "Profile (as of 2024)",
  "welle_e5.provinz.bip2024": "Economic output",
@@ -32,5 +32,6 @@
  "welle_e5.belastung.unter": "Overload of all networks per province combined",
  "welle_e5.belastung.bis": "most overloaded",
  "welle_e5.belastung.hinweis": "Most strained: {orte}. The pointer shows the three fullest networks and expansions under way; the networks are in the Land file.",
- "welle_e5.belastung.ort": "{ort} ({n, plural, one {# network} other {# networks}} overloaded)"
+ "welle_e5.belastung.ort": "{ort} ({n, plural, one {# network} other {# networks}} overloaded)",
+ "welle_e5.provinz.wahl": "election {jahr}"
 }

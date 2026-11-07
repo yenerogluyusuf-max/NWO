@@ -17,9 +17,9 @@
  "welle_e5.karte.infrastruktur.hinweis": "En iyi hizmet alan: {hoch, list}. En kötü: {tief, list}.",
  "welle_e5.karte.risiko.unter": "Deprem tehlikesi çarpı binaların durumu; önlemler değeri düşürür",
  "welle_e5.karte.risiko.hinweis": "En çok risk altında: {hoch, list}. En az: {tief, list}.",
- "welle_e5.provinz.regional": "{hier} · ülke {land}",
+ "welle_e5.provinz.regional": "{hier} (ülke {land})",
  "welle_e5.provinz.prozent": "%{p}",
- "welle_e5.provinz.rathaus": "Belediye ({jahr} seçimi)",
+ "welle_e5.provinz.rathaus": "Belediye",
  "welle_e5.provinz.verwalter": " · kayyum",
  "welle_e5.provinz.steckbrief": "Künye (2024 itibarıyla)",
  "welle_e5.provinz.bip2024": "Ekonomik çıktı",
@@ -32,5 +32,6 @@
  "welle_e5.belastung.unter": "İl bazında tüm şebekelerin toplam aşırı yükü",
  "welle_e5.belastung.bis": "en çok aşırı yüklü",
  "welle_e5.belastung.hinweis": "En çok zorlanan: {orte}. Gösterge en dolu üç şebekeyi ve süren yatırımları gösterir; şebekeler Ülke dosyasındadır.",
- "welle_e5.belastung.ort": "{ort} ({n} şebeke aşırı yüklü)"
+ "welle_e5.belastung.ort": "{ort} ({n} şebeke aşırı yüklü)",
+ "welle_e5.provinz.wahl": "{jahr} seçimi"
 }
