@@ -120,6 +120,12 @@ export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string
   medien_kampagne: { amt: ["stab"], titel: t("welle_h3.gs.medien_kampagne"), groessen: ["vertrauen_regierung", "pressefreiheit"] },
   zentralbank_vertrauen: { amt: ["zentralbank", "finanzen"], titel: t("welle_h3.gs.zentralbank_vertrauen"), groessen: ["vertrauen_maerkte"] },
   erbe_verfall: { amt: ["kultur"], titel: t("welle_h3.gs.erbe_verfall"), groessen: ["kulturerbe", "tourismus"] },
+  // Welle E4: Rüstung und Medien (sim/ereignisse-ruestung.ts, sim/ereignisse-medien.ts)
+  ruestung_bedingung: { amt: ["verteidigung", "aussen"], titel: t("welle_e4.gs.ruestung_bedingung"), groessen: ["ruestungsautarkie", "nationalisten"] },
+  ruestung_export: { amt: ["verteidigung", "wirtschaft"], titel: t("welle_e4.gs.ruestung_export"), groessen: ["export", "arbeitsplaetze_industrie"] },
+  medien_plattform: { amt: ["stab", "verkehr"], titel: t("welle_e4.gs.medien_plattform"), groessen: ["pressefreiheit", "junge"] },
+  medien_enthuellung: { amt: ["stab", "justiz"], titel: t("welle_e4.gs.medien_enthuellung"), groessen: ["korruption", "vertrauen_regierung"] },
+  medien_sendezeit: { amt: ["stab"], titel: t("welle_e4.gs.medien_sendezeit"), groessen: ["pressefreiheit", "konservative"] },
 };
 
 // ---------------------------------------------------------------------------

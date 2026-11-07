@@ -222,6 +222,12 @@ const VORLAGE_ZAHLEN: Record<string, string[]> = {
   medien_kampagne: ["pressefreiheit", "zustimmung", "vertrauen"],
   zentralbank_vertrauen: ["inflation", "leitzins", "glaubwuerdigkeit", "lira"],
   erbe_verfall: ["staette", "tourismus", "ansehen"],
+  // Welle E4
+  ruestung_bedingung: ["ansehen", "zustimmung", "eu"],
+  ruestung_export: ["ansehen", "zustimmung", "wachstum"],
+  medien_plattform: ["pressefreiheit", "zustimmung", "vertrauen"],
+  medien_enthuellung: ["pressefreiheit", "zustimmung", "vertrauen"],
+  medien_sendezeit: ["pressefreiheit", "zustimmung", "ansehen"],
 };
 
 /** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */
@@ -233,6 +239,8 @@ export function stelleLabel(s: Stelle): string {
       return t(`welle_h3.stelle.zentralbank.${s.abschnitt ?? "sitzung"}`);
     case "staette":
       return t("welle_h3.stelle.staette", { name: ERBE_NACH_ID[s.id]?.name ?? s.id });
+    case "ruestung":
+      return t("welle_e4.stelle.ruestung");
   }
 }
 

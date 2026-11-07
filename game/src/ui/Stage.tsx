@@ -1392,6 +1392,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               setWirtschaftStart("zentralbank");
               setWirtschaftZb(st.abschnitt ?? "sitzung");
               oeffneDossier("wirtschaft");
+            } else if (st.art === "ruestung") {
+              oeffneDossier("reich_militaer");
             } else {
               setReichStart("bestand");
               setReichStaette(st.id);

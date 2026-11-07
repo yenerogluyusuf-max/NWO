@@ -70,3 +70,149 @@ describe("Ein Lager je Haus (Abendkurier)", () => {
     expect(medienLager(w, medienCluster("kommerz_konform")!)).toBe("angepasst");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Welle 2: Rüstung und Medien melden sich (sim/ereignisse-ruestung.ts, sim/ereignisse-medien.ts)
+
+import { VORLAGEN, entscheide, oeffne } from "../src/sim/ereignisse";
+import { RUESTUNG_VORGAENGE } from "../src/sim/ereignisse-ruestung";
+import { MEDIEN_VORGAENGE } from "../src/sim/ereignisse-medien";
+import { reichZustand, vorhabenDef } from "../src/sim/reich";
+import { streitkraefte, streitkraefteMonat } from "../src/sim/streitkraefte";
+import { weltZustand } from "../src/sim/laender";
+import { medienVon, rsfSicht, eingriffBilanz, AKTIONEN, fuehreMedienAktionAus, MEDIEN } from "../src/sim/medien";
+import { NET } from "../src/sim/modell";
+import { nationalAverage } from "../src/sim/netz";
+import { setPolicy } from "../src/sim/handeln";
+import { Rng } from "../src/sim/rng";
+import { kommunenVon } from "../src/sim/kommunen";
+import { load, save } from "../src/sim/world";
+import type { World } from "../src/sim/types";
+
+const vorlage = (id: string) => VORLAGEN.find((v) => v.id === id)!;
+const knoten = (w: World, id: string) => nationalAverage(NET, w.net, id);
+function frisch(seed = 5): World {
+  const w = spiel(seed);
+  w.spiel!.ereignisse = [];
+  w.spiel!.kapital = 100;
+  return w;
+}
+
+describe("Rüstung: Ein Lieferant stellt Bedingungen", () => {
+  test("Kommt, solange eine Lieferung aus dem Ausland läuft, öfter bei angespannter Beziehung; ohne Lieferung nie", () => {
+    const w = frisch();
+    const normal = vorlage("ruestung_bedingung").chance(w);
+    expect(normal).toBeGreaterThan(0);
+    weltZustand(w)["USA"]!.konflikt = 60;
+    expect(vorlage("ruestung_bedingung").chance(w)).toBeCloseTo(normal * RUESTUNG_VORGAENGE.bedingung.angespannt, 6);
+    streitkraefte(w).laufend = streitkraefte(w).laufend.filter((b) => !b.lieferland || b.lieferland === "TUR");
+    expect(vorlage("ruestung_bedingung").chance(w)).toBe(0);
+  });
+
+  test("Ersatz heimisch kostet die angezeigten Monate Baufortschritt und hebt die Rüstungsautarkie um den angezeigten Wert", () => {
+    const w = frisch();
+    const ev = oeffne(w, "ruestung_bedingung", new Rng(1))!;
+    const vorhaben = String(ev.daten!.vorhaben);
+    const l = reichZustand(w).laufend.find((x) => x.id === vorhaben)!;
+    const v = vorhabenDef(vorhaben)!;
+    const vor = l.fortschritt, aut = knoten(w, "ruestungsautarkie");
+    const h = RUESTUNG_VORGAENGE.bedingung.heimisch;
+    entscheide(w, ev.id, "heimisch", new Rng(2));
+    expect(vor - l.fortschritt).toBeCloseTo(Math.min(vor, (v.kosten.bau * h.monate) / v.kosten.monate), 3);
+    expect(knoten(w, "ruestungsautarkie") - aut).toBeCloseTo(h.autarkie, 3);
+  });
+});
+
+describe("Rüstung: Exportanfrage (ENTSCHEIDUNGEN AA 4)", () => {
+  test("Liefern bucht Export, Industriearbeitsplätze und Nationalisten mit genau den angezeigten Zahlen", () => {
+    const w = frisch();
+    const ev = oeffne(w, "ruestung_export", new Rng(1))!;
+    expect(ev).toBeTruthy();
+    const vor = { e: knoten(w, "export"), a: knoten(w, "arbeitsplaetze_industrie"), n: knoten(w, "nationalisten") };
+    const p = RUESTUNG_VORGAENGE.export.liefern;
+    entscheide(w, ev.id, "liefern", new Rng(2));
+    expect(knoten(w, "export") - vor.e).toBeCloseTo(p.export, 3);
+    expect(knoten(w, "arbeitsplaetze_industrie") - vor.a).toBeCloseTo(p.arbeit, 3);
+    expect(knoten(w, "nationalisten") - vor.n).toBeCloseTo(p.nationalisten, 3);
+  });
+});
+
+describe("Lieferungen erscheinen in Zeitung und Wirkungsbericht", () => {
+  test("Eine fertige F-16 erzeugt einen Presse-Eintrag und einen Rückblick", () => {
+    const w = frisch();
+    reichZustand(w).bestand["mil_f16"] = { seit: w.date, zustand: 90 };
+    reichZustand(w).laufend = reichZustand(w).laufend.filter((l) => l.id !== "mil_f16");
+    streitkraefteMonat(w, false);
+    const c = w.spiel!.chronik.at(-1)!;
+    expect(c.presse?.sparte).toBe("politik");
+    expect(c.titel).toContain(vorhabenDef("mil_f16")!.name);
+    expect(w.spiel!.rueckblicke?.some((r) => r.id.includes("lieferung:"))).toBe(true);
+  });
+});
+
+describe("Medien: Plattform, Enthüllung, Sendezeit", () => {
+  test("Plattform: kommt bei Internetsperren, nicht ohne sie; Sperren kostet den angezeigten Pressefreiheitswert", () => {
+    const w = frisch();
+    expect(vorlage("medien_plattform").chance(w)).toBeGreaterThan(0);
+    const w0 = frisch();
+    setPolicy(w0, "m_internetsperren", 0);
+    for (let p = 0; p < 81; p++) w0.net.values[NET.index.get("m_internetsperren")! * 81 + p] = 0;
+    expect(vorlage("medien_plattform").chance(w0)).toBe(0);
+    const ev = oeffne(w, "medien_plattform", new Rng(1))!;
+    const rsf = rsfSicht(w).score, aus = medienVon(w).ausweich;
+    entscheide(w, ev.id, "sperren", new Rng(2));
+    expect(rsf - rsfSicht(w).score).toBeCloseTo(MEDIEN_VORGAENGE.plattform.sperren.presse!, 3);
+    expect(medienVon(w).ausweich - aus).toBeCloseTo(MEDIEN_VORGAENGE.plattform.sperren.ausweich!, 3);
+  });
+
+  test("Enthüllung: eine Stammfirma macht sie wahrscheinlicher; die Prüfung holt die Ausschreibung nach", () => {
+    const w = frisch();
+    reichZustand(w);
+    const ohne = vorlage("medien_enthuellung").chance(w);
+    expect(ohne).toBeGreaterThan(0);
+    const l = reichZustand(w).laufend.find((x) => !x.frei)!;
+    l.vergabe = "stammfirma";
+    expect(vorlage("medien_enthuellung").chance(w)).toBeCloseTo(ohne * MEDIEN_VORGAENGE.enthuellung.stammfirma, 6);
+    const ev = oeffne(w, "medien_enthuellung", new Rng(1))!;
+    expect(ev.daten!.vorhaben).toBe(l.id);
+    entscheide(w, ev.id, "pruefen", new Rng(2));
+    expect(l.vergabe).toBe("ausschreibung");
+    expect(l.vergabeBis).toBeGreaterThan(w.day);
+  });
+
+  test("Sendezeit: nur vor einer Wahl; ausgewogen gewinnt Pressefreiheit und senkt die Selbstzensur des Staatsfunks", () => {
+    const w = frisch();
+    expect(vorlage("medien_sendezeit").chance(w)).toBe(0);
+    w.spiel!.ereignisse = [];
+    const naechste = kommunenVon(w).naechste;
+    const vorWahl = load(save(w));
+    vorWahl.date = naechste.replace(/-\d\d$/, "-01");
+    expect(vorlage("medien_sendezeit").chance(vorWahl)).toBeGreaterThan(0);
+    const ev = oeffne(w, "medien_sendezeit", new Rng(1))!;
+    const rsf = rsfSicht(w).score, sz = medienVon(w).cluster["staatsrundfunk"]!.selbstzensur;
+    entscheide(w, ev.id, "ausgewogen", new Rng(2));
+    expect(rsfSicht(w).score - rsf).toBeCloseTo(-MEDIEN_VORGAENGE.sendezeit.ausgewogen.presse!, 3);
+    expect(medienVon(w).cluster["staatsrundfunk"]!.selbstzensur).toBeCloseTo(Math.max(0, sz + MEDIEN_VORGAENGE.sendezeit.zensurAusgewogen), 3);
+  });
+
+  test("Eingriffskarte: bringt und kostet sind die gebuchten Zahlen", () => {
+    const w = frisch();
+    const b = eingriffBilanz(AKTIONEN.aufsichtsstrafe, medienCluster("opposition_masse")!);
+    const vor = { v: knoten(w, "vertrauen_regierung"), s: knoten(w, "staedtische_saekulare"), rsf: rsfSicht(w).score };
+    expect(fuehreMedienAktionAus(w, "aufsichtsstrafe", "opposition_masse").ok).toBe(true);
+    const wert = (liste: { id: string; wert: number }[], id: string) => liste.find((x) => x.id === id)?.wert ?? 0;
+    expect(knoten(w, "vertrauen_regierung") - vor.v).toBeCloseTo(wert(b.bringt, "vertrauen_regierung"), 2);
+    expect(knoten(w, "staedtische_saekulare") - vor.s).toBeCloseTo(wert(b.kostet, "staedtische_saekulare"), 2);
+    expect(rsfSicht(w).score - vor.rsf).toBeCloseTo(wert(b.kostet, "pressefreiheitswert"), 2);
+    expect(MEDIEN.wirkung.ruhe).toBeGreaterThan(0);
+  });
+});
+
+describe("Neue Vorgänge verschieben den Zufallsstrom nicht und laufen deterministisch", () => {
+  test("Gleicher Samen, gleicher Verlauf über zwei Jahre", () => {
+    const a = spiel(9), b = spiel(9);
+    advance(a, 730);
+    advance(b, 730);
+    expect(save(a)).toBe(save(b));
+  }, 300_000);
+});

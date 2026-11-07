@@ -24,6 +24,7 @@ import { haushaltZustand } from "./wirtschaft";
 import { RESSORT_NACH_ID } from "../data/haushaltsplan";
 import { innovationsGrenze as wissensGrenze, WISSEN } from "./wissensbasis";
 import { reichZustand, vorhabenDef, warteschlange } from "./reich";
+import { rueckblickAnlegen } from "./berichte";
 import { t } from "../i18n";
 import type { World } from "./types";
 
@@ -588,7 +589,30 @@ function liefere(w: World, z: StreitkraefteZustand, b: Beschaffung): void {
   s.heimisch = Math.round(((s.heimisch * s.menge + heimNeu * b.menge) / neu) * 100) / 100;
   s.menge = Math.round(neu * 10) / 10;
   addLog(w, "ereignis", t("militaer.geliefert", { gattung: g, name: b.name ?? g }));
+  meldeLieferung(w, b);
 }
+
+/** Bereitschaftsknoten je Teilstreitkraft: Dort zeigt eine Lieferung ihre Wirkung im Bericht. */
+const BEREITSCHAFT: Record<Teilstreitkraft, string> = { heer: "bereitschaft_heer", luft: "bereitschaft_luft", see: "bereitschaft_see" };
+
+/**
+ * Welle E4: Eine Lieferung kommt an (Gesamtplan Welle 2, „Lieferungen: Wirkungsbericht und Schlagzeile“). Sie steht in der Chronik mit
+ * Presse-Merkmal, damit die nächste Monatsausgabe sie bringt (sim/zeitung.ts liest `presse`, nie den Titel), und bekommt einen Rückblick
+ * nach 6, 12 und 24 Monaten auf Abschreckung, Modernisierung und die Bereitschaft der Teilstreitkraft (sim/berichte.ts).
+ * Der Titel nennt den Namen des Vorhabens der Bauliste: Ist es ein Großvorhaben mit Eilmeldung, erkennt die Zeitung den Stoff daran wieder.
+ */
+function meldeLieferung(w: World, b: Beschaffung): void {
+  const sp = w.spiel;
+  if (!sp || b.menge <= 0) return;
+  const def = GATTUNG_NACH_ID[b.gattung];
+  const name = (b.vorhaben ? vorhabenDef(b.vorhaben)?.name : undefined) ?? b.name ?? t(`militaer.gattung.${b.gattung}`);
+  const menge = def.einheit === "stueck" ? t("welle_e4.lieferung.stueck", { n: b.menge, gattung: t(`militaer.gattung.${b.gattung}`) }) : t(`militaer.gattung.${b.gattung}`);
+  sp.chronik.push({ tag: w.day, datum: w.date, titel: t("welle_e4.lieferung.titel", { name }), ausgang: t("welle_e4.lieferung.ausgang", { menge, name }), art: "bericht", presse: { sparte: "politik", wertung: LIEFERUNG_WERTUNG } });
+  rueckblickAnlegen(w, "programm", t("welle_e4.lieferung.bericht", { name }), {}, undefined, ["abschreckung", "modernisierung", BEREITSCHAFT[def.teil]], `lieferung:${b.id}:${w.day}`);
+}
+
+/** Wie gut die Presse eine Lieferung findet (Spielparameter, wie ein erfüllter Programmschritt etwas darunter) */
+const LIEFERUNG_WERTUNG = 0.4;
 
 /** Nur Änderungen des Bestands schieben Modernisierung, Rüstungsautarkie und Abschreckung im Netz. */
 function meldeAnsNetz(w: World, z: StreitkraefteZustand): void {
