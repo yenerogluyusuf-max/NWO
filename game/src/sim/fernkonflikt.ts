@@ -35,6 +35,8 @@ export const FERN = {
   mittel: ["luft", "see", "stellvertreter", "cyber"] as EinsatzArt[],
   /** Faktor auf die eigenen Verluste gegenüber einem Landkrieg (Vorbild Klauenschwert, siehe Kopf) */
   verlust: 0.2,
+  /** Faktor auf den Gegenstoß des Gegners unter Frontlage 50 (wie sim/krieg.ts GEGNER_OFFENSIVE für Inselstaaten) */
+  gegenstoss: 0.35,
   /** Mindestens so viele Kriegswochen, bevor ein Ziel als erreicht gilt (ein Schlag ist noch keine Abschreckung) */
   minWochen: 2,
   /** Was ein Ziel verlangt: Lage im Schlagabtausch mindestens, Rückhalt des Gegners höchstens */

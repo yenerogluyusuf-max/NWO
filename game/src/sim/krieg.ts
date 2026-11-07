@@ -480,7 +480,8 @@ function haeltRegionen(w: World, k: KriegVorgang): boolean {
 
 /** Welche Pakete in diesem Vorgang auf dem Tisch liegen können: im Fernkonflikt keine mit Gebiet. */
 export function paketeFuer(k: KriegVorgang): string[] {
-  if (istFernkonflikt(k.land)) return ["paket_fern_zugestaendnisse", "paket_fern_abschreckung", "paket_weiss", "paket_zugestaendnis"];
+  // Ohne Grenze gibt es auch keine Grenzzugeständnisse: Wer verliert, zahlt und zieht ab (paket_fern_nachgeben)
+  if (istFernkonflikt(k.land)) return ["paket_fern_zugestaendnisse", "paket_fern_abschreckung", "paket_weiss", "paket_fern_nachgeben"];
   return ["paket_sieg", "paket_linie", "paket_ausgewogen", "paket_weiss", "paket_zugestaendnis"];
 }
 
@@ -490,7 +491,7 @@ export function paketeFuer(k: KriegVorgang): string[] {
  * Vorher bot Griechenland bei Frontlage 96 und vier genommenen Regionen den Status quo an („Ausgewogener Frieden“, Spielstand 2045).
  */
 export function lagePaketId(w: World, k: KriegVorgang): string {
-  if (k.front < 40) return "paket_zugestaendnis";
+  if (k.front < 40) return istFernkonflikt(k.land) ? "paket_fern_nachgeben" : "paket_zugestaendnis";
   if (istFernkonflikt(k.land)) return k.zielErreicht !== undefined || fernZielErreicht(k) ? FERN.paket[fernZielVon(k)] : k.front >= 60 ? "paket_fern_abschreckung" : "paket_weiss";
   if (haeltRegionen(w, k)) return "paket_linie";
   return k.front < 60 ? "paket_weiss" : "paket_ausgewogen";
@@ -561,6 +562,11 @@ export const PAKETE: Record<string, { name: string; text: string; paket: (front:
     get name() { return t("welle_k1.paket.fern_abschreckung.name"); },
     get text() { return t("welle_k1.paket.fern_abschreckung.text"); },
     paket: () => ({ gebiet: 0, reparation: 0, garantien: true, rueckzug: true }),
+  },
+  paket_fern_nachgeben: {
+    get name() { return t("welle_k1.paket.fern_nachgeben.name"); },
+    get text() { return t("welle_k1.paket.fern_nachgeben.text"); },
+    paket: () => ({ gebiet: 0, reparation: -1, garantien: false, rueckzug: true }),
   },
   paket_fern_zugestaendnisse: {
     get name() { return t("welle_k1.paket.fern_zugestaendnisse.name"); },
@@ -789,7 +795,7 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
       const angeboten = k.angebotPaket === id;
       if (!angeboten && id === "paket_sieg" && k.front < 55) continue;
       if (!angeboten && id === "paket_linie" && !gebiet) continue;
-      if (!angeboten && id === "paket_zugestaendnis" && k.front > 45) continue;
+      if (!angeboten && (id === "paket_zugestaendnis" || id === "paket_fern_nachgeben") && k.front > 45) continue;
       const p = def.paket(k.front);
       const aussicht = paketAnnahme(w, k, p, id);
       const preis = paketPreis(w, k, p);
@@ -1116,6 +1122,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
     case "paket_linie":
     case "paket_fern_abschreckung":
     case "paket_fern_zugestaendnisse":
+    case "paket_fern_nachgeben":
     case "paket_ausgewogen":
     case "paket_weiss":
     case "paket_zugestaendnis": {
@@ -1521,7 +1528,9 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   const sf = kriegsFaktoren(k);
   delta *= delta > 0 ? sf.vorstoss : sf.rueckschlag;
   // Gegenstoß auf türkischen Boden: Wer sich auf Inseln verteidigt, kann das Festland kaum nehmen (Spielparameter GEGNER_OFFENSIVE)
-  const offensive = GEGNER_OFFENSIVE[k.land];
+  // Im Fernkonflikt kann der Gegner die Türkei über Meer und Luft nicht niederwerfen (Welle 3, K1): Sein Gegenstoß ist gedämpft wie bei den
+  // Inselstaaten; verlieren kann die Türkei dort über die Erschöpfung, nicht über einen Zusammenbruch der Front
+  const offensive = GEGNER_OFFENSIVE[k.land] ?? (istFernkonflikt(k.land) ? FERN.gegenstoss : undefined);
   if (delta < 0 && k.front < 50 && offensive !== undefined) delta *= offensive * clamp((k.front - 10) / 40, 0.15, 1);
   if (k.frontSchub) {
     delta += k.frontSchub;
@@ -1675,10 +1684,16 @@ export function spannungsVerlauf(w: World, k: KriegVorgang): SpannungsVerlauf | 
   const ruhewert = konfliktRuhewert(w, k.land);
   const heute = konflikt;
   let esk = k.eskalation;
+  let sockel = k.sockel;
   let endeEtwa: number | undefined;
   for (let d = 1; d <= 1461; d++) {
     if (d % 30 === 0) konflikt += Math.sign(ruhewert - konflikt) * Math.min(1, Math.abs(ruhewert - konflikt));
     esk = eskalationTag(esk, konflikt, w.day + d - genaehrt);
+    // Der Sockel eigener Schritte, wie im Tagesschritt (Welle 3, K1)
+    if (sockel !== undefined) {
+      if (!k.kriegszielDeklariert && w.day + d - genaehrt > KRIEG.naehrFrist) sockel = Math.max(0, sockel - KRIEG.abklingenJeTag);
+      esk = Math.max(esk, sockel);
+    }
     if (esk <= KRIEG.spannungAus) {
       endeEtwa = w.day + d;
       break;

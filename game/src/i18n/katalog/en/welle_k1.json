@@ -123,5 +123,13 @@
  "welle_k1.ziel.raum_zeile": "{n} regions · resistance ×{f}",
  "welle_k1.ziel.text": "{land} can no longer deny Türkiye its aim and offers talks: “{paket}”. You decide whether the guns fall silent or Türkiye pushes on.",
  "welle_k1.ziel.titel": "War aim achieved: {land} negotiates",
- "welle_k1.ziel.warum": "An achieved aim makes the enemy ready to negotiate. Pushing on costs home support and lives."
+ "welle_k1.ziel.warum": "An achieved aim makes the enemy ready to negotiate. Pushing on costs home support and lives.",
+ "welle_k1.verlauf.sockel": "The declared war aim keeps escalation at {sockel} or above until you calm the situation or mediation succeeds.",
+ "welle_k1.pakete.angebot_ab": "On {datum, date, lang} {land} will put forward its own proposal, which it is sure to accept.",
+ "welle_k1.paket.fern_nachgeben.name": "Peace with Turkish concessions",
+ "welle_k1.paket.fern_nachgeben.text": "Türkiye pays compensation and withdraws its forces. No territory, but a visible climb-down.",
+ "welle_k1.ausgang.eingefroren": "Frozen without a treaty: the ceasefire line holds, the dispute remains.",
+ "welle_k1.ausgang.sieg": "Peace concluded: Türkiye has achieved its war aim.",
+ "welle_k1.ausgang.weisser_frieden": "Peace without a victor: both sides withdraw.",
+ "welle_k1.ausgang.frieden": "Peace with Turkish concessions."
 }

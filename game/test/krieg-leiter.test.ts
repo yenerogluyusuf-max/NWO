@@ -277,6 +277,9 @@ describe("Schritt 3: Fernkonflikt ohne Gebiet", () => {
       w.spiel!.ereignisse = [];
     }
     expect(Object.keys(k.regionen ?? {})).toHaveLength(0);
+    // Über Meer und Luft bricht keine Front zusammen: verlieren kann die Türkei hier über die Erschöpfung, nicht über einen Durchbruch
+    expect(k.ausgang).not.toBe("niederlage");
+    expect(k.front).toBeGreaterThan(KRIEG.zusammenbruchFront + 5);
     expect(kriegsKarte(w, [k], () => [0, 0])).toBeNull();
     // Gefallene in der Größenordnung eines Luftkriegs, nicht einer Bodenoffensive (Inhaber 2043: 318 in 12 Wochen)
     expect(k.gefallene ?? 0).toBeLessThan(120);

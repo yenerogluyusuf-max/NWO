@@ -7,6 +7,7 @@ import type { World } from "../../sim/types";
 import type { KriegVorgang } from "../../sim/krieg-typen";
 import { KRIEG, PAKETE, paketAussicht, paketPreis, type KriegHandlungId, type KriegHandlungSicht } from "../../sim/krieg";
 import { land } from "../../sim/laender";
+import { addDays } from "../../sim/dates";
 import { t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
 import "./krieg.css";
@@ -22,7 +23,11 @@ export function Pakete({ world, k, handlungen, tun }: { world: World; k: KriegVo
     <section className="kp" aria-label={t("welle_k1.pakete.titel")}>
       <header className="kp-kopf">
         <h5>{t("welle_k1.pakete.titel")}</h5>
-        <span>{k.rueckzugGegner ? t("welle_k1.pakete.rueckzug", { land: name }) : k.zielErreicht !== undefined ? t("welle_k1.pakete.ziel", { land: name }) : t("welle_k1.pakete.offen", { land: name, n: KRIEG.paketNoetig })}</span>
+        <span>
+          {k.rueckzugGegner ? t("welle_k1.pakete.rueckzug", { land: name }) : k.zielErreicht !== undefined ? t("welle_k1.pakete.ziel", { land: name }) : t("welle_k1.pakete.offen", { land: name, n: KRIEG.paketNoetig })}
+          {/* Liegt noch kein eigener Vorschlag des Gegners auf dem Tisch, steht da, wann er kommt (sim/krieg.ts waffenruheTag) */}
+          {!k.angebotPaket && k.seit + KRIEG.gegenangebotTage > world.day ? ` ${t("welle_k1.pakete.angebot_ab", { land: name, datum: addDays(world.date, k.seit + KRIEG.gegenangebotTage - world.day) })}` : ""}
+        </span>
       </header>
       <ul className="kp-liste">
         {pakete.map((h) => {

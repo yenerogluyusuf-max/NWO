@@ -123,5 +123,13 @@
  "welle_k1.ziel.raum_zeile": "{n} Regionen · Gegenwehr ×{f}",
  "welle_k1.ziel.text": "{land} kann das Ziel nicht mehr verwehren und bietet Verhandlungen an: „{paket}“. Sie entscheiden, ob die Waffen schweigen oder ob die Türkei weiter vorstößt.",
  "welle_k1.ziel.titel": "Kriegsziel erreicht: {land} verhandelt",
- "welle_k1.ziel.warum": "Ein erreichtes Ziel macht den Gegner verhandlungsbereit. Wer weiter vorstößt, zahlt mit Rückhalt und Verlusten."
+ "welle_k1.ziel.warum": "Ein erreichtes Ziel macht den Gegner verhandlungsbereit. Wer weiter vorstößt, zahlt mit Rückhalt und Verlusten.",
+ "welle_k1.verlauf.sockel": "Das erklärte Kriegsziel hält die Eskalation bei mindestens {sockel}, bis Sie beruhigen oder eine Vermittlung gelingt.",
+ "welle_k1.pakete.angebot_ab": "Am {datum, date, lang} legt {land} einen eigenen Vorschlag vor, den es sicher annimmt.",
+ "welle_k1.paket.fern_nachgeben.name": "Frieden mit eigenen Zugeständnissen",
+ "welle_k1.paket.fern_nachgeben.text": "Die Türkei zahlt Entschädigung und zieht ihre Kräfte zurück. Kein Gebiet, aber ein sichtbares Nachgeben.",
+ "welle_k1.ausgang.eingefroren": "Eingefroren ohne Vertrag: Die Waffenstillstandslinie hält, der Streit bleibt.",
+ "welle_k1.ausgang.sieg": "Frieden geschlossen: Die Türkei hat ihr Kriegsziel durchgesetzt.",
+ "welle_k1.ausgang.weisser_frieden": "Frieden ohne Sieger: Beide Seiten ziehen sich zurück.",
+ "welle_k1.ausgang.frieden": "Frieden mit Zugeständnissen der Türkei."
 }

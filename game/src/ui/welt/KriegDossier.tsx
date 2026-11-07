@@ -100,7 +100,9 @@ function Verlauf({ world, k, onTab }: { world: World; k: KriegVorgang; onTab?: (
         {v.klingtAb
           ? t("welle_h2.krieg.verlauf.klingt", { datum: tag(v.genaehrt) })
           : t("welle_h2.krieg.verlauf.genaehrt", { datum: tag(v.genaehrt), ab: tag(v.abklingenAb), land: name, konflikt: nf(v.konflikt) })}{" "}
-        {v.endeEtwa !== undefined ? t("welle_h2.krieg.verlauf.ende", { phase: k.phase, ende: tag(v.endeEtwa) }) : t("welle_h2.krieg.verlauf.kein_ende")}
+        {k.kriegszielDeklariert && k.sockel !== undefined
+          ? t("welle_k1.verlauf.sockel", { sockel: nf(k.sockel) })
+          : v.endeEtwa !== undefined ? t("welle_h2.krieg.verlauf.ende", { phase: k.phase, ende: tag(v.endeEtwa) }) : t("welle_h2.krieg.verlauf.kein_ende")}
       </p>
       <p className="subtitle">
         {t("welle_h2.krieg.verlauf.naehrt")} {t("welle_h2.krieg.verlauf.ruhe", { land: name, ruhe: nf(v.ruhewert) })}
@@ -221,7 +223,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
 
       {vorKrieg && <Leiter world={world} k={k} />}
 
-      {!imKrieg && (
+      {vorKrieg && (
         <div className="kd-zeile" title={t("ui.welt.KriegDossier.c4f3a82")}>
           <span>{t("krieg.d.eskalation")}</span>
           <span className="kd-balken kd-eskalation" aria-hidden>
@@ -304,8 +306,10 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
         </div>
       )}
 
-      <Schauplatz world={world} k={k} onTat={(text) => melde({ ok: true, text })} />
-      <Fernkonflikt world={world} k={k} onTat={(text) => melde({ ok: true, text })} />
+      {/* Nach dem Frieden gibt es keine Einsatzart mehr zu wählen; es zählt, wie der Krieg endete und was die Türkei hält (Welle 3, K1) */}
+      {k.phase === "frieden" && k.ausgang && AUSGANG_TEXT.has(k.ausgang) && <p className={`kz-erreicht kd-ausgang-${k.ausgang}`}>{t(`welle_k1.ausgang.${k.ausgang}`)}</p>}
+      {k.phase !== "frieden" && <Schauplatz world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
+      {k.phase !== "frieden" && <Fernkonflikt world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
 
       <details className="kd-lagebild">
         <summary>
@@ -348,4 +352,5 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
   );
 }
 
+const AUSGANG_TEXT = new Set(["eingefroren", "sieg", "weisser_frieden", "frieden"]);
 const zahlZeichen1 = (x: number): string => (x > 0 ? "+" : x < 0 ? "−" : "") + zahl(Math.abs(x), Number.isInteger(x) ? 0 : 1);
