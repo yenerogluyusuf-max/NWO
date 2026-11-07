@@ -46,8 +46,9 @@ type Modus = "laender" | "bloecke" | "dienst" | "vermittlung";
 const MODI: Modus[] = ["laender", "bloecke", "dienst", "vermittlung"];
 
 export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: World; refresh: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; start?: string; startTab?: WeltTab }) {
-  const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : "laender");
-  const [gewaehlt, setGewaehlt] = useState<string>(start && start !== "vermittlung" ? start : "EU");
+  // Welle E3: „dienst“ öffnet den Dienst (Sprung aus einem Vorgang des MİT)
+  const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : start === "dienst" ? "dienst" : "laender");
+  const [gewaehlt, setGewaehlt] = useState<string>(start && start !== "vermittlung" && start !== "dienst" ? start : "EU");
   const [block, setBlock] = useState<string>("eu");
   const [filter, setFilter] = useState<string>("alle");
   const [suche, setSuche] = useState("");

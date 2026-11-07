@@ -41,7 +41,7 @@ export function MitZusatz({ w, refresh }: { w: World; refresh: () => void }) {
           <i style={{ ["--w" as string]: `${lage.wert}%` }} aria-hidden />
         </div>
         <div className="mit-lagebalken">
-          <span>{t("behoerden.mit.ui.schutz", { p: schutz })}</span>
+          <span>{t("behoerden.mit.ui.schutz", { p: schutz * 100 })}</span>
           <i style={{ ["--w" as string]: `${schutz * 100}%` }} aria-hidden />
         </div>
       </div>
@@ -86,8 +86,8 @@ export function MitZusatz({ w, refresh }: { w: World; refresh: () => void }) {
             <li key={o.def.art} className={o.moeglich ? "" : "gesperrt"}>
               <div className="mit-inland-kopf">
                 <strong>{o.name}</strong>
-                <span className="bh-preis">{t("behoerden.mit.ui.aussicht", { p: o.p })}</span>
-                {o.pLeck > 0 && <span className="mit-leck">{t("behoerden.mit.ui.leck", { p: o.pLeck })}</span>}
+                <span className="bh-preis">{t("behoerden.mit.ui.aussicht", { p: o.p * 100 })}</span>
+                {o.pLeck > 0 && <span className="mit-leck">{t("behoerden.mit.ui.leck", { p: o.pLeck * 100 })}</span>}
               </div>
               <p>{o.text}</p>
               <div className="bh-achse-fuss">

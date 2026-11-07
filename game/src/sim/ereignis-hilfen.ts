@@ -21,7 +21,10 @@ export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahl
 export type Stelle =
   | { art: "medien"; cluster?: string }
   | { art: "zentralbank"; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" }
-  | { art: "staette"; id: string };
+  | { art: "staette"; id: string }
+  // Welle E3: Machtkreis (mit vorgewählter Person) und Dienst
+  | { art: "machtkreis"; person?: string }
+  | { art: "dienst"; ziel?: string };
 
 export interface Option {
   id: string;

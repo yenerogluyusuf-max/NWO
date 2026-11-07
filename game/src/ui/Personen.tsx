@@ -15,7 +15,7 @@ import { Machtkreis } from "./personen/Machtkreis";
 import "./personen/personen.css";
 
 import { t } from "../i18n";
-export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; initialTab?: "zusagen"; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
+export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; initialTab?: "zusagen" | "machtkreis"; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
   const spiel = world.spiel;
   const [tab, setTab] = useState<"kabinett" | "umfeld" | "machtkreis" | "zusagen">(initialTab ?? "kabinett");
   const [gewaehltePerson, setGewaehltePerson] = useState<{ id: string; modus?: "gespraech" | "entlassen" } | null>(null);

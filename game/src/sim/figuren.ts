@@ -90,6 +90,16 @@ function name(rng: Rng, benutzt: Set<string>, weiblich?: boolean, alt = false): 
 /** Ein Name, der im Umfeld noch nicht vorkommt. */
 export const neuerName = name;
 
+/**
+ * Alle Namen, die im Spiel schon vergeben sind: Ämter, Nebenfiguren des Machtkreises (Kronprinz, Fraktionschef, Journalistin,
+ * Richter) und ehemalige Amtsträger. Welle E3: Ernennungen schlossen nur die Ämter aus; beim Inhaber war „Cem Bilgin“ von 2033 bis
+ * 2038 zugleich Finanzminister und Kronprinz der Partei. Der Zufallsstrom bleibt derselbe (`name` rückt ohne weiteren Wurf weiter).
+ */
+export function vergebeneNamen(world: World): Set<string> {
+  const sp = world.spiel;
+  return new Set([...(sp?.figuren ?? []).map((f) => f.name), ...(sp?.machtkreis?.neben ?? []).map((n) => n.name), ...(sp?.ehemalige ?? []).map((e) => e.name)]);
+}
+
 /** Erzeugt das Umfeld beim Amtsantritt. Das Regierungslager hat als Partner den Vorsitz der Bündnispartei. */
 export function erzeugeFiguren(world: World, rng: Rng): Figur[] {
   const benutzt = new Set<string>();
@@ -295,7 +305,7 @@ export function ersetze(world: World, amt: Figur["amt"], rng: Rng): Figur | unde
   const alt = figur(world, amt);
   const spiel = world.spiel;
   if (!alt || !spiel) return undefined;
-  const benutzt = new Set(spiel.figuren.map((f) => f.name));
+  const benutzt = vergebeneNamen(world);
   const spec = ROLLEN.find((r) => r.amt === amt) ?? ZUSATZ_ROLLEN.find((r) => r.amt === amt) ?? NEUE_ROLLEN.find((r) => r.amt === amt);
   const neu = name(rng, benutzt, spec?.weiblich);
   const loyal = Math.round(50 + rng.between(-8, 16));
@@ -323,7 +333,7 @@ export function loyalitaetAendern(world: World, amt: Figur["amt"], delta: number
 /** Der Vorsitz einer Partnerpartei als Figur mit eigenem Namen. */
 export const PARTNER_START_LOYALITAET=55;
 export function partnerFigur(world: World, partei: string, rolle: string, ziel: string, rng: Rng): Figur {
-  const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
+  const benutzt = vergebeneNamen(world);
   const weiblich = rng.next() < 0.35;
   const f: Figur = { id: `partner-${partei}`, name: name(rng, benutzt, weiblich), weiblich, rolle, amt: "partner", ziel, loyalitaet: PARTNER_START_LOYALITAET, imAmt: true, partei };
   lokalisiereFigur(f);
@@ -344,7 +354,7 @@ export function sichereParteivorsitz(world: World, partei: string, rolle: string
 
 /** Ein neuer, noch nicht vergebener Name für Nebenfiguren in Ereignissen (Bürgermeister, Chefredakteure, Vorstände). */
 export function zufallsName(world: World, rng: Rng): string {
-  const benutzt = new Set((world.spiel?.figuren ?? []).map((f) => f.name));
+  const benutzt = vergebeneNamen(world);
   return name(rng, benutzt);
 }
 

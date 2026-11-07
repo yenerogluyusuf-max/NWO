@@ -168,7 +168,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
-  const [personenStart, setPersonenStart] = useState<"zusagen" | undefined>(undefined);
+  const [personenStart, setPersonenStart] = useState<"zusagen" | "machtkreis" | undefined>(undefined);
   const [dossier, setDossier] = useState<Dossier>(null);
   // Beim Laden gibt es kein Amtsübergabe-Intro, sondern das „Stand der Dinge“-Blatt (Re-Entry)
   const [intro, setIntro] = useState<GameEvent | null>(() => (geladen ? null : startEvent(initial)));
@@ -1392,6 +1392,16 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               setWirtschaftStart("zentralbank");
               setWirtschaftZb(st.abschnitt ?? "sitzung");
               oeffneDossier("wirtschaft");
+            } else if (st.art === "machtkreis") {
+              // Welle E3: Kabinett › Machtkreis
+              setPersonenStart("machtkreis");
+              setDossier("personen");
+              beendeZeit();
+            } else if (st.art === "dienst") {
+              // Welle E3: Außen › Dienst
+              setWeltStart("dienst");
+              setWeltTab(undefined);
+              oeffneDossier("welt");
             } else {
               setReichStart("bestand");
               setReichStaette(st.id);

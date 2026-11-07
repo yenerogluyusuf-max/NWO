@@ -8,7 +8,7 @@ import { clamp } from "./economy";
 import { kannZahlen } from "./kapital";
 import { vertrauenAendern, wirke } from "./wirkung";
 import { Rng } from "./rng";
-import { besetzeNeu, ehemaligeMerken, figur, neuerName } from "./figuren";
+import { besetzeNeu, ehemaligeMerken, figur, neuerName, vergebeneNamen } from "./figuren";
 import { setzeAusscheidenHaken } from "./gespraeche";
 import { AEMTER, eigenVon, hashZahl, loyalitaetVerschieben } from "./personen";
 import type { Kandidat, LagerArt, Stil } from "./personen-typen";
@@ -69,7 +69,7 @@ export function kandidatenFuer(w: World, amt: Figur["amt"]): Kandidat[] {
   const g = f.weiblich ? "f" : "m";
   const ressortName = t(`daten.amt.${amt}.ressort`);
   const rng = new Rng(Math.floor(zufall(w, f, "kand") * 2147483647));
-  const benutzt = new Set((w.spiel?.figuren ?? []).map((x) => x.name));
+  const benutzt = vergebeneNamen(w);
   return ARCHETYPEN.map((a): Kandidat => {
     const u = (s: string) => zufall(w, f, `${a.key}|${s}`);
     const name = neuerName(rng, benutzt, f.weiblich);
@@ -172,7 +172,7 @@ export function entlasse(w: World, amt: Figur["amt"], kandidatId: string | null,
     folgen.push(t("n1.nf.folge.uebernimmt", { name: k.name, herkunft: k.herkunft, staerke: k.staerke }));
   } else {
     const rng = new Rng(Math.floor(zufall(w, f, "interim") * 2147483647));
-    const benutzt = new Set(sp.figuren.map((x) => x.name));
+    const benutzt = vergebeneNamen(w);
     besetzeNeu(w, f, { name: neuerName(rng, benutzt, f.weiblich), loyalitaet: 50, faehigkeit: 45, ehrgeiz: 20, kommissarisch: true, notiz: t("n1.nf.notiz.kommEntlassung", { alt }) });
     folgen.push(t("n1.nf.folge.kommissarisch"));
   }
@@ -207,7 +207,7 @@ export function ausscheiden(w: World, f: Figur, grund: string): void {
   if (!w.spiel || !AEMTER[f.amt].regierungsamt) return;
   const alt = `${f.rolle} ${f.name}`;
   const rng = new Rng(Math.floor(zufall(w, f, "rueck") * 2147483647));
-  const benutzt = new Set(w.spiel.figuren.map((x) => x.name));
+  const benutzt = vergebeneNamen(w);
   verlasse(w, f, grund, Math.min(100, 55 + eigenVon(w, f).groll * 0.4));
   marktFolgen(w, f.amt);
   besetzeNeu(w, f, { name: neuerName(rng, benutzt, f.weiblich), loyalitaet: 50, faehigkeit: 45, ehrgeiz: 20, kommissarisch: true, notiz: t("n1.nf.notiz.kommRuecktritt", { alt }) });

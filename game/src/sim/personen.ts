@@ -195,12 +195,17 @@ export function grollVerschieben(w: World, f: Figur, delta: number): void {
   e.groll = klemme(e.groll + delta);
 }
 
-/** Wie gut das Ressort läuft: 0 bis 1,3. Fähigkeit und Loyalität zählen, Zusatzmittel und Druck erhöhen. */
+/** Faktor auf die Ressortleistung, solange ein Minister kaltgestellt ist (Spielparameter, Welle E3). */
+export const KALT_LEISTUNG = 0.8;
+
+/** Wie gut das Ressort läuft: 0 bis 1,3. Fähigkeit und Loyalität zählen, Zusatzmittel und Druck erhöhen, Kaltstellen senkt. */
 export function leistung(w: World, f: Figur): number {
   const e = eigenVon(w, f);
   const basis = (0.6 * e.faehigkeit + 0.4 * f.loyalitaet) / 100;
   const mittel = e.mittelBis !== undefined && e.mittelBis > w.day ? 1.25 : 1;
-  const druck = e.druckBis !== undefined && e.druckBis > w.day ? 1.15 : 1;
+  // Kaltgestellt heißt entmachtet: Der Druck einer Kritik spornt dann nicht mehr an (vorher hob das Kaltstellen die Leistung um 15 %)
+  const kalt = e.kaltBis !== undefined && e.kaltBis > w.day;
+  const druck = !kalt && e.druckBis !== undefined && e.druckBis > w.day ? 1.15 : kalt ? KALT_LEISTUNG : 1;
   // Wer neu im Amt ist oder nur kommissarisch führt, leistet weniger
   const neu = (e.einarbeitungBis !== undefined && e.einarbeitungBis > w.day ? 0.75 : 1) * (e.kommissarisch ? 0.8 : 1);
   return klemme(basis * mittel * druck * neu, 0, 1.3);

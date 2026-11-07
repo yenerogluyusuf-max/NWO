@@ -181,7 +181,7 @@ function Detail({ world, f, meldung, onModus }: { world: World; f: Figur; meldun
             {e.kommissarisch && <Marke art="rot">{t("ui2.ui.personen.Umfeld.5d54a5d")}</Marke>}
             {e.einarbeitungBis !== undefined && e.einarbeitungBis > world.day && <Marke>{t("ui2.ui.personen.Umfeld.31f3f5e", { p0: datum(world, e.einarbeitungBis) })}</Marke>}
             {e.mittelBis !== undefined && e.mittelBis > world.day && <Marke art="gruen">{t("ui2.ui.personen.Umfeld.8038b75", { p0: datum(world, e.mittelBis) })}</Marke>}
-            {e.druckBis !== undefined && e.druckBis > world.day && <Marke art="rot">{t("ui2.ui.personen.Umfeld.43f31d1")}</Marke>}
+            {e.kaltBis !== undefined && e.kaltBis > world.day ? <Marke art="rot">{t("welle_e3.umfeld.kalt", { datum: datum(world, e.kaltBis) })}</Marke> : e.druckBis !== undefined && e.druckBis > world.day && <Marke art="rot">{t("ui2.ui.personen.Umfeld.43f31d1")}</Marke>}
           </div>
         </div>
       </div>

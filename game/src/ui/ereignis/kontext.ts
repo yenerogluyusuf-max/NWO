@@ -17,6 +17,8 @@ import type { EreignisAnsicht } from "../../sim/ereignisse";
 import type { Stelle } from "../../sim/ereignis-hilfen";
 import { rsfSicht } from "../../sim/medien";
 import { glaubwuerdigkeitWort } from "../../sim/zentralbank";
+import { parteitagTermin } from "../../sim/machtkreis";
+import { kapazitaetMax } from "../../sim/welt-dienst";
 import { ERBE_NACH_ID } from "../../data/erbe";
 
 export type Thema = "haushalt" | "wirtschaft" | "aussen" | "sicherheit" | "gesellschaft" | "katastrophe" | "recht" | "wohnen" | "partner";
@@ -126,7 +128,7 @@ export function sprecherFuer(w: World, a: Pick<EreignisAnsicht, "id" | "vorlage"
     if (chef) return { figur: chef };
     if (von === "Wähler") partnerZuerst.push("stab");
   }
-  const reihenfolge: Figur["amt"][] = [...partnerZuerst, ...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a, w)], "stab"];
+  const reihenfolge: Figur["amt"][] = [...partnerZuerst, ...(VORLAGE_SPRECHER[a.vorlage] ? [VORLAGE_SPRECHER[a.vorlage]!] : []), ...(bezug?.amt ?? []), THEMA_AMT[themaFuer(a, w)], "stab"];
   for (const amt of reihenfolge) {
     const f = im.find((x) => x.amt === amt);
     if (f) {
@@ -214,6 +216,18 @@ function bausteine(w: World): Record<string, () => Kennzahl | undefined> {
     leitzins: () => zahl("leitzins", t("welle_h3.kz.leitzins"), pz(w.economy.policyRate), reihe(w, (h) => h.policyRate)),
     glaubwuerdigkeit: () => zahl("glaubwuerdigkeit", t("welle_h3.kz.glaubwuerdigkeit"), t("welle_h3.kz.glaubwuerdigkeitWert", { n: Math.round(w.economy.credibility * 100), wort: glaubwuerdigkeitWort(w.economy.credibility) })),
     tourismus: knot("tourismus", t("welle_h3.kz.tourismus")),
+    // Welle E3: Machtkreis und Dienst (nur lesen; ohne angelegten Machtkreis oder Dienst keine Zahl)
+    nachfolge: () => (w.spiel?.machtkreis ? zahl("nachfolge", t("welle_e3.kz.nachfolge"), `${Math.round(w.spiel.machtkreis.nachfolge)} / 100`) : undefined),
+    angst: () => (w.spiel?.machtkreis ? zahl("angst", t("welle_e3.kz.angst"), `${Math.round(w.spiel.machtkreis.angst)} / 100`) : undefined),
+    parteitag: () => {
+      if (!w.spiel?.machtkreis) return undefined;
+      const p = parteitagTermin(w);
+      return zahl("parteitag", t(p.ausserordentlich ? "welle_e3.kz.parteitagAusser" : "welle_e3.kz.parteitag"), t("welle_e3.kz.parteitagWert", { tage: Math.max(0, p.tag - w.day) }));
+    },
+    dienst: () => {
+      const dz = w.spiel?.weltmodell?.dienst;
+      return dz ? zahl("dienst", t("welle_e3.kz.dienst"), `${Math.round(dz.kapazitaet)} / ${kapazitaetMax(w)}`) : undefined;
+    },
   };
 }
 
@@ -222,6 +236,21 @@ const VORLAGE_ZAHLEN: Record<string, string[]> = {
   medien_kampagne: ["pressefreiheit", "zustimmung", "vertrauen"],
   zentralbank_vertrauen: ["inflation", "leitzins", "glaubwuerdigkeit", "lira"],
   erbe_verfall: ["staette", "tourismus", "ansehen"],
+  // Welle E3
+  kreis_nachfolge_stufe: ["nachfolge", "parteitag", "zustimmung"],
+  kreis_parteitag: ["nachfolge", "parteitag", "zustimmung"],
+  kreis_befund: ["angst", "vertrauen", "zustimmung"],
+  dienst_zugriff: ["eu", "dienst", "ansehen"],
+  dienst_kader: ["terror", "dienst", "zustimmung"],
+  dienst_kanal: ["ansehen", "dienst", "zustimmung"],
+  dienst_aufgeflogen: ["eu", "ansehen", "vertrauen"],
+  dienst_fremd: ["eu", "dienst", "vertrauen"],
+};
+
+/** Welle E3: Wer bei Vorgängen des Machtkreises und des Dienstes spricht (der Dienst ist dem Präsidenten unterstellt, Gesetz 2937 Art. 3). */
+const VORLAGE_SPRECHER: Record<string, Figur["amt"]> = {
+  kreis_nachfolge_stufe: "stab", kreis_parteitag: "stab", kreis_befund: "stab",
+  dienst_zugriff: "stab", dienst_kader: "stab", dienst_kanal: "aussen", dienst_aufgeflogen: "stab", dienst_fremd: "stab",
 };
 
 /** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */
@@ -233,6 +262,10 @@ export function stelleLabel(s: Stelle): string {
       return t(`welle_h3.stelle.zentralbank.${s.abschnitt ?? "sitzung"}`);
     case "staette":
       return t("welle_h3.stelle.staette", { name: ERBE_NACH_ID[s.id]?.name ?? s.id });
+    case "machtkreis":
+      return t("welle_e3.stelle.machtkreis");
+    case "dienst":
+      return t("welle_e3.stelle.dienst");
   }
 }
 
