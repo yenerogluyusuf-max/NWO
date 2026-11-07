@@ -474,6 +474,22 @@
 .we-eu-block > b { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
 .we-eu-warn { padding: 10px 12px; border-left: 5px solid #c9863a; background: rgba(255, 248, 230, 0.75); border-radius: 4px; }
 .we-eu-aktion { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+/* Welle E1: Kennzahlen des Beitritts und der sichtbare Preis des Reformpakets (Vorgabe Z: Karten, Zahlen statt Sätze) */
+.we-eu-zahlen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.we-eu-zahlen span { display: grid; gap: 2px; padding: 8px 12px; background: var(--papier-2); border: 1px solid var(--linie); border-radius: 6px; }
+.we-eu-zahlen strong { font: 600 var(--schrift-5) var(--display); color: var(--tinte-1); }
+.we-eu-zahlen small { font: var(--schrift-1) var(--serif); color: var(--tinte-2); }
+.we-eu-echt { margin: 0; }
+.we-eu-preis { display: grid; gap: 8px; padding: 12px 14px; background: var(--papier-2); border: 1px solid var(--linie-stark); border-left: 5px solid var(--messing-2); border-radius: 6px; }
+.we-eu-preis > b { font: 600 var(--schrift-1) var(--display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--tinte-2); }
+.we-eu-preis ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.we-eu-preis li { display: grid; grid-template-columns: minmax(10em, 1.4fr) auto minmax(6em, 1fr) auto; gap: 12px; align-items: center; font: var(--schrift-2) var(--serif); color: var(--tinte-1); }
+.we-eu-preis li.ok .we-eu-preis-wert { color: var(--gut); }
+.we-eu-preis-wert strong { font: 600 var(--schrift-3) var(--display); }
+.we-eu-preis-balken { height: 6px; background: var(--papier-4); border-radius: 3px; overflow: hidden; }
+.we-eu-preis-balken i { display: block; height: 100%; background: var(--messing-2); }
+.we-eu-preis li.ok .we-eu-preis-balken i { background: var(--gut); }
+@container (max-width: 640px) { .we-eu-zahlen { grid-template-columns: repeat(2, minmax(0, 1fr)); } .we-eu-preis li { grid-template-columns: 1fr auto; } }
 .we-eu-aktion .subtitle { flex: 1; min-width: 16em; margin: 0; }
 .we-eu-kapitel { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .we-eu-kap { background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 5px solid #9a8a72; border-radius: 4px; }

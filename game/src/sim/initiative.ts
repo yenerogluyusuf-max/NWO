@@ -18,6 +18,7 @@
 // Die fünf Vorlagen tragen die bewährten Kennungen der früheren generischen Ländervorlagen
 // (land_fordert, land_angebot, vertrag_verlaengerung, land_provokation) plus land_drohkulisse.
 
+import { euFreischaltung } from "./eu";
 import { addLog } from "./log";
 import { clamp } from "./economy";
 import { wirke, vertrauenAendern } from "./wirkung";
@@ -41,7 +42,7 @@ import {
 } from "./abkommen";
 import { AUSSTRAHLUNG, KLAUSEL_NACH_ID, PROFILE, type Laufzeit } from "../data/abkommen";
 import { beschr, kosten, opt, zusageAnlegen } from "./ereignis-hilfen";
-import type { Vorlage } from "./ereignis-hilfen";
+import type { Option as VorlagenOption, Vorlage } from "./ereignis-hilfen";
 import { belastungEreignis, VERFASSUNG } from "./aufmerksamkeit";
 import type { World } from "./types";
 import { msg, t, tIn } from "../i18n";
@@ -469,14 +470,19 @@ const LAND_FORDERT: Vorlage = {
     }
     const pk = pkFuer(paket);
     const pkGegen = gegen ? pkFuer(gegen) : pk;
+    // Welle E1: Eine Forderung der EU nennt auf der Antwort, was die Klausel auf dem Weg nach Europa freischaltet (dieselben Regeln wie das EU-Dossier)
+    const frei = (p: { gibt: string[] } | null): Partial<VorlagenOption> => {
+      const zeilen = l.id === "EU" && p ? p.gibt.map((c) => euFreischaltung(w, c)).filter((x): x is string => !!x) : [];
+      return zeilen.length ? { bedingungen: zeilen } : {};
+    };
     return [
-      opt("erfuellen", t("ini.fordert.opt.erfuellen", { jahre: paket.jahre }), beschr(pk, 0, t("ini.fordert.opt.erfuellen.folge", { wer: anredeVon(l.id), klausel: labelVon(w, l.id, String(ev.daten?.klausel)) })), pk, (ww) => {
+      { ...opt("erfuellen", t("ini.fordert.opt.erfuellen", { jahre: paket.jahre }), beschr(pk, 0, t("ini.fordert.opt.erfuellen.folge", { wer: anredeVon(l.id), klausel: labelVon(w, l.id, String(ev.daten?.klausel)) })), pk, (ww) => {
         const pruef = pruefeAngebot(ww, paket);
         if (pruef) return t("ini.fordert.opt.erfuellen.unmoeglich", { grund: pruef });
         schliesse(ww, paket);
         return t("ini.fordert.opt.erfuellen.ergebnis", { paket: paketText(ww, paket) });
-      }),
-      opt("gegenangebot", t("ini.fordert.opt.gegenangebot"), beschr(pkGegen, 0, gegen && gegen.will.length ? t("ini.fordert.opt.gegenangebot.folge_tausch", { gibt: labelVon(w, l.id, gegen.gibt[0]!), will: labelVon(w, l.id, gegen.will[0]!), land: l.name }) : t("ini.fordert.opt.gegenangebot.folge_kurz", { land: l.name })), pkGegen, (ww) => {
+      }), ...frei(paket) },
+      { ...opt("gegenangebot", t("ini.fordert.opt.gegenangebot"), beschr(pkGegen, 0, gegen && gegen.will.length ? t("ini.fordert.opt.gegenangebot.folge_tausch", { gibt: labelVon(w, l.id, gegen.gibt[0]!), will: labelVon(w, l.id, gegen.will[0]!), land: l.name }) : t("ini.fordert.opt.gegenangebot.folge_kurz", { land: l.name })), pkGegen, (ww) => {
         if (!gegen) return t("ini.fordert.opt.gegenangebot.nichts");
         const b = bewerte(ww, gegen);
         if (b.urteil === "zustimmung") {
@@ -485,7 +491,7 @@ const LAND_FORDERT: Vorlage = {
         }
         landAendern(ww, l.id, { vertrauen: -2 }, "Gegenangebot abgelehnt");
         return t("ini.fordert.opt.gegenangebot.nein", { wer: anredeVon(l.id) });
-      }),
+      }), ...frei(gegen) },
       opt("ablehnen", t("ini.opt.ablehnen"), beschr(0, 0, t("ini.fordert.opt.ablehnen.folge")), 0, (ww) => {
         landAendern(ww, l.id, { vertrauen: -8, konflikt: 5 }, "Forderung abgelehnt");
         wirke(ww, "konservative", 1);

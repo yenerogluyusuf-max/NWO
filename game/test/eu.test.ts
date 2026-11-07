@@ -9,7 +9,7 @@ import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { Rng } from "../src/sim/rng";
 import { NET } from "../src/sim/modell";
 import { PROVINCES, nationalAverage } from "../src/sim/netz";
-import { entscheide } from "../src/sim/ereignisse";
+import { entscheide, vorlage } from "../src/sim/ereignisse";
 import { schliesse } from "../src/sim/abkommen";
 import { weltZustand, vertrauenZu } from "../src/sim/laender";
 import {
@@ -54,6 +54,16 @@ function inVerhandlung(w: World): void {
   expect(r.ok).toBe(true);
   z.phase = "verhandlung";
   z.screeningBis = w.day;
+}
+
+/**
+ * Die Mechanik ohne den echten Startstand prüfen (Welle E1): Seit dem Startstand sind die Kapitel 12, 17, 27 und 33 schon eröffnet
+ * (sim/eu.ts, START_OFFEN). Die Tests der Eröffnung, des Abschlusses und der Noten brauchen ein Kapitel, das noch zu ist; sie setzen
+ * darum alle Kapitel auf „zu“, wie es vor dem Startstand war. Was sie prüfen, ändert sich nicht.
+ */
+function alleZu(w: World): void {
+  const z = euZustand(w);
+  for (const k of KAPITEL) z.kapitel[k.id] = { status: "zu" };
 }
 
 /** Räumt die Veto-Länder aus dem Weg: beide Konflikte unter den Schwelle. */
@@ -113,7 +123,8 @@ describe("Kriterien-Messung", () => {
     expect(KAPITEL).toHaveLength(10);
     expect(KAPITEL.map((k) => k.nummer)).toContain(23);
     expect(KAPITEL.map((k) => k.nummer)).toContain(24);
-    expect(KAPITEL.filter((k) => k.zypernBlockiert).map((k) => k.nummer)).toEqual([23, 24]);
+    // Welle E1: Zypern blockiert seit 2009 die Kapitel 2, 15, 23, 24, 26 und 31 (ab.gov.tr); im Spiel davon 23, 24, 15 und 31
+    expect(KAPITEL.filter((k) => k.zypernBlockiert).map((k) => k.nummer)).toEqual([23, 24, 15, 31]);
     for (const k of KAPITEL) {
       expect(k.oeffnung.length).toBeGreaterThanOrEqual(1);
       expect(k.schluss.length).toBeGreaterThanOrEqual(1);
@@ -130,7 +141,9 @@ describe("Vorgangs-Zustände", () => {
     setze(w, "m_eu_annaeherung", 40);
     const sicht = annaeherungSicht(w);
     expect(sicht.moeglich).toBe(false);
-    expect(sicht.grund).toContain("Substanz");
+    // Welle E1: Der Grund nennt den Preis als Zahl (sichtbare Schwelle) und die Alternative Reformzusage
+    expect(sicht.grund).toContain(String(EU_REGELN.annaeherungMin));
+    expect(sicht.grund).toContain("Reformzusage");
     const r = kuendigeReformAn(w);
     expect(r.ok).toBe(false);
     expect(euZustand(w).phase).toBe("eingefroren");
@@ -164,6 +177,7 @@ describe("Vorgangs-Zustände", () => {
   test("Ein Kapitel öffnet mit erfüllten Öffnungskriterien (Substanz), höchstens zwei parallel", () => {
     const w = welt();
     inVerhandlung(w);
+    alleZu(w);
     ohneVeto(w);
     keinKapitelErfuellt(w);
     const z = euZustand(w);
@@ -184,6 +198,7 @@ describe("Vorgangs-Zustände", () => {
   test("Kapitel-Abschluss braucht Verhandlungszeit UND erfüllte Schlusskriterien", () => {
     const w = welt();
     inVerhandlung(w);
+    alleZu(w);
     ohneVeto(w);
     keinKapitelErfuellt(w);
     const z = euZustand(w);
@@ -204,6 +219,7 @@ describe("Vorgangs-Zustände", () => {
   test("Der Innenpreis: verhandelte Kapitel kosten laufend Kapital (REC-Logik)", () => {
     const w = welt();
     inVerhandlung(w);
+    alleZu(w);
     ohneVeto(w);
     keinKapitelErfuellt(w);
     setze(w, "m_umweltauflagen", 48);
@@ -285,6 +301,7 @@ describe("Blocker", () => {
   test("Alibi-Erkennung: knapp erfüllte Kriterien öffnen nicht und landen im Bericht", () => {
     const w = welt();
     inVerhandlung(w);
+    alleZu(w);
     ohneVeto(w);
     keinKapitelErfuellt(w);
     const z = euZustand(w);
@@ -360,6 +377,7 @@ describe("Fortschrittsbericht und Visa-Track", () => {
   test("Der November-Bericht benotet jedes Kapitel und nennt die nächsten Schritte", () => {
     const w = welt();
     inVerhandlung(w);
+    alleZu(w);
     ohneVeto(w);
     keinKapitelErfuellt(w);
     const z = euZustand(w);
@@ -372,14 +390,16 @@ describe("Fortschrittsbericht und Visa-Track", () => {
     expect(bericht.noten.k23).toBe("früh");
     expect(bericht.zeilen.length).toBeGreaterThan(KAPITEL.length);
     expect(bericht.zeilen.join(" ")).toContain("Kapitel 23");
-    // Auto-Stopp B: Hinweis an die Oberfläche
-    expect(w.spiel!.hinweise.some((h) => h.id === `eu-bericht-${bericht.jahr}`)).toBe(true);
+    // Welle E1: Statt eines Hinweises ohne Antwort kommt der Bericht als Vorlage „eu_bericht“ auf den Schreibtisch (test/aussen-schreibtisch.test.ts)
+    expect(w.spiel!.hinweise.some((h) => h.id === `eu-bericht-${bericht.jahr}`)).toBe(false);
+    expect(vorlage("eu_bericht").chance(w)).toBeGreaterThan(0);
     expect(w.spiel!.chronik.some((c) => c.titel.includes("Fortschrittsbericht"))).toBe(true);
   });
 
   test("Noten folgen dem Fortschritt: früh, mittel, fortgeschritten, erfüllt", () => {
     const w = welt();
     inVerhandlung(w);
+    alleZu(w);
     ohneVeto(w);
     keinKapitelErfuellt(w);
     const z = euZustand(w);

@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import type { World } from "../../sim/types";
-import { KAPITEL, VISA_KRITERIEN, annaeherungSicht, euUebersicht, kuendigeReformAn, type KriteriumStand } from "../../sim/eu";
+import { EU_REGELN, KAPITEL, START_OFFEN, VISA_KRITERIEN, annaeherungSicht, euUebersicht, kuendigeReformAn, type KriteriumStand } from "../../sim/eu";
 import { formatDateDe } from "../../sim/dates";
 
 import { t, zahl } from "../../i18n";
@@ -20,37 +20,70 @@ function KriteriumZeile({ s }: { s: KriteriumStand }) {
   );
 }
 
-export function EuDossier({ world, refresh }: { world: World; refresh: () => void }) {
+export function EuDossier({ world, refresh, onMassnahme, onVerhandeln }: { world: World; refresh: () => void; onMassnahme?: ((id: string, richtung: 1 | -1) => void) | undefined; onVerhandeln?: (() => void) | undefined }) {
   const [antwort, setAntwort] = useState<{ ok: boolean; text: string; why?: string } | null>(null);
   const [offen, setOffen] = useState<string | null>(null);
   const u = euUebersicht(world);
   const z = u.zustand;
   const anna = annaeherungSicht(world);
-  const statusWort = { zu: "zu", bereit: "bereit", offen: "in Verhandlung", abgeschlossen: "geschlossen" } as const;
+  // Welle E1: Im Stillstand verhandelt niemand; die vor 2018 eröffneten Kapitel heißen dann „eröffnet“, nicht „in Verhandlung“
+  const statusWort = (st: string) => t(`welle_e1.eu.status.${st === "offen" && z.phase === "eingefroren" ? "eroeffnet" : st}`);
+  const zahlen = {
+    offen: u.kapitel.filter((s) => s.zustand.status === "offen").length,
+    geschlossen: u.kapitel.filter((s) => s.zustand.status === "abgeschlossen").length,
+    gesperrt: u.kapitel.filter((s) => s.blockiertZypern || s.blockiertRat).length,
+  };
 
   return (
     <div className="we-eu">
       <section className="we-eu-block">
         <b>{t("ui.welt.EuDossier.e9fdb97")}</b>
         <p className="subtitle">{u.phasenText}</p>
+        <div className="we-eu-zahlen" role="group" aria-label={t("welle_e1.eu.zahlen")}>
+          <span><strong>{zahlen.offen}</strong><small>{t("welle_e1.eu.zahl.offen", { alle: KAPITEL.length })}</small></span>
+          <span><strong>{zahlen.geschlossen}</strong><small>{t("welle_e1.eu.zahl.geschlossen")}</small></span>
+          <span><strong>{zahlen.gesperrt}</strong><small>{t("welle_e1.eu.zahl.gesperrt")}</small></span>
+          <span><strong>{u.visa.erfuellt}/{VISA_KRITERIEN.length}</strong><small>{t("welle_e1.eu.zahl.visa")}</small></span>
+        </div>
+        <p className="subtitle we-eu-echt">{t("welle_e1.eu.echt", { n: Object.keys(START_OFFEN).length })}</p>
         {z.phase === "eingefroren" && (
-          <div className="we-eu-aktion">
-            <button
-              type="button"
-              className="aktion-knopf"
-              disabled={!anna.moeglich}
-              onClick={() => {
-                setAntwort(kuendigeReformAn(world));
-                refresh();
-              }}
-            >
-              {t("ui.welt.EuDossier.f0c42d3")}
-            </button>
-            <span className="subtitle">
-              {anna.moeglich
-                ? t("ui2.ui.welt.EuDossier.6b8bfa2", { p0: Math.round(anna.annaeherung) })
-                : anna.grund}
-            </span>
+          // Welle E1 (ENTSCHEIDUNGEN AA 2): Die Schwelle ist ein sichtbarer Preis, jede Zeile mit dem Weg dorthin
+          <div className="we-eu-preis">
+            <b>{t("welle_e1.eu.preis.titel")}</b>
+            <ul>
+              <li className={anna.annaeherung >= anna.noetig ? "ok" : "offen"}>
+                <span className="we-eu-preis-name">{t("welle_e1.eu.preis.annaeherung")}</span>
+                <span className="we-eu-preis-wert">
+                  <strong>{Math.round(anna.annaeherung)}</strong> / {anna.noetig}
+                </span>
+                <span className="we-eu-preis-balken" aria-hidden><i style={{ width: `${Math.min(100, Math.round((anna.annaeherung / anna.noetig) * 100))}%` }} /></span>
+                {onMassnahme && anna.annaeherung < anna.noetig && (
+                  <button type="button" className="link" onClick={() => onMassnahme("m_eu_annaeherung", 1)}>{t("welle_e1.eu.preis.zurMassnahme")}</button>
+                )}
+              </li>
+              <li className={anna.reformzusage ? "ok" : "offen"}>
+                <span className="we-eu-preis-name">{t("welle_e1.eu.preis.oder")}</span>
+                <span className="we-eu-preis-wert">{anna.reformzusage ? t("welle_e1.eu.preis.laeuft") : t("welle_e1.eu.preis.fehlt")}</span>
+                <span />
+                {onVerhandeln && !anna.reformzusage && (
+                  <button type="button" className="link" onClick={onVerhandeln}>{t("welle_e1.eu.preis.zumTisch")}</button>
+                )}
+              </li>
+            </ul>
+            <div className="we-eu-aktion">
+              <button
+                type="button"
+                className="aktion-knopf"
+                disabled={!anna.moeglich}
+                onClick={() => {
+                  setAntwort(kuendigeReformAn(world));
+                  refresh();
+                }}
+              >
+                {t("ui.welt.EuDossier.f0c42d3")} · {t("welle_e1.eu.preis.kapital", { pk: EU_REGELN.pkAnkuendigung })}
+              </button>
+              <span className="subtitle">{anna.moeglich ? t("welle_e1.eu.preis.bereit") : anna.grund}</span>
+            </div>
           </div>
         )}
         {antwort && (
@@ -89,13 +122,14 @@ export function EuDossier({ world, refresh }: { world: World; refresh: () => voi
                     <i style={{ width: `${Math.round(s.fortschritt * 100)}%` }} />
                   </span>
                 </span>
-                <span className={`we-status${s.zustand.status === "abgeschlossen" ? "" : s.blockiertZypern || s.alibi ? " st-gebrochen" : ""}`}>
-                  {s.blockiertZypern ? t("ui2.ui.welt.EuDossier.85f5e53") : s.alibi ? "Alibi-Verdacht" : statusWort[s.zustand.status]}
+                <span className={`we-status${s.zustand.status === "abgeschlossen" ? "" : s.blockiertZypern || s.blockiertRat || s.alibi ? " st-gebrochen" : ""}`}>
+                  {s.blockiertZypern ? t("ui2.ui.welt.EuDossier.85f5e53") : s.blockiertRat ? t("welle_e1.eu.status.rat2006") : s.alibi ? t("welle_e1.eu.status.alibi") : statusWort(s.zustand.status)}
                 </span>
               </button>
               {offen === s.def.id && (
                 <div className="we-eu-kap-detail">
                   <p className="subtitle">{s.def.text}</p>
+                  {s.zustand.seit && <p className="subtitle">{t("welle_e1.eu.kapitelSeit", { datum: formatDateDe(s.zustand.seit) })}</p>}
                   <div className="we-eu-kap-spalten">
                     <div>
                       <b>{t("ui.welt.EuDossier.8660386")}</b>

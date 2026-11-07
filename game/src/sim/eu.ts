@@ -66,9 +66,25 @@ export const EU_REGELN = {
   pkAnkuendigung: 6,
   /** Kapital für das Zugeständnis, mit dem ein Veto aufgehoben wird */
   pkVetoZugestaendnis: 5,
-  /** Laufender Innenpreis je verhandeltem Kapitel (REC-Logik: Reformen kosten laufend Kapital) */
+  /** Laufender Innenpreis je verhandeltem Kapitel (REC-Logik: Reformen kosten laufend Kapital); im Stillstand verhandelt niemand, dann kostet es nichts */
   kapitalJeKapitel: 0.15,
+  /**
+   * Preis des Reformpakets (Welle E1, ENTSCHEIDUNGEN AA 2: „Die Schwelle der Annäherung ist ein sichtbarer Preis“): Brüssel nimmt die
+   * Ankündigung nur ernst, wenn die Maßnahme „Annäherung an die EU“ mindestens so hoch steht oder eine Reformzusage mit der EU läuft
+   * (Klausel `reform_zusage` am Verhandlungstisch). Spielparameter; Vorbild sind die Bedingungen der Gemeinsamen Mitteilung JOIN(2023) 50
+   * („progressive, proportionate and reversible“): erst Schritte beim Rechtsstaat, dann wieder Gespräche.
+   */
+  annaeherungMin: 55,
 } as const;
+
+/**
+ * Der echte Startstand (Welle E1, ENTSCHEIDUNGEN AA 2). Quelle: ab.gov.tr, „Current Situation“ (Stand 23.01.2024), und die EU-Delegation in Ankara:
+ * 16 von 35 Kapiteln eröffnet, Kapitel 25 am Tag der Eröffnung vorläufig geschlossen. Von den zehn Spielkapiteln sind vier eröffnet.
+ * Stillstand: Rat der EU, Schlussfolgerungen vom 26.06.2018 (Dok. 10555/18, Ziffer 35): „no further chapters can be considered for opening or closing“.
+ */
+export const START_OFFEN: Record<string, string> = { k12: "2010-06-30", k17: "2015-12-14", k27: "2009-12-21", k33: "2016-06-30" };
+/** Tag des Ratsbeschlusses, der den Stillstand festschreibt (Dok. 10555/18) */
+export const STILLSTAND_SEIT = "2018-06-26";
 
 // ---------------------------------------------------------------------------
 // Zustand (reines JSON; ältere Spielstände legen ihn beim ersten Zugriff an)
@@ -86,6 +102,8 @@ export interface KapitelZustand {
   gesperrtBis?: number;
   /** Jahr, in dem der Fortschrittsbericht das Kapitel zuletzt als Alibi-Reform benannt hat */
   alibiJahr?: number;
+  /** Echtes Datum der Eröffnung vor Spielbeginn (Startstand, START_OFFEN) */
+  seit?: string;
 }
 
 export type EuNote = "früh" | "mittel" | "fortgeschritten" | "erfüllt";
@@ -121,6 +139,10 @@ export interface EuZustand {
   visaSeit?: number;
   /** Archiv der jährlichen Fortschrittsberichte, neueste zuletzt */
   berichte: EuBericht[];
+  /** Welle E1: Der echte Startstand ist eingetragen (neue Partien sofort, ältere Spielstände beim ersten Zugriff) */
+  startstand?: 1;
+  /** Jahr des Fortschrittsberichts, auf den der Präsident geantwortet hat (Vorlage „eu_bericht“) */
+  berichtBeantwortet?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,6 +172,11 @@ export interface KapitelDef {
   jahre: number;
   /** Blockiert durch die Zypernfrage (dokumentierte Verknüpfung, Dossier 17) */
   zypernBlockiert?: boolean;
+  /**
+   * Gesperrt durch den Ratsbeschluss vom 11.12.2006 (Dok. 16289/06): acht Kapitel öffnen erst, wenn die Türkei das Zusatzprotokoll zum
+   * Ankara-Abkommen auf Zypern anwendet. Im Spiel: ein laufender Vertrag mit Zypern mit der Klausel „Hafen-Öffnung“.
+   */
+  rat2006?: boolean;
   /** Stoßwirkungen beim vorläufigen Abschluss: Knoten und Delta */
   nutzen: { knoten: string; d: number; text: string }[];
 }
@@ -216,7 +243,7 @@ export const KAPITEL: KapitelDef[] = [
     ],
   },
   {
-    id: "k15", nummer: 15, name: "Energie", jahre: 2,
+    id: "k15", nummer: 15, name: "Energie", zypernBlockiert: true, jahre: 2,
     text: t("sim2.sim.eu.1bee802"),
     oeffnung: [K("versorgung", "Energieversorgung mindestens 50", "energieversorgung", "min", 50)],
     schluss: [
@@ -278,7 +305,7 @@ export const KAPITEL: KapitelDef[] = [
     nutzen: [{ knoten: "vertrauen_maerkte", d: 1.5, text: "Solide Finanzen beruhigen Anleger" }],
   },
   {
-    id: "k11", nummer: 11, name: t("sim2.sim.eu.033d3dc"), jahre: 3,
+    id: "k11", nummer: 11, name: t("sim2.sim.eu.033d3dc"), rat2006: true, jahre: 3,
     text: t("sim2.sim.eu.31b57cc"),
     oeffnung: [K("forschung", t("sim2.sim.eu.182e2cc"), "m_agrarforschung", "min", 40)],
     schluss: [
@@ -288,7 +315,7 @@ export const KAPITEL: KapitelDef[] = [
     nutzen: [{ knoten: "landwirtschaft_einkommen", d: 1, text: t("sim2.sim.eu.04a3344") }],
   },
   {
-    id: "k31", nummer: 31, name: t("sim2.sim.eu.aae2259"), jahre: 2,
+    id: "k31", nummer: 31, name: t("sim2.sim.eu.aae2259"), zypernBlockiert: true, jahre: 2,
     text: t("sim2.sim.eu.78ef0e3"),
     oeffnung: [K("ansehen", "Internationales Ansehen mindestens 50", "ansehen", "min", 50)],
     schluss: [
@@ -364,7 +391,7 @@ export function zypernBewegung(w: World): { bewegt: boolean; text: string } {
   if (vertrauenZu(w, "CYP") >= 45) return { bewegt: true, text: t("sim2.sim.eu.d63008a") };
   return {
     bewegt: false,
-    text: t("sim2.sim.eu.7fb147d", { p0: Math.round(z.konflikt) }),
+    text: t("welle_e1.eu.zypern", { kapitel: KAPITEL.filter((k) => k.zypernBlockiert).map((k) => k.nummer), konflikt: Math.round(z.konflikt) }),
   };
 }
 
@@ -391,6 +418,11 @@ export function setzeRatPruefung(f: RatPruefung): void {
   ratPruefung = f;
 }
 
+/** Der Ratsbeschluss von 2006 gilt, bis ein Vertrag mit Zypern die Häfen öffnet (Anwendung des Zusatzprotokolls). */
+export function rat2006Gilt(w: World): boolean {
+  return !laufende(w, "CYP").some((v) => [...v.gibt, ...v.will].includes("hafen_oeffnung"));
+}
+
 /** Ein aktives Veto gegen die Eröffnung, oder null. Nach einer beantworteten Veto-Krise ruht das Mitglied ein Jahr. */
 export function vetoGegen(w: World): VetoLand | null {
   const ruhe = w.spiel?.eu?.vetoRuhe ?? {};
@@ -412,22 +444,45 @@ export function euZustand(w: World): EuZustand {
     for (const k of KAPITEL) kapitel[k.id] = { status: "zu" };
     spiel.eu = { phase: "eingefroren", kapitel, zollunion: "unveraendert", berichte: [] };
   }
+  if (!spiel.eu.startstand) startstandEintragen(w, spiel.eu);
   return spiel.eu;
+}
+
+/**
+ * Trägt die vor Spielbeginn eröffneten Kapitel ein (Welle E1). Ältere Spielstände übernehmen ein Kapitel nur, wenn es dort noch nicht weiter
+ * ist („zu“ oder „bereit“); ein im Spiel eröffnetes oder geschlossenes Kapitel bleibt, wie es ist. Der Tag der Eröffnung liegt vor Spielbeginn.
+ */
+function startstandEintragen(w: World, z: EuZustand): void {
+  for (const [id, seit] of Object.entries(START_OFFEN)) {
+    const k = (z.kapitel[id] ??= { status: "zu" });
+    if (k.status !== "zu" && k.status !== "bereit") continue;
+    k.status = "offen";
+    k.seit = seit;
+    k.geoeffnet = w.day - Math.round((Date.parse(w.date + "T00:00:00Z") - Date.parse(seit + "T00:00:00Z")) / 86_400_000);
+  }
+  z.startstand = 1;
+}
+
+/** Kapitel, die seit dem Reformpaket im Spiel eröffnet wurden: Nur sie belegen einen der Verhandlungsplätze (die alten laufen seit Jahren mit). */
+function neuOffen(z: EuZustand): number {
+  return KAPITEL.filter((k) => z.kapitel[k.id]!.status === "offen" && z.kapitel[k.id]!.seit === undefined).length;
 }
 
 /** REC-Logik: Jedes verhandelte Kapitel kostet laufend Kapital — Reformen binden Rückhalt. */
 export function euKapitalAbzug(w: World): number {
   const z = w.spiel?.eu;
-  if (!z) return 0;
+  // Im Stillstand verhandelt niemand: Die vor 2018 eröffneten Kapitel binden erst wieder Kapital, wenn die Gespräche laufen
+  if (!z || z.phase === "eingefroren") return 0;
   const offene = Object.values(z.kapitel).filter((k) => k.status === "offen").length;
   return offene * EU_REGELN.kapitalJeKapitel;
 }
 
+// Anzeige in der Sprache des Spiels (Getter: der Text entsteht erst beim Lesen)
 export const PHASEN_TEXT: Record<EuPhase, string> = {
-  eingefroren: t("sim2.sim.eu.d96bd17"),
-  screening: t("sim2.sim.eu.c6ac757"),
-  verhandlung: t("sim2.sim.eu.1158a66"),
-  perspektive: t("sim2.sim.eu.4a2aa16"),
+  get eingefroren() { return t("welle_e1.eu.phase.eingefroren"); },
+  get screening() { return t("sim2.sim.eu.c6ac757"); },
+  get verhandlung() { return t("sim2.sim.eu.1158a66"); },
+  get perspektive() { return t("sim2.sim.eu.4a2aa16"); },
 };
 
 // ---------------------------------------------------------------------------
@@ -438,21 +493,50 @@ export interface AnnaeherungSicht {
   grund?: string;
   /** Wert der Maßnahme „Annäherung an die EU“ */
   annaeherung: number;
+  /** Welle E1: der sichtbare Preis. Ab diesem Wert der Maßnahme nimmt Brüssel die Ankündigung ernst */
+  noetig: number;
+  /** Ob die Substanz da ist: Annäherung hoch genug oder eine laufende Reformzusage mit der EU */
+  substanz: boolean;
+  /** Eine laufende Reformzusage mit der EU (Verhandlungstisch) ersetzt die Schwelle */
+  reformzusage: boolean;
+}
+
+/** Läuft ein Vertrag mit der EU, in dem Ankara die Reformzusage gibt? */
+export function reformzusageLaeuft(w: World): boolean {
+  return laufende(w, "EU").some((v) => v.gibt.includes("reform_zusage"));
 }
 
 export function annaeherungSicht(w: World): AnnaeherungSicht {
   const z = euZustand(w);
   const annaeherung = nationalAverage(NET, w.net, "m_eu_annaeherung");
-  const base: AnnaeherungSicht = { moeglich: true, annaeherung };
+  const reformzusage = reformzusageLaeuft(w);
+  const noetig = EU_REGELN.annaeherungMin;
+  const substanz = annaeherung >= noetig - EPS || reformzusage;
+  const base: AnnaeherungSicht = { moeglich: true, annaeherung, noetig, substanz, reformzusage };
   if (z.phase !== "eingefroren") return { ...base, moeglich: false, grund: t("sim2.sim.eu.a87c88d") };
-  if (annaeherung < 55)
-    return {
-      ...base,
-      moeglich: false,
-      grund: t("sim2.sim.eu.2157f8c", { p0: Math.round(annaeherung) }),
-    };
+  if (!substanz) return { ...base, moeglich: false, grund: t("welle_e1.eu.preis.grund", { wert: Math.round(annaeherung), noetig }) };
   if (!kannZahlen(w.spiel!.kapital, EU_REGELN.pkAnkuendigung)) return { ...base, moeglich: false, grund: t("sim2.sim.eu.2d06e23") };
   return base;
+}
+
+/**
+ * Was eine Forderung der EU auf dem Weg nach Europa freischaltet (Welle E1: „Die Reformforderung nennt, was sie freischaltet“).
+ * Aus denselben Regeln, die das Spiel prüft: die Reformzusage ersetzt die Schwelle des Reformpakets, das Rücknahmeabkommen ist ein Visa-Kriterium.
+ * Liefert null, wenn die Klausel auf dem Weg nach Europa nichts bewegt.
+ */
+export function euFreischaltung(w: World, klausel: string): string | null {
+  const z = euZustand(w);
+  if (klausel === "reform_zusage") {
+    const a = annaeherungSicht(w);
+    if (z.phase === "eingefroren" && !a.substanz) return t("welle_e1.eu.frei.reform", { wert: Math.round(a.annaeherung), noetig: a.noetig });
+    return t("welle_e1.eu.frei.reformLaeuft");
+  }
+  const visa = VISA_KRITERIEN.find((k) => k.vertrag?.land === "EU" && k.vertrag.klausel === klausel);
+  if (visa && z.visaSeit === undefined) {
+    const s = visaStand(w);
+    return t("welle_e1.eu.frei.visa", { erfuellt: s.erfuellt, alle: VISA_KRITERIEN.length });
+  }
+  return null;
 }
 
 /** Der Einstieg: Der Präsident kündigt das Reformpaket an; Brüssel öffnet das Screening. */
@@ -478,7 +562,7 @@ export function kuendigeReformAn(w: World): { ok: boolean; text: string; why?: s
     schluessel: ["Reformpaket", "Screening"],
   });
   const text = t("sim2.sim.eu.45f5c80", { p0: formatDateDe(addTag(w, EU_REGELN.screeningTage)) });
-  const why = t("sim2.sim.eu.86a31cc", { p0: EU_REGELN.pkAnkuendigung, p1: Math.round(sicht.annaeherung) });
+  const why = sicht.annaeherung >= sicht.noetig - EPS ? t("sim2.sim.eu.86a31cc", { p0: EU_REGELN.pkAnkuendigung, p1: Math.round(sicht.annaeherung) }) : t("welle_e1.eu.ankuendigung.zusage", { pk: EU_REGELN.pkAnkuendigung });
   addLog(w, "entscheidung", text, why);
   spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("sim2.sim.eu.da35033"), ausgang: t("sim2.sim.eu.42a0467"), presse: { sparte: "welt", wertung: 0.3 } });
   return { ok: true, text, why };
@@ -690,6 +774,7 @@ export function naechsterSchritt(w: World, def: KapitelDef, z: EuZustand): strin
   const k = z.kapitel[def.id]!;
   if (k.status === "abgeschlossen") return t("sim2.sim.eu.5977bf0");
   if (def.zypernBlockiert && !zypernBewegung(w).bewegt) return t("sim2.sim.eu.c709ee0");
+  if (def.rat2006 && k.status !== "offen" && rat2006Gilt(w)) return t("welle_e1.eu.rat2006");
   if (k.gesperrtBis && w.day < k.gesperrtBis) return t("sim2.sim.eu.384224d", { p0: k.gesperrtBis - w.day });
   const kriterien = k.status === "offen" ? def.schluss : def.oeffnung;
   const stand = kriterienStand(w, kriterien);
@@ -718,6 +803,7 @@ function fortschrittsbericht(w: World): void {
     const k = z.kapitel[def.id]!;
     noten[def.id] = noteFuer(w, def, z);
     if (def.zypernBlockiert && !zypern.bewegt && k.status !== "abgeschlossen") blockiert.push(def.id);
+    else if (def.rat2006 && k.status !== "offen" && k.status !== "abgeschlossen" && rat2006Gilt(w)) blockiert.push(def.id);
     // Alibi-Erkennung: erfüllt, aber ohne Puffer — die Kommission benennt es im Bericht
     const kriterien = k.status === "offen" ? def.schluss : def.oeffnung;
     const substanz = erfuelltMitSubstanz(kriterienStand(w, kriterien));
@@ -751,14 +837,10 @@ function fortschrittsbericht(w: World): void {
   const bericht: EuBericht = { tag: w.day, datum: w.date, jahr, noten, alibi, blockiert, zeilen };
   z.berichte.push(bericht);
   if (z.berichte.length > 8) z.berichte.shift();
-  spiel.chronik.push({ tag: w.day, datum: w.date, titel: `EU-Fortschrittsbericht ${jahr}`, ausgang: zeilen[1] ?? zeilen[0]! });
+  // Ein Bericht, keine Entscheidung (Merkmal nach ENTSCHEIDUNGEN U): Die Entscheidung kommt als Vorlage „eu_bericht“ auf den Schreibtisch
+  // (Welle E1, sim/ereignisse-diplomatie.ts); der frühere Hinweis ohne Antwort entfällt, das Archiv steht im EU-Dossier
+  spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("welle_e1.eu.bericht.chronik", { jahr: String(jahr) }), ausgang: zeilen[1] ?? zeilen[0]!, art: "bericht" });
   addLog(w, "ereignis", t("protokoll.eu.bericht", { jahr }), zeilen.slice(0, 4).join(" "));
-  spiel.hinweise.push({
-    id: `eu-bericht-${jahr}`,
-    titel: `EU-Fortschrittsbericht ${jahr}`,
-    szene: "istanbul",
-    text: zeilen.slice(0, 8),
-  });
 }
 
 // ---------------------------------------------------------------------------
@@ -808,8 +890,9 @@ export function euMonat(w: World, rng: Rng): void {
       k.status = "bereit";
       if (substanz.alibi) continue; // Fensterdressing: erkannt, keine Eröffnung
       if (def.zypernBlockiert && !zypern.bewegt) continue; // Zypern-Kopplung
+      if (def.rat2006 && rat2006Gilt(w)) continue; // Ratsbeschluss 2006 (Zusatzprotokoll)
       if (k.gesperrtBis && w.day < k.gesperrtBis) continue; // Veto-Sperre läuft
-      if (offeneKapitel(z).length >= EU_REGELN.parallelMax) continue;
+      if (neuOffen(z) >= EU_REGELN.parallelMax) continue;
       // Nationale Vetos benannter Mitglieder: Auto-Stopp A mit Entscheidung
       const veto = vetoGegen(w);
       if (veto) {
@@ -821,7 +904,7 @@ export function euMonat(w: World, rng: Rng): void {
       // Einstimmigkeit im Rat: Weitere Mitgliedstaaten können die Eröffnung verweigern (Weltmodell)
       if (ratPruefung?.(w, def.id)?.blockiert) continue;
       oeffneKapitel(w, def);
-      if (offeneKapitel(z).length >= EU_REGELN.parallelMax) break;
+      if (neuOffen(z) >= EU_REGELN.parallelMax) break;
     }
     // b) Abschlüsse: Zeit um, Schlusskriterien mit Substanz erfüllt
     for (const def of KAPITEL) {
@@ -864,6 +947,8 @@ export interface KapitelSicht {
   schluss: KriteriumStand[];
   schritt: string;
   blockiertZypern: boolean;
+  /** Gesperrt durch den Ratsbeschluss von 2006 (Zusatzprotokoll) */
+  blockiertRat: boolean;
   alibi: boolean;
 }
 
@@ -893,6 +978,7 @@ export function kapitelSicht(w: World): KapitelSicht[] {
       schluss,
       schritt: naechsterSchritt(w, def, z),
       blockiertZypern: !!def.zypernBlockiert && !zypern.bewegt && k.status !== "abgeschlossen",
+      blockiertRat: !!def.rat2006 && k.status !== "offen" && k.status !== "abgeschlossen" && rat2006Gilt(w),
       alibi: (k.status !== "abgeschlossen" && (k.status === "offen" ? substanzS.alibi : substanzO.alibi)),
     };
   });
