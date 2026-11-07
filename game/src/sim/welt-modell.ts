@@ -113,7 +113,7 @@ export interface LandEigen {
 }
 
 /** Eine verdeckte Operation des Dienstes oder eines fremden Dienstes gegen die Türkei (sim/welt-dienst.ts). */
-export type OpArt = "kandidat" | "desinfo" | "netz" | "cyber" | "gegen" | "gruppen" | "cyberangriff";
+export type OpArt = "kandidat" | "desinfo" | "netz" | "cyber" | "gegen" | "gruppen" | "cyberangriff" | "zugriff" | "kader" | "kanal";
 export interface Operation {
   id: number;
   art: OpArt;
@@ -124,6 +124,11 @@ export interface Operation {
   ende: number;
   pk: number;
   kap: number;
+  /** Welle E3 (Vorgänge des Dienstes): Aussicht und Risiko, wie sie bei der Anordnung angezeigt wurden; der Ausgang würfelt gegen dieselben Zahlen */
+  p?: number;
+  pAuf?: number;
+  /** Welle E3: Gegenstand des Vorgangs (Täterkreis beim Schlag gegen Kader, Weg beim Zugriff) */
+  daten?: Record<string, string | number>;
 }
 export interface EingehendeOp {
   id: number;
@@ -132,6 +137,8 @@ export interface EingehendeOp {
   start: number;
   ende: number;
   aufgedeckt: boolean;
+  /** Welle E3: Die Aufdeckung lag dem Präsidenten schon als Vorgang vor */
+  gemeldet?: boolean;
 }
 export interface BerichtEintrag {
   tag: number;
@@ -160,6 +167,10 @@ export interface DienstZustand {
   inlandLage?: { tag: number; putsch: number; terror: number };
   /** Personenschutz des Präsidenten verstärkt bis zu diesem Tag */
   schutzBis?: number;
+  /** Welle E3: aufgeflogene eigene Operationen, die noch als Vorgang auf den Tisch kommen (sim/ereignisse-dienst.ts) */
+  aufgeflogen?: { op: number; art: OpArt; ziel: string; tag: number; erfolg: boolean }[];
+  /** Welle E3: Tag der letzten Gelegenheit des Dienstes auf dem Schreibtisch (höchstens eine im Quartal) */
+  gelegenheit?: number;
 }
 
 export interface WeltModell {

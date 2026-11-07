@@ -46,6 +46,7 @@ import { behoerdenMonat, mitStufen } from "./behoerden";
 import { nationalAverage } from "./netz";
 import { t } from "../i18n";
 import { landFormen, landZahl } from "./ereignisse-krieg";
+import { aussenZustand } from "./diplomatie";
 import { datenTexte } from "../i18n/daten";
 
 // ---------------------------------------------------------------------------
@@ -100,6 +101,20 @@ export const OP_DEFS: Record<OpArt, OpDef> = {
   cyberangriff: {
     art: "cyberangriff", name: "Cyberangriff auf Behörden", pk: 3, kap: 20, monate: 1, basis: 0.45, aufdeckung: 0.35, schwere: 2, ab: { achse: "technik", stufe: 4 },
     text: "Stört Verwaltung und Dienste des Zielstaats für eine Weile und bricht laufende Operationen von dort gegen die Türkei ab. Schnell, aber Spuren im Netz führen oft zurück, und der Gegenschlag trifft eigene Netze.",
+  },
+  // Welle E3: Vorgänge nach dem echten MİT (sim/ereignisse-dienst.ts). Sie entstehen nur aus einer Gelegenheit auf dem Schreibtisch, nicht aus
+  // der Auswahlliste der Weltansicht. Preis, Dauer und Kapazität sind Spielparameter; Aussicht und Risiko rechnet `vorgangAussicht`.
+  zugriff: {
+    art: "zugriff", name: "Zugriff auf einen Gesuchten", pk: 2, kap: 25, monate: 2, basis: 0.6, aufdeckung: 0.4, schwere: 2,
+    text: "Der Dienst bringt eine im Ausland gesuchte Person in die Türkei, meist mit Hilfe der Behörden dort.",
+  },
+  kader: {
+    art: "kader", name: "Schlag gegen Kader", pk: 2, kap: 20, monate: 1, basis: 0.65, aufdeckung: 0.25, schwere: 1,
+    text: "Ein gezielter Schlag gegen die Führung einer bewaffneten Gruppe in Syrien oder im Irak.",
+  },
+  kanal: {
+    art: "kanal", name: "Austausch über Ankara", pk: 2, kap: 15, monate: 3, basis: 0.6, aufdeckung: 0, schwere: 0,
+    text: "Der Dienst richtet einen Gefangenenaustausch zwischen zwei Mächten aus.",
   },
 };
 
@@ -359,6 +374,10 @@ function folgenDerAufdeckung(w: World, m: WeltModell, dz: DienstZustand, op: Ope
 }
 
 function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): void {
+  if (op.art === "zugriff" || op.art === "kader" || op.art === "kanal") {
+    loeseVorgang(w, m, dz, op);
+    return;
+  }
   const def = OP_DEFS[op.art];
   const r = new Rng(hashInt(`${w.seed}|op|${op.id}|${op.ziel}|${op.art}`));
   const a = aussicht(w, op.art, op.ziel, op.lager);
@@ -388,7 +407,9 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
         const fremd = dz.eingehend.filter((x) => x.von === op.ziel && !x.aufgedeckt);
         for (const x of fremd) x.aufgedeckt = true;
         ergebnis = t("tag_t8.dienst.erg.cyber", { rueckhalt: Math.round(e.rueckhalt), stabilitaet: Math.round(e.stabilitaet), wahl: e.wahl ? t("tag_t8.dienst.erg.cyber.wahl", { n: Math.round(p * 100) }) : "", fremd: fremd.length ? t("tag_t8.dienst.erg.cyber.fremd", { n: fremd.length }) : "" });
-        if (fremd.length) m.ereignisKandidaten = [...(m.ereignisKandidaten ?? []), { art: "einfluss", id: op.ziel, einfluss: fremd[0]!.art, opId: fremd[0]!.id }];
+        // Welle E3: Aufgedeckte fremde Operationen kommen als Vorgang „dienst_fremd“ auf den Tisch (sim/ereignisse-dienst.ts), nicht mehr über
+        // die Großereignisse der Welt, die bei vollem Schreibtisch verfielen (beim Inhaber 2 fremde Operationen in 15 Jahren, keine gemeldet)
+        void fremd;
         break;
       }
       case "gruppen":
@@ -411,7 +432,10 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
     ergebnis = t(op.art === "kandidat" ? "tag_t8.dienst.erg.kandidat.nichts" : op.art === "cyber" ? "tag_t8.dienst.erg.cyber.nichts" : "tag_t8.dienst.erg.nichts");
   }
   let folgen: string[] = [];
-  if (entdeckt) folgen = folgenDerAufdeckung(w, m, dz, op, erfolg, r);
+  if (entdeckt) {
+    folgen = folgenDerAufdeckung(w, m, dz, op, erfolg, r);
+    merkeAufgeflogen(w, dz, op, erfolg);
+  }
   if (op.art === "gruppen" && r.next() < MIT_STUFEN.rueckschlag - 0.04 * (mitStufen(w).reichweite - 3)) {
     // Rückschlag: Die Gruppe verselbständigt sich; die Folgen landen im eigenen Grenzgebiet
     wirke(w, "terrorgefahr", 3);
@@ -424,6 +448,174 @@ function loeseAuf(w: World, m: WeltModell, dz: DienstZustand, op: Operation): vo
     t("tag_t8.dienst.ausgang", { erfolg: erfolg ? "ja" : "nein", entdeckt: entdeckt ? "ja" : "nein", ergebnis, folgen: folgen.length ? t("tag_t8.dienst.ausgang.folgen", { liste: folgen.join("; ") }) : "" }),
     entdeckt ? "aufgedeckt" : erfolg ? "erfolg" : "fehlschlag",
   );
+}
+
+// ---------------------------------------------------------------------------
+// Welle E3: Vorgänge nach dem echten MİT (Zugriff, Schlag gegen Kader, Austausch). Sie entstehen aus einer Gelegenheit auf dem Schreibtisch
+// (sim/ereignisse-dienst.ts). Die Aussicht wird bei der Anordnung festgehalten; der Ausgang würfelt gegen genau diese Zahlen.
+//
+// Größenordnung aus belegten Fällen (Spielparameter, keine Messwerte):
+// - Zugriff: Der MİT brachte bis April 2018 80 Personen aus 18 Ländern zurück (Hürriyet Daily News; AP), später „über 100“ (SCF). Er gelang
+//   fast immer dort, wo die Behörden des Gastlands mitwirkten (Kosovo 2018, Moldau 06.09.2018, Kirgistan/İnandı 2021, Kenia 18.10.2024), und
+//   scheiterte, wo sie es nicht taten (Mongolei 27.07.2018: das Flugzeug blieb über acht Stunden am Boden und flog ohne Akçay). Aufgedeckt
+//   wurde er dort, wo Presse und Gerichte frei arbeiten: Kosovo entließ Innenminister und Geheimdienstchef (RFE/RL 30.03.2018), der EGMR
+//   verurteilte Moldau (Ozdil u. a., 11.06.2019), der UNHCR rügte Kenia (22.10.2024). Daher: Aussicht aus dem Vertrauen des Gastlands,
+//   Risiko aus seiner Medienoffenheit (Weltbank, „Voice and Accountability“).
+// - Schlag gegen Kader: gezielte Schläge des MİT gegen PKK-Kader im Irak und in Syrien sind regelmäßig gemeldet (Daily Sabah 14.12.2023:
+//   Drohnenschlag bei Sulaimaniyya; CNN Türk 14.04.2023: Kamışlı); am 29.04.2023 starb der IS-Anführer Abu Hussein al-Quraschi bei einem
+//   Zugriff des MİT in Dschindires (Erdoğan am 30.04.2023). Der Irak bestellte im Juni 2020 den Botschafter ein und sagte im August 2020 ein
+//   Ministertreffen ab, nachdem ein Drohnenschlag zwei irakische Offiziere getötet hatte (Al Jazeera 12.08.2020): Das Risiko ist ein Zwischenfall.
+// - Austausch: Am 01.08.2024 wickelte der MİT in Ankara den Austausch von 26 Gefangenen zwischen den USA, Deutschland, Polen, Slowenien,
+//   Norwegen, Russland und Belarus ab (Außenministerium Nr. 155; AA).
+
+export type VorgangArt = "zugriff" | "kader" | "kanal";
+/** Wie der Schlag gegen Kader geführt wird: aus der Luft oder als Festnahme am Boden */
+export type KaderWeg = "schlag" | "festnahme";
+
+export const VORGANG = {
+  zugriff: {
+    /** Aussicht: Grund, Zuschlag bei voller Mitwirkung des Gastlands (Vertrauen 30 → 0, 80 → 1) */
+    p: { basis: 0.4, koop: 0.4, min: 0.15, max: 0.85 },
+    /** Risiko: Grund, Medienoffenheit, fehlende Mitwirkung */
+    auf: { basis: 0.2, medien: 0.45, ohneKoop: 0.15, min: 0.1, max: 0.85 },
+    /** Erfolg: Kapital und Rückhalt im eigenen Lager */
+    erfolg: { kapital: 3, nationalisten: 1.5, konservative: 0.5 },
+    /** Aufgeflogen: Gastland, Ansehen, Europa (Kritik von UNHCR und EU) */
+    aufgeflogen: { vertrauen: -8, konflikt: 4, ansehen: -1.5, eu: -2 },
+  },
+  kader: {
+    p: { schlag: 0.62, festnahme: 0.42, min: 0.2, max: 0.85 },
+    auf: { schlag: 0.25, festnahme: 0.35, min: 0.08, max: 0.6 },
+    /** Erfolg: Täterkreis, Terrorgefahr, Rückhalt; beim Schlag gegen die PKK leidet ein laufender Friedensprozess */
+    erfolg: { taeter: { schlag: 7, festnahme: 5 }, terrorgefahr: -1.5, nationalisten: 1, frieden: { schlag: -20, festnahme: -8 }, minderheiten: -1.5, ansehenFestnahme: 1 },
+    /** Zwischenfall: Gastland protestiert, Ansehen */
+    aufgeflogen: { vertrauen: -4, konflikt: 4, ansehen: -0.5 },
+  },
+  kanal: {
+    p: { basis: 0.55, jePunkt: 0.004, min: 0.3, max: 0.85 },
+    erfolg: { ansehen: 2.5, vertrauen: 5 },
+    fehlschlag: { vertrauen: -1 },
+  },
+} as const;
+
+const technikP = (w: World): number => stufenWert(MIT_STUFEN.technikP, mitStufen(w).technik);
+const technikAuf = (w: World): number => stufenWert(MIT_STUFEN.technikAuf, mitStufen(w).technik);
+
+/** Mitwirkung des Gastlands, 0 bis 1, aus seinem Vertrauen zur Türkei. */
+export const mitwirkung = (w: World, ziel: string): number => clamp((beziehungZurTuerkei(w, ziel).vertrauen - 30) / 50, 0, 1);
+
+/** Aussicht und Risiko eines Vorgangs, wie sie die Antwort zeigt und die Auflösung würfelt. */
+export function vorgangAussicht(w: World, art: VorgangArt, ziel: string, weg: KaderWeg = "schlag"): { p: number; pAuf: number } {
+  if (art === "zugriff") {
+    const q = VORGANG.zugriff;
+    const koop = mitwirkung(w, ziel);
+    return {
+      p: clamp(q.p.basis + q.p.koop * koop + technikP(w), q.p.min, q.p.max),
+      pAuf: clamp(q.auf.basis + q.auf.medien * medienOffenheit(ziel) + q.auf.ohneKoop * (1 - koop) + technikAuf(w), q.auf.min, q.auf.max),
+    };
+  }
+  if (art === "kader") {
+    const q = VORGANG.kader;
+    return { p: clamp(q.p[weg] + 2 * technikP(w), q.p.min, q.p.max), pAuf: clamp(q.auf[weg] + technikAuf(w), q.auf.min, q.auf.max) };
+  }
+  const q = VORGANG.kanal;
+  const v = Math.min(beziehungZurTuerkei(w, "USA").vertrauen, beziehungZurTuerkei(w, "RUS").vertrauen);
+  return { p: clamp(q.p.basis + q.p.jePunkt * (v - 40) + 0.05 * (mitStufen(w).personal - 3), q.p.min, q.p.max), pAuf: 0 };
+}
+
+/** Warum ein Vorgang gerade nicht geht (Kapital, Kapazität), sonst `undefined`. */
+export function vorgangGrund(w: World, art: VorgangArt): string | undefined {
+  const def = OP_DEFS[art];
+  if (dienst(w).kapazitaet < def.kap) return t("tag_t8.dienst.grund.kapazitaet");
+  return undefined;
+}
+
+/** Ordnet einen Vorgang an: Kapazität wird gebunden, Aussicht und Risiko festgehalten. Das Kapital bucht der Ereignismotor (Option.pk). */
+export function ordneVorgangAn(w: World, art: VorgangArt, ziel: string, daten: Record<string, string | number> = {}): string {
+  const dz = dienst(w);
+  const def = OP_DEFS[art];
+  const a = vorgangAussicht(w, art, ziel, (daten.weg as KaderWeg | undefined) ?? "schlag");
+  dz.kapazitaet = Math.max(0, dz.kapazitaet - def.kap);
+  dz.zaehler += 1;
+  dz.ops.push({ id: dz.zaehler, art, ziel, start: w.day, ende: w.day + def.monate * 30, pk: def.pk, kap: def.kap, p: a.p, pAuf: a.pAuf, daten });
+  berichte(w, dz, `${def.name}: ${akteurName(ziel)}`, t("welle_e3.dienst.bericht.angeordnet", { monate: def.monate, p: Math.round(a.p * 100), auf: Math.round(a.pAuf * 100) }), "info");
+  return t("welle_e3.dienst.angeordnet", { op: def.name, monate: def.monate });
+}
+
+function loeseVorgang(w: World, m: WeltModell, dz: DienstZustand, op: Operation): void {
+  const def = OP_DEFS[op.art];
+  const r = new Rng(hashInt(`${w.seed}|op|${op.id}|${op.ziel}|${op.art}`));
+  const a = op.p !== undefined && op.pAuf !== undefined ? { p: op.p, pAuf: op.pAuf } : vorgangAussicht(w, op.art as VorgangArt, op.ziel, (op.daten?.weg as KaderWeg | undefined) ?? "schlag");
+  const erfolg = r.next() < a.p;
+  const entdeckt = r.next() < a.pAuf;
+  const land = landFormen(op.ziel);
+  let ergebnis = "";
+  const folgen: string[] = [];
+  if (op.art === "zugriff") {
+    const q = VORGANG.zugriff;
+    if (erfolg) {
+      if (w.spiel) w.spiel.kapital += q.erfolg.kapital;
+      wirke(w, "nationalisten", q.erfolg.nationalisten);
+      wirke(w, "konservative", q.erfolg.konservative);
+      ergebnis = t("welle_e3.dienst.zugriff.erfolg", { land, kapital: q.erfolg.kapital });
+      weltNotiz(w, m, { art: "aufdeckung", id: op.ziel, titel: t("welle_e3.dienst.zugriff.notiz", { land }), fakt: ergebnis, wertung: 0.1, gewicht: 0.6 });
+    } else ergebnis = t("welle_e3.dienst.zugriff.fehlschlag", { land });
+    if (entdeckt) {
+      beziehungAendern(w, op.ziel, { vertrauen: q.aufgeflogen.vertrauen, konflikt: q.aufgeflogen.konflikt });
+      wirke(w, "ansehen", q.aufgeflogen.ansehen);
+      if (op.ziel !== "EU") beziehungAendern(w, "EU", { vertrauen: q.aufgeflogen.eu });
+      folgen.push(t("welle_e3.dienst.zugriff.aufgeflogen", { land }));
+    }
+  } else if (op.art === "kader") {
+    const q = VORGANG.kader;
+    const weg: KaderWeg = op.daten?.weg === "festnahme" ? "festnahme" : "schlag";
+    const taeter = op.daten?.taeter === "is" ? "is" : "pkk";
+    if (erfolg) {
+      const az = aussenZustand(w);
+      az.terror[taeter] = Math.max(0, Math.round((az.terror[taeter] - q.erfolg.taeter[weg]) * 10) / 10);
+      wirke(w, "terrorgefahr", q.erfolg.terrorgefahr);
+      wirke(w, "nationalisten", q.erfolg.nationalisten);
+      if (weg === "festnahme") wirke(w, "ansehen", q.erfolg.ansehenFestnahme);
+      if (taeter === "pkk" && az.friedens.phase >= 1) {
+        az.friedens.fortschritt = Math.round((az.friedens.fortschritt + q.erfolg.frieden[weg]) * 10) / 10;
+        wirke(w, "minderheiten", q.erfolg.minderheiten);
+        folgen.push(t("welle_e3.dienst.kader.frieden", { punkte: -q.erfolg.frieden[weg] }));
+      }
+      ergebnis = t(`welle_e3.dienst.kader.erfolg.${taeter}.${weg}`, { land, punkte: q.erfolg.taeter[weg] });
+      weltNotiz(w, m, { art: "aufdeckung", id: op.ziel, titel: t(`welle_e3.dienst.kader.notiz.${taeter}`, { land }), fakt: ergebnis, wertung: 0.05, gewicht: 0.5 });
+    } else ergebnis = t("welle_e3.dienst.kader.fehlschlag", { land });
+    if (entdeckt) {
+      beziehungAendern(w, op.ziel, { vertrauen: q.aufgeflogen.vertrauen, konflikt: q.aufgeflogen.konflikt });
+      wirke(w, "ansehen", q.aufgeflogen.ansehen);
+      folgen.push(t("welle_e3.dienst.kader.zwischenfall", { land }));
+    }
+  } else {
+    const q = VORGANG.kanal;
+    if (erfolg) {
+      wirke(w, "ansehen", q.erfolg.ansehen);
+      beziehungAendern(w, "USA", { vertrauen: q.erfolg.vertrauen });
+      beziehungAendern(w, "RUS", { vertrauen: q.erfolg.vertrauen });
+      ergebnis = t("welle_e3.dienst.kanal.erfolg");
+      weltNotiz(w, m, { art: "aufdeckung", id: "USA", titel: t("welle_e3.dienst.kanal.notiz"), fakt: ergebnis, wertung: 0.3, gewicht: 0.8 });
+    } else {
+      beziehungAendern(w, "USA", { vertrauen: q.fehlschlag.vertrauen });
+      beziehungAendern(w, "RUS", { vertrauen: q.fehlschlag.vertrauen });
+      ergebnis = t("welle_e3.dienst.kanal.fehlschlag");
+    }
+  }
+  if (entdeckt) {
+    weltNotiz(w, m, { art: "aufdeckung", id: op.ziel, titel: t("tag_t8.dienst.aufdeckung.titel", { name: akteurName(op.ziel) }), fakt: folgen.join(" "), wertung: -0.3, gewicht: 0.9 });
+    merkeAufgeflogen(w, dz, op, erfolg);
+  }
+  addLog(w, "ereignis", `${def.name}: ${akteurName(op.ziel)}`, [ergebnis, ...folgen].join(" "));
+  berichte(w, dz, `${def.name}: ${akteurName(op.ziel)}`, [ergebnis, ...folgen].join(" "), entdeckt ? "aufgedeckt" : erfolg ? "erfolg" : "fehlschlag");
+}
+
+/** Eine aufgeflogene eigene Operation kommt als Vorgang „dienst_aufgeflogen“ auf den Tisch (dementieren, opfern, bekennen). */
+function merkeAufgeflogen(w: World, dz: DienstZustand, op: Operation, erfolg: boolean): void {
+  if (op.art === "gegen" || op.art === "kanal") return;
+  (dz.aufgeflogen ??= []).push({ op: op.id, art: op.art, ziel: op.ziel, tag: w.day, erfolg });
+  if (dz.aufgeflogen.length > 3) dz.aufgeflogen.shift();
 }
 
 // ---------------------------------------------------------------------------
@@ -443,6 +635,7 @@ function wirkeEingehend(w: World, art: EingehendeOp["art"], faktor: number): voi
 function eingehendeMonat(w: World, m: WeltModell, dz: DienstZustand, rng: Rng): void {
   const spiel = w.spiel!;
   // Neue Operationen
+  zusaetzlicheFremde(w, dz);
   if (w.day >= 150 && dz.eingehend.filter((x) => x.ende > w.day).length < 2) {
     const wahlNah = spiel.wahltag > w.day && spiel.wahltag - w.day <= 240 ? 0.5 : 0;
     for (const d of WELT) {
@@ -464,7 +657,6 @@ function eingehendeMonat(w: World, m: WeltModell, dz: DienstZustand, rng: Rng): 
     if (rng.next() < (dz.abwehr > 0 ? DIENST.fundChanceAbwehr : DIENST.fundChance) * stufenWert(MIT_STUFEN.fund, mitStufen(w).technik)) {
       x.aufgedeckt = true;
       berichte(w, dz, t("ev.welt_einfluss.titel", { land: landFormen(x.von), art: t(`ev.welt_einfluss.art.${x.art}`) }), t(`ev.welt_einfluss.text1.${x.art}`, { land: landFormen(x.von), nz: landZahl(x.von) }), "info");
-      m.ereignisKandidaten = [...(m.ereignisKandidaten ?? []), { art: "einfluss", id: x.von, einfluss: x.art, opId: x.id }];
     }
   }
   // Abgelaufene unentdeckte wirken still
@@ -476,7 +668,40 @@ function eingehendeMonat(w: World, m: WeltModell, dz: DienstZustand, rng: Rng): 
     }
     if (!x.aufgedeckt) wirkeEingehend(w, x.art, dz.abwehr > 0 ? 0.6 : 1);
   }
-  dz.eingehend = rest.filter((x) => !(x.aufgedeckt && w.day >= x.ende + 120));
+  // Welle E3: Eine aufgedeckte Operation, die noch nicht als Vorgang vorlag, wartet bis zu einem Jahr auf ihren Platz (ohne Zusatzplatz kommt
+  // sie nur in einem Monat mit anderen Vorgängen; vorher verfiel sie nach 120 Tagen ungesehen)
+  dz.eingehend = rest.filter((x) => !(x.aufgedeckt && w.day >= x.ende + (x.gemeldet ? 120 : 365)));
+}
+
+/**
+ * Welle E3: Fremde Dienste arbeiten öfter gegen die Türkei, als das Spiel bisher zeigte (beim Inhaber 2 Operationen in 15 Jahren). Belegte
+ * Fälle: Im Januar 2024 nahmen MİT und Istanbuler Staatsanwaltschaft 34 Verdächtige eines Mossad-Netzes fest (Razzien in acht Provinzen;
+ * The New Arab, 02.01.2024); im Juni 2022 vereitelte der MİT Anschlagspläne iranischer Zellen gegen Israelis in Istanbul (Al Jazeera,
+ * 23.06.2022). Ein zusätzlicher Wurf je feindlich gesinntem Staat und Monat, aus Samen, Staat und Tag (nie aus dem Strom der Welt), mit
+ * derselben Obergrenze von zwei laufenden. Häufigkeit und Dauer sind Spielparameter.
+ */
+export const FREMD_ZUSATZ = { chance: 0.006, ab: 150, dauer: 120, hoechstens: 2 } as const;
+
+function zusaetzlicheFremde(w: World, dz: DienstZustand): void {
+  if (w.day < FREMD_ZUSATZ.ab) return;
+  for (const d of WELT) {
+    if (dz.eingehend.filter((x) => x.ende > w.day).length >= FREMD_ZUSATZ.hoechstens) return;
+    if (["SYR", "UKR", "GEO", "ARM", "LBY", "IRQ", "AZE", "KAZ"].includes(d.id)) continue;
+    const b = beziehungZurTuerkei(w, d.id);
+    const feind = clamp((60 - b.vertrauen) / 40, 0, 1.5) + (b.konflikt >= 60 ? 0.3 : 0);
+    const faehig = DIENST.faehigkeit[d.id] ?? 0.4;
+    const u = (hashInt(`${w.seed}|fremd+|${d.id}|${w.day}`) % 1000003) / 1000003;
+    if (u >= FREMD_ZUSATZ.chance * feind * faehig) continue;
+    const u2 = (hashInt(`${w.seed}|fremd+art|${d.id}|${w.day}`) % 1000003) / 1000003;
+    dz.zaehler += 1;
+    dz.eingehend.push({ id: dz.zaehler, von: d.id, art: u2 < 0.4 ? "abhoeren" : u2 < 0.7 ? "einfluss" : "medien", start: w.day, ende: w.day + FREMD_ZUSATZ.dauer, aufgedeckt: false });
+    return;
+  }
+}
+
+/** Die älteste aufgedeckte fremde Operation, die noch nicht als Vorgang vorlag (Welle E3, sim/ereignisse-dienst.ts). */
+export function offeneFremde(w: World): EingehendeOp | undefined {
+  return dienst(w).eingehend.find((x) => x.aufgedeckt && !x.gemeldet);
 }
 
 /** Die Antworten des Spielers auf eine aufgedeckte fremde Operation (Ereignis „welt_einfluss“). */

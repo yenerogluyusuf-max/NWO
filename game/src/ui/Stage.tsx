@@ -171,7 +171,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const world = useRef<World>(initial);
   const [, setVersion] = useState(0);
   const [speed, setSpeed] = useState(0);
-  const [personenStart, setPersonenStart] = useState<"zusagen" | undefined>(undefined);
+  const [personenStart, setPersonenStart] = useState<"zusagen" | "machtkreis" | undefined>(undefined);
+  const [personenPerson, setPersonenPerson] = useState<string | undefined>(undefined);
   const [dossier, setDossier] = useState<Dossier>(null);
   // Beim Laden gibt es kein Amtsübergabe-Intro, sondern das „Stand der Dinge“-Blatt (Re-Entry)
   const [intro, setIntro] = useState<GameEvent | null>(() => (geladen ? null : startEvent(initial)));
@@ -702,7 +703,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     if (dossier === "schreibtisch" && umlaufNeu > 0) umlaufGelesen();
   }, [dossier, umlaufNeu, umlaufGelesen]);
   const oeffneDossier = (d: Dossier) => {
-    if (d === "personen") setPersonenStart(undefined);
+    if (d === "personen") {
+      setPersonenStart(undefined);
+      setPersonenPerson(undefined);
+    }
     if (d === "politik") setPolitikStart(null);
     if (d === "schreibtisch") umlaufGelesen();
     if (d === "zeitung") zeitungGelesen(world.current); // Badge „Neue Ausgabe" erlischt beim Öffnen
@@ -792,6 +796,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     switch (z.art) {
       case "zusagen":
         setPersonenStart("zusagen");
+        setPersonenPerson(undefined);
         setDossier("personen");
         beendeZeit();
         break;
@@ -1109,8 +1114,9 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             {dossier === "katastrophe" && <Katastrophe world={w} refresh={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "personen" && (
               <Personen
-                key={personenStart ?? "kabinett"}
+                key={`${personenStart ?? "kabinett"}-${personenPerson ?? ""}`}
                 initialTab={personenStart}
+                {...(personenPerson ? { startPerson: personenPerson } : {})}
                 world={w}
                 refresh={() => { refresh(); sichere(true); }}
                 onVorgang={zeigeVorgang}
@@ -1434,6 +1440,17 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               oeffneDossier("reich_infra");
             } else if (st.art === "ruestung") {
               oeffneDossier("reich_militaer");
+            } else if (st.art === "machtkreis") {
+              // Welle E3: Kabinett › Machtkreis
+              setPersonenStart("machtkreis");
+              setPersonenPerson(st.person);
+              setDossier("personen");
+              beendeZeit();
+            } else if (st.art === "dienst") {
+              // Welle E3: Außen › Dienst
+              setWeltStart("dienst");
+              setWeltTab(undefined);
+              oeffneDossier("welt");
             } else {
               setReichStart("bestand");
               setReichStaette(st.id);

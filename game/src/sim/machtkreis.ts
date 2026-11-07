@@ -10,7 +10,7 @@ import { nationalAverage } from "./netz";
 import { addLog } from "./log";
 import { vertrauenAendern, wirke } from "./wirkung";
 import { AEMTER, eigenVon, grollVerschieben, hashZahl, loyalitaetVerschieben, merke } from "./personen";
-import { neuerName } from "./figuren";
+import { neuerName, vergebeneNamen } from "./figuren";
 import { ausscheiden } from "./nachfolge";
 import { mitStufen } from "./behoerden";
 import { autoritaerScore, verfassungsZustand } from "./verfassung";
@@ -50,6 +50,86 @@ export const MACHTKREIS = {
   /** So lange bleibt jemand kaltgestellt, in Tagen */
   kaltTage: 360,
 };
+
+/**
+ * Welle E3: Nachfolgedruck in Stufen und Parteitag mit Termin. Der Kronprinz meldet sich beim Überschreiten von 60, 80 und 95 (Spielparameter,
+ * Vorbild CK3-Fraktionen: Unmut ab 80 %, Ultimatum bei 100 %). Rechtsrahmen: Ein ordentlicher Parteitag tagt in den Fristen der Satzung,
+ * „iki yıldan az üç yıldan fazla olamaz“ (Siyasi Partiler Kanunu Nr. 2820, Art. 14); einen außerordentlichen verlangt mindestens ein Fünftel
+ * der Delegierten schriftlich (ebd.). Vorbild für die Frist: In der MHP sammelten Akşener, Oğan, Özdağ und Aydın ab Januar 2016 Unterschriften
+ * der Delegierten, der Kongress tagte nach Gerichtsstreit am 19.06.2016; danach folgten Ausschlüsse und am 25.10.2017 die İYİ Parti.
+ */
+export const NACHFOLGE_STUFEN = {
+  stufen: [60, 80, 95] as const,
+  /** So weit muss der Druck unter eine Stufe fallen, bevor sie erneut gemeldet wird */
+  ruecksetzen: 10,
+  /** Ordentlicher Parteitag: alle drei Jahre ab Amtsantritt (Obergrenze nach SPK Art. 14) */
+  ordentlichTage: 1095,
+  /** Außerordentlicher Parteitag: so viele Tage nach den Unterschriften (Spielparameter; MHP 2016: Januar bis Juni) */
+  ausserordentlichTage: 120,
+  /** Ab diesem Druck tritt der Kronprinz auf dem Parteitag gegen den Präsidenten an */
+  kampfAb: 80,
+  /** Ein Parteitag ohne Gegenkandidat senkt den Druck um so viel */
+  ruhigSenkt: 12,
+};
+
+/** Die höchste Stufe, die der Druck erreicht (0 bis 3). */
+export function nachfolgeStufe(druck: number): number {
+  return NACHFOLGE_STUFEN.stufen.filter((x) => druck >= x).length;
+}
+
+/** Tag des nächsten ordentlichen Parteitags: drei Jahre nach dem letzten (ältere Spielstände: der letzte lag im Takt ab dem Amtsantritt). */
+export function ordentlicherParteitag(w: World): number {
+  const z = NACHFOLGE_STUFEN.ordentlichTage;
+  const letzter = w.spiel?.machtkreis?.letzterParteitag ?? Math.floor(w.day / z) * z;
+  return letzter + z;
+}
+
+/** Der nächste Parteitag: ein angesetzter außerordentlicher oder der ordentliche, je nachdem, was früher kommt. */
+export function parteitagTermin(w: World): { tag: number; ausserordentlich: boolean } {
+  const mk = machtkreis(w);
+  const ord = ordentlicherParteitag(w);
+  if (mk.parteitag && mk.parteitag.tag <= ord) return { tag: mk.parteitag.tag, ausserordentlich: true };
+  return { tag: mk.parteitagFaellig ?? ord, ausserordentlich: false };
+}
+
+/** Der Kronprinz sammelt Unterschriften: ein außerordentlicher Parteitag wird angesetzt (wenn er früher kommt als der ordentliche). */
+export function setzeAusserordentlichenParteitag(w: World): number {
+  const mk = machtkreis(w);
+  const tag = w.day + NACHFOLGE_STUFEN.ausserordentlichTage;
+  if (!mk.parteitag && tag < ordentlicherParteitag(w)) mk.parteitag = { tag };
+  return parteitagTermin(w).tag;
+}
+
+/** Monatlich: Stufen zurücksetzen, ab Druck 100 Unterschriften, und am Termin tagt der Parteitag (still oder mit Kampfkandidatur). */
+function parteitagMonat(w: World, mk: MachtkreisZustand): void {
+  const q = NACHFOLGE_STUFEN;
+  mk.letzterParteitag ??= Math.floor(w.day / q.ordentlichTage) * q.ordentlichTage;
+  let st = mk.nachfolgeStufe ?? 0;
+  while (st > 0 && mk.nachfolge < q.stufen[st - 1]! - q.ruecksetzen) st--;
+  mk.nachfolgeStufe = st;
+  const kp = nebenVon(w, "kronprinz");
+  if (mk.nachfolge >= 100 && kp?.status === "aktiv") setzeAusserordentlichenParteitag(w);
+  if (mk.parteitagFaellig !== undefined) return;
+  const termin = parteitagTermin(w);
+  if (w.day < termin.tag) return;
+  if (kp?.status === "aktiv" && mk.nachfolge >= q.kampfAb) {
+    // Die Kampfkandidatur kommt als Vorgang (sim/ereignisse-machtkreis.ts, „kreis_parteitag“)
+    mk.parteitagFaellig = termin.tag;
+    return;
+  }
+  delete mk.parteitag;
+  mk.letzterParteitag = w.day;
+  mk.nachfolge = klemme(mk.nachfolge - q.ruhigSenkt);
+  addLog(w, "ereignis", t(termin.ausserordentlich ? "welle_e3.kreis.parteitag.ausserordentlich_ruhig" : "welle_e3.kreis.parteitag.ruhig"), t("welle_e3.kreis.parteitag.ruhig_warum", { punkte: q.ruhigSenkt }));
+}
+
+/** Der Parteitag hat getagt (Vorgang eröffnet): Termin verbraucht, der nächste ordentliche folgt im Takt. */
+export function parteitagVerbraucht(w: World): void {
+  const mk = machtkreis(w);
+  delete mk.parteitag;
+  delete mk.parteitagFaellig;
+  mk.letzterParteitag = w.day;
+}
 
 // ---------------------------------------------------------------------------
 // Zustand
@@ -139,6 +219,16 @@ export interface MachtkreisZustand {
   /** Säuberungen der letzten Zeit (Tage) */
   saeuberungen: number[];
   szenen: Szene[];
+  /** Welle E3: Ergebnisse von Überprüfungen mit Fund, die noch als Vorgang auf den Tisch kommen (Person, Geheimnis, Tag) */
+  befunde?: { person: string; geheimnis: string; tag: number }[];
+  /** Welle E3: höchste schon gemeldete Stufe des Nachfolgedrucks (0 bis 3) */
+  nachfolgeStufe?: number;
+  /** Welle E3: angesetzter außerordentlicher Parteitag */
+  parteitag?: { tag: number };
+  /** Welle E3: Ein Parteitag ist fällig und der Kronprinz tritt an (Tag des Termins), bis der Vorgang eröffnet */
+  parteitagFaellig?: number;
+  /** Welle E3: Tag des letzten Parteitags (ordentlich oder außerordentlich) */
+  letzterParteitag?: number;
 }
 
 export type Hebel = "befoerdern" | "kaltstellen" | "deal" | "bauernopfer" | "untersuchung" | "begnadigung" | "saeuberung";
@@ -246,6 +336,9 @@ function neueNebenfigur(w: World, art: NebenArt, rng: Rng, benutzt: Set<string>)
   return { id: `n-${art}`, art, name, weiblich, alter, lager: NEBEN_LAGER[art], ehrgeiz, loyalitaet, kompetenz, einfluss, status: "aktiv", seit: w.day };
 }
 
+/** Wer nicht zum Streit im Kabinett gehört: Opposition, Presse und Verfassungsgericht stehen außerhalb der Regierung. */
+const AUSSER_KREIS = new Set(["opposition", "journalist", "richter"]);
+
 const GEHEIMNIS_JE_AMT: Partial<Record<Figur["amt"], GeheimnisArt[]>> = {
   finanzen: ["korruption", "privat"],
   wirtschaft: ["korruption", "privat"],
@@ -263,9 +356,10 @@ function verknuepfe(w: World, mk: MachtkreisZustand, p: Person, alle: Person[], 
   const neu = (b: Person, art: BeziehungArt, staerke: number, bekannt: boolean) => {
     if (!hat(b)) mk.beziehungen.push({ a: p.schluessel, b: b.schluessel, art, staerke: Math.round(staerke), bekannt });
   };
-  // Rivalen: Ehrgeizige suchen sich einen Gegner, am liebsten aus einem anderen Lager
-  if (p.ehrgeiz >= 55 && p.rolle !== "opposition") {
-    const kand = andere.filter((b) => b.ehrgeiz >= 45 && b.lager !== p.lager && b.rolle !== "opposition" && !mk.beziehungen.some((x) => x.art === "rivalen" && (x.a === b.schluessel || x.b === b.schluessel) && x.staerke > 40));
+  // Rivalen: Ehrgeizige suchen sich einen Gegner, am liebsten aus einem anderen Lager. Nur unter Regierung, Partei und Partner:
+  // Journalistin und Verfassungsrichter streiten nicht im Kabinett (Welle E3: „Mert Uysal (Journalist) gegen Damla Karaca“)
+  if (p.ehrgeiz >= 55 && !AUSSER_KREIS.has(p.rolle)) {
+    const kand = andere.filter((b) => b.ehrgeiz >= 45 && b.lager !== p.lager && !AUSSER_KREIS.has(b.rolle) && !mk.beziehungen.some((x) => x.art === "rivalen" && (x.a === b.schluessel || x.b === b.schluessel) && x.staerke > 40));
     const b = kand[Math.floor(rng.next() * kand.length)];
     if (b) neu(b, "rivalen", 25 + rng.next() * 25, rng.next() < 0.7);
   }
@@ -293,7 +387,7 @@ export function machtkreis(w: World): MachtkreisZustand {
   if (!sp) throw new Error("Den Machtkreis gibt es nur im Spiel.");
   if (sp.machtkreis) return sp.machtkreis;
   const rng = new Rng(Math.floor(hashZahl(`${w.seed}|machtkreis`) * 2147483647) || 1);
-  const benutzt = new Set<string>(sp.figuren.map((f) => f.name));
+  const benutzt = vergebeneNamen(w);
   const mk: MachtkreisZustand = { v: 1, neben: [], beziehungen: [], geheimnisse: [], angst: 0, nachfolge: 10, untersuchungen: [], zuletzt: {}, deals: {}, kalt: {}, disziplin: {}, saeuberungen: [], szenen: [] };
   for (const art of NEBEN_ARTEN) mk.neben.push(neueNebenfigur(w, art, rng, benutzt));
   sp.machtkreis = mk;
@@ -305,6 +399,43 @@ export function machtkreis(w: World): MachtkreisZustand {
   const stab = alle.find((p) => p.rolle === "stab");
   if (kp && stab && !mk.beziehungen.some((x) => (x.a === kp.schluessel && x.b === stab.schluessel) || (x.b === kp.schluessel && x.a === stab.schluessel))) mk.beziehungen.push({ a: kp.schluessel, b: stab.schluessel, art: "rivalen", staerke: 45, bekannt: true });
   return mk;
+}
+
+/**
+ * Ältere Spielstände (Welle E3): Trägt eine Nebenfigur denselben Namen wie ein Amtsträger oder ein Ehemaliger, bekommt sie einen neuen
+ * Namen. Beim Inhaber hieß der Kronprinz „Cem Bilgin“ wie der Finanzminister von 2033 bis 2038. Alle Schlüssel des Kreises (Beziehungen,
+ * Geheimnisse, Untersuchungen, Hebel, Absprachen, Szenen) ziehen mit. Eigener Zufall aus dem Samen, der Strom der Partie bleibt.
+ */
+export function bereinigeNamensdoppel(w: World): void {
+  const sp = w.spiel;
+  const mk = sp?.machtkreis;
+  if (!sp || !mk) return;
+  const aemter = new Set([...sp.figuren.map((f) => f.name), ...(sp.ehemalige ?? []).map((e) => e.name)]);
+  for (const n of mk.neben) {
+    if (!aemter.has(n.name)) continue;
+    const alt = schluesselVon(n);
+    const rng = new Rng(Math.floor(hashZahl(`${w.seed}|mk-name|${n.id}|${n.name}`) * 2147483647) || 1);
+    n.name = neuerName(rng, vergebeneNamen(w), n.weiblich);
+    const neu = schluesselVon(n);
+    const um = (k: string): string => (k === alt ? neu : k);
+    for (const b of mk.beziehungen) {
+      b.a = um(b.a);
+      b.b = um(b.b);
+    }
+    for (const g of mk.geheimnisse) g.person = um(g.person);
+    for (const u of mk.untersuchungen) u.person = um(u.person);
+    for (const sz of mk.szenen) sz.personen = sz.personen.map(um);
+    for (const feld of [mk.deals, mk.kalt] as Record<string, number>[]) if (feld[alt] !== undefined) {
+      feld[neu] = feld[alt]!;
+      delete feld[alt];
+    }
+    for (const k of Object.keys(mk.zuletzt)) if (k.endsWith(`|${alt}`)) {
+      mk.zuletzt[k.slice(0, -alt.length) + neu] = mk.zuletzt[k]!;
+      delete mk.zuletzt[k];
+    }
+    // Offene Vorgänge des Kreises führen die Person über ihren Schlüssel
+    for (const ev of [...sp.ereignisse, ...(sp.geplant ?? [])]) if (ev.daten) for (const [k, v] of Object.entries(ev.daten)) if (v === alt) ev.daten[k] = neu;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -456,7 +587,10 @@ export function zieheHebel(w: World, schluessel: string, h: Hebel): HebelErgebni
         p.neben.status = "kaltgestellt";
         p.neben.bis = w.day + MACHTKREIS.kaltTage;
         p.neben.einfluss = klemme(p.neben.einfluss - 25);
-      } else mk.kalt[schluessel] = w.day + MACHTKREIS.kaltTage;
+      } else {
+        mk.kalt[schluessel] = w.day + MACHTKREIS.kaltTage;
+        if (p.figur) eigenVon(w, p.figur).kaltBis = mk.kalt[schluessel];
+      }
       for (const r of rivalen) aendereLoyalitaet(w, r, 5);
       for (const v of verbuendete) aendereLoyalitaet(w, v, -5);
       if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge - 25);
@@ -591,7 +725,8 @@ export function machtkreisMonat(w: World): void {
     if (stil === "offen" && p.ehrgeiz >= 50) aendereEhrgeiz(w, p, MACHTKREIS.konkurrenz);
     if (kalt) {
       aendereGroll(w, p, 1.5);
-      if (p.figur) eigenVon(w, p.figur).druckBis = w.day + 31;
+      // Welle E3: eigene Marke statt `druckBis` (Druck hob die Ressortleistung, Kaltstellen soll sie senken, sim/personen.ts)
+      if (p.figur) eigenVon(w, p.figur).kaltBis = Math.max(eigenVon(w, p.figur).kaltBis ?? 0, mk.kalt[p.schluessel] ?? w.day + 31);
     }
     // Verborgene Doppelspiele und Putschzirkel wachsen im Dunkeln
     const g = geheimnisVon(w, p.schluessel);
@@ -646,6 +781,7 @@ export function machtkreisMonat(w: World): void {
     ((mk.deals[kp ? schluesselVon(kp) : ""] ?? -1) > w.day ? 1 : 0) -
     Math.max(0, (zust - 55) * 0.1);
   mk.nachfolge = klemme(mk.nachfolge + zuwachs * (stil === "autoritaer" ? 0.5 : 1));
+  parteitagMonat(w, mk);
   // 7. Untersuchungen enden
   for (const u of [...mk.untersuchungen]) if (u.ende <= w.day) schliesseUntersuchung(w, u);
 }
@@ -688,7 +824,11 @@ function schliesseUntersuchung(w: World, u: Untersuchung): void {
     b.bekannt = true;
     neu++;
   }
-  if (gefunden && g) g.aufgedeckt = true;
+  if (gefunden && g) {
+    g.aufgedeckt = true;
+    // Welle E3: Der Befund kommt als Vorgang mit drei Antworten auf den Tisch (nutzen, opfern, decken); den Putschzirkel trägt sein eigener Vorgang
+    if (g.art !== "putschzirkel") (mk.befunde ??= []).push({ person: u.person, geheimnis: g.id, tag: w.day });
+  }
   // Die Untersuchung kann durchsickern: in offenen Zeiten eher als unter Angst
   const leck = (regimeStil(regimeGrad(w)) === "offen" ? 0.3 : regimeStil(regimeGrad(w)) === "gelenkt" ? 0.18 : 0.08) - 0.03 * (st.technik - 3);
   const sickert = zufallVon(w, `leck|${u.person}`) < leck;
@@ -709,7 +849,7 @@ function schliesseUntersuchung(w: World, u: Untersuchung): void {
 /** Die stärkste bekannte Rivalität zweier Personen, die beide im Kreis sind. */
 export function heftigsteRivalitaet(w: World): Beziehung | undefined {
   return machtkreis(w)
-    .beziehungen.filter((b) => b.art === "rivalen" && personVon(w, b.a) && personVon(w, b.b) && personVon(w, b.a)!.rolle !== "opposition" && personVon(w, b.b)!.rolle !== "opposition")
+    .beziehungen.filter((b) => b.art === "rivalen" && personVon(w, b.a) && personVon(w, b.b) && !AUSSER_KREIS.has(personVon(w, b.a)!.rolle) && !AUSSER_KREIS.has(personVon(w, b.b)!.rolle))
     .sort((a, b) => b.staerke - a.staerke)[0];
 }
 

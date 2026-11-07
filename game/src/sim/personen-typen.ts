@@ -70,6 +70,8 @@ export interface FigurEigen {
   mittelBis?: number;
   /** Bis zu diesem Tag arbeitet sie unter Druck (Kritik): mehr Einsatz, mehr Groll */
   druckBis?: number;
+  /** Bis zu diesem Tag ist sie kaltgestellt (Machtkreis): Titel bleibt, Einfluss geht, das Ressort arbeitet schlechter */
+  kaltBis?: number;
   /** Nach konkretem Ressortvorfall: administrative Alleingänge bis dahin untersagt. */
   ressortKontrolleBis?: number;
   /** Letzter Tag, an dem sie mit dem Rücktritt gedroht hat */

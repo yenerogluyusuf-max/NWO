@@ -17,6 +17,7 @@ import {
   macheOeffentlich,
   machtkreis,
   nebenVon,
+  parteitagVerbraucht,
   personVon,
   regimeGrad,
   regimeStil,
@@ -175,16 +176,21 @@ function wechselVollzogen(w: World, ev: OffenesEreignis): string {
 // ---------------------------------------------------------------------------
 // Nachfolgefrage in der eigenen Partei
 
+/** Was die drei Antworten auf die Nachfolgefrage bewirken (Spielparameter); die Stufen des Drucks zeigen dieselben Zahlen (sim/ereignisse-kreis.ts). */
+export const NACHFOLGE_WIRKUNG = {
+  designieren: { druck: -40, loyalitaet: 20, einfluss: 20 },
+  hinhalten: { druck: -25, loyalitaet: 8, einfluss: 0 },
+  ausbooten: { druck: -30, loyalitaet: -25, einfluss: -30 },
+} as const;
+
 const NACHFOLGE: Vorlage = {
   id: "kreis_nachfolge",
   szene: "parlament",
   frist: 25,
   abkuehlung: 300,
-  chance: (w) => {
-    if (!im(w)) return 0;
-    const kp = nebenVon(w, "kronprinz");
-    return kp && kp.status === "aktiv" && machtkreis(w).nachfolge >= 60 ? 0.06 : 0;
-  },
+  // Welle E3: ersetzt durch die Stufen des Nachfolgedrucks (sim/ereignisse-kreis.ts, „kreis_nachfolge_stufe“), die beim Überschreiten fest
+  // auslösen; bleibt für ältere Spielstände registriert, in denen der Vorgang offen sein kann (beim Inhaber kam er bei Druck 89 in 15 Jahren nie)
+  chance: () => 0,
   erzeuge: (w) => {
     const kp = nebenVon(w, "kronprinz");
     return kp ? { provinzen: [], staerke: 1, daten: { a: schluesselVon(kp) } } : null;
@@ -196,9 +202,10 @@ const NACHFOLGE: Vorlage = {
     opt("designieren", t("mk.ev.nachfolge.designieren"), t("mk.ev.nachfolge.designieren_beschr"), 2, (ww, ev) => {
       const x = p(ww, ev);
       const mk = machtkreis(ww);
-      mk.nachfolge = Math.max(0, mk.nachfolge - 40);
-      loy(ww, x, 20);
-      if (x?.neben) x.neben.einfluss = Math.min(100, x.neben.einfluss + 20);
+      const q = NACHFOLGE_WIRKUNG.designieren;
+      mk.nachfolge = Math.max(0, mk.nachfolge + q.druck);
+      loy(ww, x, q.loyalitaet);
+      if (x?.neben) x.neben.einfluss = Math.min(100, x.neben.einfluss + q.einfluss);
       // Wer einen Nachfolger benennt, wird zur Übergangsfigur: Die Minister schauen schon zum Nächsten
       for (const b of beziehungenVon(ww, x?.schluessel ?? "", false)) if (b.art === "rivalen") groll(ww, personVon(ww, b.andere), 12);
       wirke(ww, "legitimitaet", -1);
@@ -208,21 +215,23 @@ const NACHFOLGE: Vorlage = {
     opt("hinhalten", t("mk.ev.nachfolge.hinhalten"), t("mk.ev.nachfolge.hinhalten_beschr"), 3, (ww, ev) => {
       const x = p(ww, ev);
       const mk = machtkreis(ww);
-      mk.nachfolge = Math.max(0, mk.nachfolge - 25);
+      const q = NACHFOLGE_WIRKUNG.hinhalten;
+      mk.nachfolge = Math.max(0, mk.nachfolge + q.druck);
       if (x) mk.deals[x.schluessel] = ww.day + 365;
-      loy(ww, x, 8);
+      loy(ww, x, q.loyalitaet);
       zeigeSzene(ww, "deal", msg("mk.szene.hinhalten", { name: nm(x) }), [x?.schluessel ?? ""], t("mk.stempel.deal"));
       return t("mk.ev.nachfolge.hinhalten_aus", { name: nm(x) });
     }),
     opt("ausbooten", t("mk.ev.nachfolge.ausbooten"), t("mk.ev.nachfolge.ausbooten_beschr"), 3, (ww, ev) => {
       const x = p(ww, ev);
       const mk = machtkreis(ww);
-      mk.nachfolge = Math.max(0, mk.nachfolge - 30);
+      const q = NACHFOLGE_WIRKUNG.ausbooten;
+      mk.nachfolge = Math.max(0, mk.nachfolge + q.druck);
       if (x?.neben) {
         x.neben.status = "kaltgestellt";
         x.neben.bis = ww.day + 540;
-        x.neben.einfluss = Math.max(0, x.neben.einfluss - 30);
-        x.neben.loyalitaet = Math.max(0, x.neben.loyalitaet - 25);
+        x.neben.einfluss = Math.max(0, x.neben.einfluss + q.einfluss);
+        x.neben.loyalitaet = Math.max(0, x.neben.loyalitaet + q.loyalitaet);
       }
       // Die Partei merkt, dass Widerspruch bestraft wird
       vertrauenAendern(ww, -0.4);
@@ -245,17 +254,23 @@ const NACHFOLGE: Vorlage = {
 
 /** Kapital, das eine verlorene Kampfkandidatur zusätzlich kostet (Spielparameter). */
 const PARTEITAG_NIEDERLAGE_PK = 8;
+/** Zuschlag auf die Aussicht im autoritären Stil (Spielparameter). */
+const PARTEITAG_AUTORITAER = 0.15;
 
 const PARTEITAG: Vorlage = {
   id: "kreis_parteitag",
   szene: "parlament",
   frist: 20,
   abkuehlung: 720,
+  // Welle E3: Der Parteitag hat einen Termin (sim/machtkreis.ts, `parteitagTermin`): ordentlich alle drei Jahre, außerordentlich nach den
+  // Unterschriften der Delegierten. Ist er fällig und der Druck hoch, tritt der Kronprinz an, auch bei hoher Zustimmung und im autoritären
+  // Stil; die Aussicht hängt weiter an Zustimmung und Einfluss. Vorher kam er nur bei Zustimmung unter 45 und nie im autoritären Stil.
   chance: (w) => {
     if (!im(w)) return 0;
     const kp = nebenVon(w, "kronprinz");
-    return kp && kp.status === "aktiv" && machtkreis(w).nachfolge >= 90 && regimeStil(regimeGrad(w)) !== "autoritaer" && w.spiel!.umfrage.zustimmung < 45 ? 0.15 : 0;
+    return kp && kp.status === "aktiv" && machtkreis(w).parteitagFaellig !== undefined ? 1 : 0;
   },
+  eroeffne: (w) => parteitagVerbraucht(w),
   erzeuge: (w) => {
     const kp = nebenVon(w, "kronprinz");
     return kp ? { provinzen: [], staerke: 1, daten: { a: schluesselVon(kp) } } : null;
@@ -327,7 +342,10 @@ export function parteitagChance(w: World, ev: OffenesEreignis): number {
   const x = p(w, ev);
   const zust = w.spiel?.umfrage.zustimmung ?? 40;
   const einfluss = x?.neben?.einfluss ?? 50;
-  return Math.max(0.15, Math.min(0.85, 0.5 + (zust - 40) * 0.02 - (einfluss - 50) * 0.01));
+  // Im autoritären Stil wählen ausgesuchte Delegierte (AKP-Kongresse 24.03.2021 und 23.02.2025: alle gültigen Stimmen für den Vorsitzenden);
+  // Zuschlag Spielparameter
+  const stil = regimeStil(regimeGrad(w)) === "autoritaer" ? PARTEITAG_AUTORITAER : 0;
+  return Math.max(0.15, Math.min(0.85, 0.5 + stil + (zust - 40) * 0.02 - (einfluss - 50) * 0.01));
 }
 
 // ---------------------------------------------------------------------------
@@ -471,4 +489,8 @@ const PUTSCHZIRKEL: Vorlage = {
   },
 };
 
-export const MACHTKREIS_VORLAGEN: Vorlage[] = [RIVALITAET, SEITENWECHSEL, NACHFOLGE, PARTEITAG, ENTHUELLUNG, PUTSCHZIRKEL];
+// Welle E3: Jeder Vorgang des Kreises führt mit einem Klick in den Machtkreis (Ereignisfenster, „Zum Machtkreis“)
+/** Die Antworten auf die Nachfolgefrage (aufbauen, hinhalten, brechen), auch für die Stufen des Drucks. */
+export const nachfolgeAntworten = NACHFOLGE.optionen;
+
+export const MACHTKREIS_VORLAGEN: Vorlage[] = [RIVALITAET, SEITENWECHSEL, NACHFOLGE, PARTEITAG, ENTHUELLUNG, PUTSCHZIRKEL].map((v) => ({ ...v, stelle: (_w: World, ev: OffenesEreignis) => ({ art: "machtkreis" as const, ...(ev.daten?.a ? { person: String(ev.daten.a) } : {}) }) }));

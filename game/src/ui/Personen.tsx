@@ -15,7 +15,7 @@ import { Machtkreis } from "./personen/Machtkreis";
 import "./personen/personen.css";
 
 import { t } from "../i18n";
-export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; initialTab?: "zusagen"; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
+export function Personen({ world, initialTab, startPerson, refresh, onMassnahme, onGeheVorlage, onKarte, onVorgang }: { world: World; initialTab?: "zusagen" | "machtkreis"; startPerson?: string; refresh?: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; onGeheVorlage?: (z: VorlagenZiel) => void; onKarte?: (problemId?: string) => void; onVorgang?: (id: string) => void }) {
   const spiel = world.spiel;
   const [tab, setTab] = useState<"kabinett" | "umfeld" | "machtkreis" | "zusagen">(initialTab ?? "kabinett");
   const [gewaehltePerson, setGewaehltePerson] = useState<{ id: string; modus?: "gespraech" | "entlassen" } | null>(null);
@@ -112,7 +112,7 @@ export function Personen({ world, initialTab, refresh, onMassnahme, onGeheVorlag
           />
         </section>
       )}
-      {tab === "machtkreis" && <Machtkreis world={world} refresh={neu} />}
+      {tab === "machtkreis" && <Machtkreis world={world} refresh={neu} {...(startPerson ? { startPerson } : {})} />}
       {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} {...(onVorgang ? { onVorgang } : {})} />}
     </div>
   );

@@ -46,10 +46,10 @@ type Modus = "laender" | "bloecke" | "dienst" | "vermittlung";
 const MODI: Modus[] = ["laender", "bloecke", "dienst", "vermittlung"];
 
 export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: World; refresh: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; start?: string; startTab?: WeltTab }) {
-  // Welle E1: „block:<id>“ öffnet die Blöcke mit diesem Block (Sprung aus einem Gipfel-Vorgang)
+  // Welle E1: „block:<id>“ öffnet die Blöcke mit diesem Block (Sprung aus einem Gipfel-Vorgang); Welle E3: „dienst“ öffnet den Dienst
   const startBlock = start?.startsWith("block:") ? start.slice(6) : undefined;
-  const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : startBlock ? "bloecke" : "laender");
-  const [gewaehlt, setGewaehlt] = useState<string>(start && start !== "vermittlung" && !startBlock ? start : "EU");
+  const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : start === "dienst" ? "dienst" : startBlock ? "bloecke" : "laender");
+  const [gewaehlt, setGewaehlt] = useState<string>(start && start !== "vermittlung" && start !== "dienst" && !startBlock ? start : "EU");
   const [block, setBlock] = useState<string>(startBlock ?? "eu");
   const [filter, setFilter] = useState<string>("alle");
   const [suche, setSuche] = useState("");

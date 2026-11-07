@@ -5,7 +5,7 @@
 import { addLog } from "./log";
 import { Rng } from "./rng";
 import { AEMTER, loyalitaetVerschieben } from "./personen";
-import { besetzeNeu, figur, neuerName } from "./figuren";
+import { besetzeNeu, figur, neuerName, vergebeneNamen } from "./figuren";
 import { PARTEI_NAME } from "./fraktionen";
 import { t } from "../i18n";
 import { aktiveParteivorsitzende } from "./koalitionslage";
@@ -36,7 +36,7 @@ export function ministeriumAnPartei(w: World, amt: Figur["amt"], partei: string)
   const f = figur(w, amt);
   if (!sp || !f || f.partei === partei) return { ok: false, text: t("ressort.fehler") };
   const rng = new Rng((w.seed ^ 0x6b3d ^ Math.imul(w.day + PARTNER_RESSORTS.indexOf(amt) + 1, 2654435761)) | 0);
-  const benutzt = new Set(sp.figuren.map((x) => x.name));
+  const benutzt = vergebeneNamen(w);
   const alt = `${f.rolle} ${f.name}`;
   const name = PARTEI_NAME[partei] ?? partei;
   besetzeNeu(w, f, { name: neuerName(rng, benutzt, f.weiblich), ...PARTNER_MINISTER, lager: "partei", notiz: t("umbildung.erinnerung.partner", { partei: name }) });

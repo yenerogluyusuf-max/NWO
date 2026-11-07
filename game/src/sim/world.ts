@@ -25,6 +25,7 @@ import { koppleNetzAnWirtschaft, migriereKonjunktur } from "./maerkte";
 import { migriereKatastrophen } from "./katastrophe";
 import { migriereWahlkampf } from "./wahlkampf";
 import { migriereChronik } from "./chronik";
+import { bereinigeNamensdoppel } from "./machtkreis";
 import { turkey2026 } from "./scenario";
 
 // Das Netz, das Protokoll und die Eingriffe liegen in eigenen Dateien; hier bleiben die Namen erreichbar.
@@ -329,6 +330,8 @@ export function load(json: string): World {
   migriereKatastrophen(w);
   // Ältere Spielstände (5. November 2026): Chronik-Merkmale statt Textsuche
   migriereChronik(w);
+  // Ältere Spielstände (Welle E3): eine Nebenfigur des Machtkreises mit dem Namen eines Amtsträgers bekommt einen eigenen
+  bereinigeNamensdoppel(w);
   return w;
 }
 
