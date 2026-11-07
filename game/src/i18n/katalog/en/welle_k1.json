@@ -131,5 +131,7 @@
  "welle_k1.ausgang.eingefroren": "Frozen without a treaty: the ceasefire line holds, the dispute remains.",
  "welle_k1.ausgang.sieg": "Peace concluded: Türkiye has achieved its war aim.",
  "welle_k1.ausgang.weisser_frieden": "Peace without a victor: both sides withdraw.",
- "welle_k1.ausgang.frieden": "Peace with Turkish concessions."
+ "welle_k1.ausgang.frieden": "Peace with Turkish concessions.",
+ "welle_k1.fern.erschoepft": "The home front is exhausted: the exchange of strikes with {land} ends in a ceasefire.",
+ "welle_k1.fern.erschoepft.warum": "Without a land front nothing collapses, but the country will no longer carry the war. The other side proposes “{paket}”."
 }

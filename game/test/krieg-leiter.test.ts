@@ -314,6 +314,31 @@ describe("Schritt 3: Fernkonflikt ohne Gebiet", () => {
   });
 });
 
+describe("Fernkonflikt: Ende über die Erschöpfung", () => {
+  test("ist die Heimatfront erschöpft, erzwingt sie die Waffenruhe; ein abgelehntes Angebot kommt nicht jede Woche wieder", () => {
+    const w = welt();
+    weltZustand(w)["ISR"]!.konflikt = 97;
+    kriseEroeffnen(w, "ISR");
+    const k = kriegMit(w, "ISR")!;
+    k.seit -= KRIEG.spannungMinTage;
+    fuehreKriegHandlungAus(w, k.id, "drohkulisse");
+    k.eskalation = KRIEG.angriffAb + 1;
+    advance(w, 1);
+    expect(k.phase).toBe("krieg");
+    // Angebotsabstand: nach einem Angebot frühestens nach KRIEG.angebotAbstand Tagen das nächste
+    k.angebotZuletzt = w.day;
+    k.uhrGegner = 20;
+    for (let i = 0; i < 4; i++) { w.spiel!.ereignisse = []; advance(w, 7); }
+    expect(k.gegnerAngebot ?? false).toBe(false);
+    // Erschöpfte Heimatfront: Waffenruhe statt Zusammenbruch
+    k.uhr = 0.1;
+    advance(w, 7);
+    expect(k.phase).toBe("waffenruhe");
+    expect(k.angebotPaket).toBeTruthy();
+    expect(k.ausgang).toBeUndefined();
+  });
+});
+
 describe("Determinismus", () => {
   test("gleicher Samen, gleicher Weg durch die Leiter und den Krieg", () => {
     const lauf = () => {

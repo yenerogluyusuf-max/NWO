@@ -131,5 +131,7 @@
  "welle_k1.ausgang.eingefroren": "Eingefroren ohne Vertrag: Die Waffenstillstandslinie hält, der Streit bleibt.",
  "welle_k1.ausgang.sieg": "Frieden geschlossen: Die Türkei hat ihr Kriegsziel durchgesetzt.",
  "welle_k1.ausgang.weisser_frieden": "Frieden ohne Sieger: Beide Seiten ziehen sich zurück.",
- "welle_k1.ausgang.frieden": "Frieden mit Zugeständnissen der Türkei."
+ "welle_k1.ausgang.frieden": "Frieden mit Zugeständnissen der Türkei.",
+ "welle_k1.fern.erschoepft": "Die Heimatfront ist erschöpft: Der Schlagabtausch mit {land} endet in einer Waffenruhe.",
+ "welle_k1.fern.erschoepft.warum": "Ohne Landfront bricht nichts zusammen, aber das Land trägt den Krieg nicht mehr. Die Gegenseite legt „{paket}“ vor."
 }

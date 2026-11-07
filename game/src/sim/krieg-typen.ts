@@ -206,6 +206,8 @@ export interface KriegVorgang {
   zielErreicht?: number;
   /** Der Gegner ist erschöpft und hat den Rückzug angetreten (Waffenruhe aus seiner Erschöpfung) */
   rueckzugGegner?: boolean;
+  /** Tag des letzten Waffenruhe-Angebots des Gegners (Abstand zwischen zwei Angeboten) */
+  angebotZuletzt?: number;
   /** Ziel eines Fernkonflikts (sim/fernkonflikt.ts); ohne Wahl gilt „abschreckung“ */
   fernZiel?: FernZiel;
 }

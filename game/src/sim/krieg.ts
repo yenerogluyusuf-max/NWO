@@ -172,6 +172,8 @@ export const KRIEG = {
   /** In der Waffenruhe zehrt eine gehaltene Linie weiter am Gegner und, schwächer, an der eigenen Heimatfront (je Woche) */
   waffenruheZehrtGegner: 1.5,
   waffenruheZehrtEigen: 0.5,
+  /** Ein abgelehntes Waffenruhe-Angebot des Gegners kommt frühestens nach so vielen Tagen wieder */
+  angebotAbstand: 84,
 } as const;
 
 /**
@@ -1606,19 +1608,32 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
     addLog(w, "ereignis", t("welle_k1.ziel.log", { land: l.name, paket }), t("welle_k1.ziel.warum"));
     if (!k.gegnerAngebot) {
       k.gegnerAngebot = true;
+      k.angebotZuletzt = w.day;
       oeffne(w, "krieg_waffenruhe", rng, { daten: { land: k.land, vorgang: k.id } });
     }
   }
 
   // Waffenruhe-Angebot des Gegners (Suzerain-Lücke gefüllt: Friedensangebot mitten im Krieg)
-  if (!k.gegnerAngebot && (k.uhrGegner <= KRIEG.angebotUhr || ((k.stagnation ?? 0) >= 4 && k.uhr <= 55) || k.uhr <= 30) && rng.next() < 0.5) {
+  // Ein abgelehntes Angebot kommt frühestens nach KRIEG.angebotAbstand (zwölf Wochen, Spielparameter) wieder (Welle 3, K1: in einem Fernkonflikt ohne Zusammenbruch kam es
+  // vorher jede Woche, im Spielerlauf passiv Samen 6 einundzwanzigmal)
+  const angebotFrei = w.day - (k.angebotZuletzt ?? -1e9) >= KRIEG.angebotAbstand;
+  if (!k.gegnerAngebot && angebotFrei && (k.uhrGegner <= KRIEG.angebotUhr || ((k.stagnation ?? 0) >= 4 && k.uhr <= 55) || k.uhr <= 30) && rng.next() < 0.5) {
     k.gegnerAngebot = true;
+    k.angebotZuletzt = w.day;
     oeffne(w, "krieg_waffenruhe", rng, { daten: { land: k.land, vorgang: k.id } });
   }
 
   // Kapitulations-Checks (Anti-Aussitzen: unter 0 fällt eine Uhr nur bei kontrolliertem Kriegsziel)
   if (k.front <= KRIEG.zusammenbruchFront || k.uhr <= -KRIEG.kapitulation) {
     niederlage(w, k, rng);
+    return;
+  }
+  // Ein Fernkonflikt hat keinen Zusammenbruch der Front: Ist die eigene Heimatfront erschöpft, erzwingt sie die Waffenruhe (Welle 3, K1).
+  // Der Gegner legt das Paket der Lage vor; ohne Einigung friert der Konflikt nach der Frist ein.
+  if (istFernkonflikt(k.land) && k.uhr <= 0) {
+    k.angebotPaket = lagePaketId(w, k);
+    addLog(w, "ereignis", t("welle_k1.fern.erschoepft", { land: l.name }), t("welle_k1.fern.erschoepft.warum", { paket: PAKETE[k.angebotPaket]!.name }));
+    waffenruheEintreten(w, k);
     return;
   }
   if (k.front >= KRIEG.siegFront || k.uhrGegner <= -KRIEG.kapitulation) {

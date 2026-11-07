@@ -131,5 +131,7 @@
  "welle_k1.ausgang.eingefroren": "Antlaşmasız dondu: Ateşkes hattı yerinde, anlaşmazlık sürüyor.",
  "welle_k1.ausgang.sieg": "Barış yapıldı: Türkiye savaş hedefine ulaştı.",
  "welle_k1.ausgang.weisser_frieden": "Galipsiz barış: İki taraf da geri çekiliyor.",
- "welle_k1.ausgang.frieden": "Türkiye'nin tavizleriyle barış."
+ "welle_k1.ausgang.frieden": "Türkiye'nin tavizleriyle barış.",
+ "welle_k1.fern.erschoepft": "İç cephe tükendi: {land} ile karşılıklı saldırılar ateşkesle sona eriyor.",
+ "welle_k1.fern.erschoepft.warum": "Kara cephesi olmadığı için bir çöküş yok, ama ülke savaşı artık taşımıyor. Karşı taraf “{paket}” önerisini sunuyor."
 }
