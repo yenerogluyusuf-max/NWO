@@ -1,0 +1,15 @@
+{
+  "h4b.ra.neu": "{name} asks for a decision on {groesse} by {datum}. {hebel, select, gesetz {Lever: {massnahme} to {ziel}.} gesperrt {The lever {massnahme} is currently blocked.} haushalt {Lever: the {massnahme} budget.} other {No open lever.}}",
+  "h4b.log.kopf": "{ressort}, {monat}: {teile}.",
+  "h4b.log.meldungen": "{n, plural, one {one report} other {# reports}} from {name}, {groesse} {vor} → {nach} ({stand})",
+  "h4b.log.forderung": "{parteien} {n, plural, one {demands} other {demand}} measurable results",
+  "h4b.log.aufklaerung": "{parteien} {n, plural, one {demands} other {demand}} an explanation of the incident",
+  "h4b.log.entlastung": "criticism from {parteien} eases",
+  "h4b.hebel.gesetz": "Lever: {massnahme} from {von} to {ziel}.",
+  "h4b.hebel.gesperrt": "Lever {massnahme} is blocked: {grund}",
+  "h4b.hebel.haushalt": "Lever: the {massnahme} budget.",
+  "h4b.hebel.keiner": "No open lever: {grund}",
+  "h4b.hebel.keinerOhne": "No lever: none of the ministry's measures can move this any further, so leaving it does not lower it.",
+  "h4b.hebel.zumGesetz": "Go to the measure",
+  "h4b.hebel.zumHaushalt": "Go to the budget"
+}

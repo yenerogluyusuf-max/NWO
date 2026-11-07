@@ -7,7 +7,7 @@ import { offeneRessortVorfaelle } from './ressortpolitik';
 import { flussZustand } from './ministerfluss-kern';
 import { wertVon, HOCH_SCHLECHT, eigenVon, AEMTER } from './personen';
 import { legeRessortAnliegenAn, ressortArbeitet, ressortInhaber, ressortEntspannt, RESSORT_ENTWARNUNG } from './ressortanliegen';
-import { addLog } from './log';
+import { ressortMonatslog } from './ressortlog';
 import { t } from '../i18n';
 
 export const RESSORT_NACHSORGE = { takt:14, stabilTakt:30, schritt:1, entwarnung:RESSORT_ENTWARNUNG };
@@ -40,6 +40,8 @@ export function beginneRessortNachsorge(w:World,v:RessortVorfall,nachgetragen=fa
   const vorige=alle.find(n=>n.amt===v.amt&&n.status!=='abgeloest');
   for(const n of alle)if(n.amt===v.amt&&n.status!=='abgeloest')n.status='abgeloest';
   v.nachsorgeBegonnen=true;
+  // Der Präsident hat reagiert: Die Pause nach der verfallenen Anfrage endet, die Nachbeobachtung darf wieder nachfragen (sim/ressortanliegen.ts)
+  const pause=flussZustand(w).ressortPause;if(pause)for(const k of Object.keys(pause))if(k.startsWith(`${v.amt}|`))delete pause[k];
   alle.push({id:v.id,amt:v.amt,groesse:v.folge.groesse,entscheidung:v.entscheidung.art,entscheidungTag:v.entscheidung.tag,entscheidungDatum:v.entscheidung.datum,
     seit:w.day,datum:w.date,ausgang:wertVon(w,v.folge.groesse),nachgetragen,
     verantwortlich:{id:f.id,name:f.name,seit:eigenVon(w,f).seit},naechsteMeldung:w.day+RESSORT_NACHSORGE.takt,
@@ -86,6 +88,8 @@ export function ressortNachsorgeTag(w:World):void {
     n.naechsteMeldung=w.day+(n.status==='stabilisiert'?RESSORT_NACHSORGE.stabilTakt:RESSORT_NACHSORGE.takt);
     bewerteRessortErholung(w,n,m);
     n.meldungen.push(m);if(n.meldungen.length>8)n.meldungen.shift();
-    addLog(w,'ereignis',t('rn.log',{name:f.name,entwicklung:t(`rn.status.${entwicklung}`),vor:vorher.toFixed(1),nach:wert.toFixed(1)}));
+    // Eine Zeile je Monat und Ressort statt einer je Meldung (Befund 07.11.2026); die Meldung selbst steht in der Ressortakte.
+    // Eine weitere ruhige Meldung nach einer ruhigen sagt nichts Neues und bleibt aus dem Logbuch.
+    if(handlungsbedarf||!letzte||letzte.kritisch)ressortMonatslog(w,n.amt,{art:'meldung',name:f.name,groesse:n.groesse,vor:vorher,nach:wert,stand:t(`rn.status.${entwicklung}`)});
   }
 }

@@ -1,0 +1,15 @@
+{
+  "h4b.ra.neu": "{name}, {groesse} konusunda {datum} tarihine kadar karar istiyor. {hebel, select, gesetz {Kaldıraç: {massnahme}, hedef {ziel}.} gesperrt {{massnahme} kaldıracı şu anda kapalı.} haushalt {Kaldıraç: {massnahme} bütçesi.} other {Açık bir kaldıraç yok.}}",
+  "h4b.log.kopf": "{ressort}, {monat}: {teile}.",
+  "h4b.log.meldungen": "{name} tarafından {n, plural, one {bir rapor} other {# rapor}}, {groesse} {vor} → {nach} ({stand})",
+  "h4b.log.forderung": "{parteien} ölçülebilir sonuç {n, plural, one {istiyor} other {istiyor}}",
+  "h4b.log.aufklaerung": "{parteien} bakanlıktaki olayın açıklanmasını {n, plural, one {istiyor} other {istiyor}}",
+  "h4b.log.entlastung": "{parteien} eleştirisini yumuşatıyor",
+  "h4b.hebel.gesetz": "Kaldıraç: {massnahme}, {von} → {ziel}.",
+  "h4b.hebel.gesperrt": "{massnahme} kaldıracı kapalı: {grund}",
+  "h4b.hebel.haushalt": "Kaldıraç: {massnahme} bütçesi.",
+  "h4b.hebel.keiner": "Açık kaldıraç yok: {grund}",
+  "h4b.hebel.keinerOhne": "Kaldıraç yok: bakanlığın hiçbir tedbiri bu göstergeyi daha fazla değiştiremez; bu yüzden beklemek onu düşürmez.",
+  "h4b.hebel.zumGesetz": "Tedbire git",
+  "h4b.hebel.zumHaushalt": "Bütçeye git"
+}

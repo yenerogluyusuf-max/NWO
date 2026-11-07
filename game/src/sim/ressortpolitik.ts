@@ -15,6 +15,7 @@ import { neuanfangGrund, verbrauche } from './aufmerksamkeit';
 import { clamp } from './economy';
 import { wirke } from './wirkung';
 import { addLog } from './log';
+import { ressortMonatslog } from './ressortlog';
 import { t } from '../i18n';
 
 export type RessortReaktion='stuetzen'|'zurueckpfeifen'|'entlassen';
@@ -91,7 +92,8 @@ function politik(w:World,v:Pick<RessortVorfall,'name'|'amt'|'erfolg'|'art'|'part
     o.staerke=clamp(b+delta,0,100);opposition={partei:o.partei,vorher:b,nachher:o.staerke};
     const text=t(`rp.opp.${art}`,{partei:o.partei,name:v.name});
     o.zuege.push({tag:w.day,datum:w.date,art:'anfrage',text});if(o.zuege.length>40)o.zuege.splice(0,o.zuege.length-40);
-    addLog(w,'ereignis',text);
+    // Die Aufklärungsforderung zu einem Vorfall ist keine Entscheidung des Spielers: Monatszeile des Ressorts (Befund 07.11.2026)
+    if(art==='vorfall')ressortMonatslog(w,v.amt,{art:'aufklaerung',partei:o.partei});else addLog(w,'ereignis',text);
   }
   return {parteien:out,opposition};
 }

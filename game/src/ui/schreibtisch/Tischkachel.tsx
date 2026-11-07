@@ -8,7 +8,7 @@ import type { World } from '../../sim/types';
 import type { Amt, Vorlage, VorlageOption, VorlagenZiel } from '../../sim/ministerfluss-typen';
 import { entscheideVorlage } from '../../sim/ministerfluss';
 import { RESSORT_REAKTION } from '../../sim/ressortpolitik';
-import { RESSORT_ANLIEGEN, RESSORT_STILLSTAND } from '../../sim/ressortanliegen';
+import { RESSORT_ANLIEGEN, RESSORT_STILLSTAND, ressortHebel } from '../../sim/ressortanliegen';
 import { NET } from '../../sim/modell';
 import { addDays, formatDateDe } from '../../sim/dates';
 import { kannZahlen } from '../../sim/kapital';
@@ -118,7 +118,7 @@ function thema(world: World, e: Prioritaet): Thema {
 }
 
 /** Ein Ressort im Bündel der Stillstände: was gelitten hat, bis wann man reagieren kann, und die Reaktion direkt an der Zeile. */
-function StillstandReihe({ world, r, entscheide }: { world: World; r: RessortReihe; entscheide: (f: () => Antwort) => void }) {
+function StillstandReihe({ world, r, entscheide, onGehe }: { world: World; r: RessortReihe; entscheide: (f: () => Antwort) => void; onGehe: (z: Ziel) => void }) {
   const anfrage = useMemo(() => (r.anliegen ? anliegenKarte(world, r.anliegen) : undefined), [world, world.day, world.spiel?.kapital, r.anliegen]);
   const kapital = world.spiel?.kapital ?? 0;
   return <li className="tk2-reihe">
@@ -126,6 +126,7 @@ function StillstandReihe({ world, r, entscheide }: { world: World; r: RessortRei
     <p className="tk2-reihe-wert">{t('h4.still.reihe', { groesse: knoten(r.groesse), vor: zahl(r.vor, 0), nach: zahl(r.nach, 0), anfrage: datum(world, r.anfrage) })}</p>
     {anfrage ? <>
       <p className="tk2-reihe-hinweis">{t('h4.still.neueAnfrage', { frist: datum(world, world.day + (anfrage.frist ?? 0)) })}</p>
+      <HebelZeile world={world} id={r.anliegen!} onGehe={onGehe} />
       <Wege v={anfrage} kompakt max={2} onWaehle={(id) => entscheide(() => entscheideAnliegen(world, r.anliegen!, id))} />
     </> : <div className="tk2-reaktionen" role="group" aria-label={t('rp.art.vorfall')}>
       {REAKTIONEN.map((art) => <button key={art} type="button" className="knopf tk2-klein" disabled={!kannZahlen(kapital, RESSORT_REAKTION[art].pk)} title={t(`rp.text.${art}`)}
@@ -162,9 +163,10 @@ export function Tischkachel({ world, e, gross = false, onAntwort, refresh, onGeh
   const frist = e.tage === undefined ? (e.ton === 'rot' ? t('h4.dringend') : t('h4.ohneFrist')) : fristText(e.tage);
   const koerper = <>
     <p className="tk2-satz">{e.grund}</p>
+    {i.art === 'ressort' && i.anliegen && <HebelZeile world={world} id={i.anliegen} onGehe={onGehe} />}
     {lead && <Wege v={lead.v} onWaehle={(id) => entscheide(() => lead.tun(id))} />}
     {i.art === 'ressorts' && <>
-      <ul className="tk2-reihen">{i.reihen.map((r) => <StillstandReihe key={r.amt} world={world} r={r} entscheide={entscheide} />)}</ul>
+      <ul className="tk2-reihen">{i.reihen.map((r) => <StillstandReihe key={r.amt} world={world} r={r} entscheide={entscheide} onGehe={onGehe} />)}</ul>
       <p className="tk2-ursache">{t('h4.still.ursache', { tage: RESSORT_ANLIEGEN.frist, punkte: zahl(RESSORT_STILLSTAND.groesse, 1) })}</p>
     </>}
     {i.art === 'partei' && <ul className="tk2-reihen">{i.reihen.map((r) => <ForderungReihe key={r.forderung} world={world} r={r} refresh={refresh} />)}</ul>}
@@ -207,4 +209,18 @@ function ForderungReihe({ world, r, refresh }: { world: World; r: ForderungsReih
     </button>
     {auf && <RessortForderungsWege world={world} bezug={{ beobachtung: r.nachsorge, forderung: r.forderung }} refresh={refresh} offenStart />}
   </li>;
+}
+
+/** Der Hebel einer Ressortanfrage: was die Größe wirklich bewegt, mit Sprung dorthin; fehlt er oder ist er gesperrt, steht das da (Befund 07.11.2026) */
+function HebelZeile({ world, id, onGehe }: { world: World; id: string; onGehe: (z: Ziel) => void }) {
+  const a = world.spiel?.ministerfluss?.ressortAnliegen?.find((x) => x.id === id);
+  const h = useMemo(() => (a ? ressortHebel(world, a) : undefined), [world, world.day, world.spiel?.kapital, a]);
+  if (!h) return null;
+  const text = h.art === 'gesetz' ? (h.ok ? t('h4b.hebel.gesetz', { massnahme: h.name, von: h.von, ziel: h.ziel }) : t('h4b.hebel.gesperrt', { massnahme: h.name, grund: h.grund ?? '' }))
+    : h.art === 'haushalt' ? t('h4b.hebel.haushalt', { massnahme: h.name }) : h.grund ? t('h4b.hebel.keiner', { grund: h.grund }) : t('h4b.hebel.keinerOhne');
+  const ziel: Ziel | undefined = h.art === 'gesetz' ? { art: 'politik', massnahme: { id: h.id, level: h.ziel } } : h.art === 'haushalt' ? { art: 'akte', akte: 'wirtschaft', start: 'haushalt' } : undefined;
+  return <p className={`tk2-hebel${h.art === 'keiner' || (h.art === 'gesetz' && !h.ok) ? ' gesperrt' : ''}`}>
+    <span>{text}</span>
+    {ziel && <button type="button" className="knopf-leise" onClick={() => onGehe(ziel)}>{t(h.art === 'gesetz' ? 'h4b.hebel.zumGesetz' : 'h4b.hebel.zumHaushalt')} ↗</button>}
+  </p>;
 }

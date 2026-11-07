@@ -10,7 +10,7 @@
   "sd.vorgangOeffnen": "Vorgang öffnen",
   "sd.ueberfaellig": "Seit {n} Tagen überfällig",
   "sd.heute": "Heute fällig",
-  "sd.inTagen": "In {n} Tagen",
+  "sd.inTagen": "{n, plural, one {Morgen} other {In # Tagen}}",
   "sd.zusageGrund": "Verbindliche Zusage an {partei}; Frist und Rückhalt prüfen.",
   "sd.verantwortung": "{art, select, stillstand {{name}: Ressort bleibt liegen} auftragVerfehlt {{name}: Ziel verfehlt} gut {{name}: Alleingang ohne Absprache} other {{name}: Alleingang ging schief}}",
   "sd.gespraech": "{name} wartet auf eine Antwort",
