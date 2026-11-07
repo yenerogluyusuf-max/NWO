@@ -9,6 +9,7 @@ import { setPolicy } from "../src/sim/handeln";
 import { PARAMS, glaubwuerdigkeitsAbzug, glaubwuerdigkeitsZuwachs, monthlyUpdate, ungedeckterMehrbedarf } from "../src/sim/economy";
 import { Rng } from "../src/sim/rng";
 import { VORLAGEN } from "../src/sim/ereignisse";
+import { ohneZufallsereignisse } from "./_ohne-zufall";
 
 /** Die festen Termine des Staatsjahres (sim/ereignisse.ts, TERMINE): Sie sind kein Zufall und bleiben in der Messung des Modells. */
 const FESTE_TERMINE = new Set(["mindestlohn", "haushaltsjahr", "kommunalwahl", "zusage", "koalitionsangebot"]);
@@ -181,5 +182,34 @@ describe.skipIf(!existsSync(INHABER))("Spielstand des Inhabers (Welle H5)", () =
     expect(w.economy.credibility).toBeGreaterThan(start.glaub + 0.1);
     expect(w.economy.policyRate).toBeLessThan(start.zins);
     expect(w.economy.unemployment).toBeGreaterThan(start.alq + 1);
+  });
+});
+
+// Welle H5b: Spielstand des Inhabers vom 3. August 2043 (Kopie, nicht eingecheckt). Im echten Spiel fiel die Inflation danach bei einem Ziel von
+// 5 % bis Mai 2045 auf 0,3 %, ohne Rohstoffpreisverfall: Ein dauerhafter Energiemangel bremste die Auslastung jeden Monat neu (−0,26 Punkte),
+// und eine Auslastung von −4 bis −7 drückte die Inflation unter dem Ziel voll.
+const INHABER_2043 = new URL("../../spielstand/staatsraeson_2043-08-03.json", import.meta.url);
+
+describe.skipIf(!existsSync(INHABER_2043))("Spielstand des Inhabers 2043 (Welle H5b)", () => {
+  test("ohne echten Grund läuft die Inflation in der Nähe des Ziels aus, nicht weit darunter", () => {
+    const roh = JSON.parse(readFileSync(INHABER_2043, "utf8")) as { welt: World };
+    const w = load(JSON.stringify(roh.welt));
+    // Ein Ölpreisverfall wäre ein echter Grund für eine Inflation unter dem Ziel. Der Ölpreis bleibt darum auf seinem Stand von 2043,
+    // damit der Test das Modell misst und nicht einen Schock der Außenwelt.
+    const oel = w.economy.oel;
+    const verlauf: number[] = [];
+    ohneZufallsereignisse(() => {
+      for (let m = 0; m < 24; m++) {
+        monat(w);
+        w.economy.oel = oel;
+        verlauf.push(w.economy.inflation);
+      }
+    });
+    const ziel = w.economy.inflationTarget;
+    // Ziel − 2: Die TCMB nennt um ihr Ziel von 5 % ein Band von ±2 Punkten (Spielparameter, wie das Ziel selbst im Spiel). Darunter braucht
+    // es einen echten Grund. Vorher fiel die Inflation in diesem Lauf auf 1,2 %, mit freiem Ölpreis auf 0,6 %.
+    expect(Math.min(...verlauf)).toBeGreaterThan(ziel - 2);
+    // Nach zwei Jahren steht sie wieder in der Nähe des Ziels
+    expect(Math.abs(verlauf.at(-1)! - ziel)).toBeLessThan(2);
   });
 });

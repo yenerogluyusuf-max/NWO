@@ -2,7 +2,7 @@
 // Die Treiber stammen aus den Formeln des Wirtschaftsmodells (`economy.ts`) und den Verbindungen des Politiknetzes, nicht aus dem Kopf.
 
 import type { World } from "./types";
-import { AUSSEN, PARAMS, mangelSchub, potential, ppkZiel, PPK_GEWICHTE, realRate, ungedeckterMehrbedarf } from "./economy";
+import { AUSSEN, PARAMS, auslastungAufInflation, mangelBremse, mangelSchub, sektorSchub, potential, ppkZiel, PPK_GEWICHTE, realRate, ungedeckterMehrbedarf } from "./economy";
 import { COUPLING, KOSTEN, spiralAnteil } from "./world";
 import { DEVISEN, kapitalflussZerlegung, leistungsbilanzZerlegung } from "./devisen";
 import { NET } from "./modell";
@@ -144,7 +144,7 @@ export const KENNZAHLEN: Kennzahl[] = [
       const excess = e.fxChange12 - (e.inflation - PARAMS.foreignInflation);
       const zeilen = [
         tr(t("wk.5d45027"), e.expectedInflation, "%", t("wk.1710b23")),
-        tr(t("wk.72afc80"), PARAMS.gapOnInflation * e.outputGap, "Prozentpunkte", t("wk.e725ae4")),
+        tr(t("wk.72afc80"), auslastungAufInflation(e), "Prozentpunkte", t("wk.e725ae4")),
         tr(t("wk.a6e2d43"), PARAMS.fxPassThrough * excess, "Prozentpunkte", t("wk.cf1d329")),
         tr(t("wk.d42d0e2"), e.costPush, "Prozentpunkte", kostenText(w)),
         tr(t("wk.a5a1757"), AUSSEN.oelAufInflation * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1), "Prozentpunkte", t("wk.d6456f4")),
@@ -268,7 +268,10 @@ export const KENNZAHLEN: Kennzahl[] = [
           tr(t("wk.6faedb0"), -PARAMS.rateOnGap * (laggedReal - PARAMS.neutralRealRate), "Punkte je Monat", t("wk.8e0d0f9")),
           tr(t("wk.8ddb02e"), PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost), "Punkte je Monat", t("wk.a8fb50c")),
           tr(t("wk.cd1d645"), AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100), "Punkte je Monat", t("wk.5d8a4f5")),
-          tr(t("wk.a5a1757"), -AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100), "Punkte je Monat", t("wk.54a7d84")),
+          tr(t("wk.a5a1757"), -AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1), "Punkte je Monat", t("wk.54a7d84")),
+          // Welle H5b: Branchen und Energiemangel gehören zur Rechnung der Auslastung (economy.ts) und wirken über ihre Veränderung
+          ...(e.sektorIndex !== undefined ? [tr(t("wk.dv.branchen"), sektorSchub(e), "Punkte je Monat", t("welle_h5b.wk.branchenText", { index: e.sektorIndex, anker: e.sektorAnker ?? 0 }))] : []),
+          ...(e.energieMangel ? [tr(t("welle_h5.wk.mangel"), -mangelBremse(e), "Punkte je Monat", t("welle_h5b.wk.mangelGapText", { fehlt: e.energieMangel * 100, ref: (e.mangelRef ?? 0) * 100 }))] : []),
         ],
       };
     },

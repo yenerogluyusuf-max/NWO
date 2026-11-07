@@ -33,9 +33,19 @@ export const PARAMS = {
    * Z1/Z2 (Spielparameter): Fehlende Energie bremst die Produktion und treibt die Preise. Je Prozentpunkt Mangel (Öl und Gas)
    * −0,02 Auslastung im Monat und +0,15 Prozentpunkte im Inflationsanker. Ohne Beleg für einen Mangel dieser Größe in der Türkei
    * gewählt, damit ein jahrelanger Engpass sichtbar schadet (früher sank die Inflation dabei sogar leicht).
+   * Welle H5b: Beide wirken gegen den Bezugswert `mangelRef`. Ein Mangel ist ein Angebotsschock: Er senkt die Leistung und das Potenzial
+   * zugleich und hebt das Preisniveau. Mit dem Niveau als Dauerbremse lag die Auslastung im Spielstand 2043 jeden Monat um 0,26 Punkte
+   * tiefer, so viel wie 13 Punkte Realzins, und die Inflation fiel bis unter 1 %.
    */
   mangelAufGap: 0.02,
   mangelAufInflation: 0.15,
+  /**
+   * Welle H5b (Spielparameter): Ein Rückgang der Auslastung drückt die Inflation unterhalb des Ziels nur zu diesem Anteil. Löhne und Preise
+   * sinken schwerer, als sie steigen (Abwärtsstarrheit der Nominallöhne). Ohne diese Dämpfung zog eine tiefe Rezession die Inflation im
+   * Spielstand des Inhabers von 6 auf 0,3 % bei einem Ziel von 5 %. Kosten, Öl, Lira und Energie wirken unterhalb des Ziels voll: Sie sind
+   * echte Gründe für eine niedrige Inflation.
+   */
+  auslastungUnterZiel: 0.3,
   /**
    * Welle H5 (Spielparameter): Ein dauerhafter Kostenstand hebt das Preisniveau einmal, nicht jeden Monat neu. Kostendruck des Netzes
    * (sim/world.ts) und Energiemangel wirken darum gegen einen Bezugswert, der ihnen mit diesem Anteil je Monat nachzieht: Halbwertszeit
@@ -222,6 +232,17 @@ export function mangelSchub(e: EconomyState): number {
   return e.energieMangel === undefined ? 0 : PARAMS.mangelAufInflation * 100 * (e.energieMangel - mangelBezug(e));
 }
 
+/** Z1 (Welle H5b): Bremse der Auslastung durch fehlende Energie in Punkten je Monat, gemessen am Bezugswert (0 ohne Güterkette). */
+export function mangelBremse(e: EconomyState): number {
+  return e.energieMangel === undefined ? 0 : PARAMS.mangelAufGap * 100 * (e.energieMangel - mangelBezug(e));
+}
+
+/** Z2 (Welle H5b): Beitrag der Auslastung zum Inflationsanker; unter dem Ziel drückt eine Unterauslastung nur gedämpft (`auslastungUnterZiel`). */
+export function auslastungAufInflation(e: EconomyState): number {
+  const daempfung = e.outputGap < 0 && e.inflation < e.inflationTarget ? PARAMS.auslastungUnterZiel : 1;
+  return PARAMS.gapOnInflation * e.outputGap * daempfung;
+}
+
 /** Z4: tägliche Veränderung des Wechselkurses (Anteil, z. B. 0,001 = 0,1 %). */
 export function dailyDepreciation(e: EconomyState, rng: Rng): number {
   // Kapitalströme preisen die erwartete Inflationsdifferenz, nicht den rückblickenden
@@ -278,7 +299,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
     PARAMS.gapPersistence * e.outputGap -
     PARAMS.rateOnGap * (laggedRealRate - PARAMS.neutralRealRate) +
     PARAMS.fiscalOnGap * (e.fiscalImpulse + e.policyCost) -
-    PARAMS.mangelAufGap * 100 * (e.energieMangel ?? 0) +
+    mangelBremse(e) +
     AUSSEN.euAufAuslastung * ((e.euNachfrage ?? 100) - 100 - (e.sanktionsLast?.nachfrage ?? 0)) -
     AUSSEN.oelAufAuslastung * ((e.oel ?? 100) - 100) * (e.energieFaktor ?? 1) +
     // Runde „Netz atmet“: Die Realwirtschaft der Branchen wirkt auf die Auslastung (0 ohne Netz)
@@ -299,7 +320,7 @@ export function monthlyUpdate(e: EconomyState, history: MonthlySnapshot[], rng: 
   // Z2 und Z3: Inflation zieht zu Erwartung, Auslastung und Importpreisen
   const anchor =
     e.expectedInflation +
-    PARAMS.gapOnInflation * e.outputGap +
+    auslastungAufInflation(e) +
     PARAMS.fxPassThrough * excessDepreciation +
     e.costPush +
     mangelSchub(e) +

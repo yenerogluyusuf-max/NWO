@@ -1,0 +1,4 @@
+{
+ "welle_h5b.wk.branchenText": "Nur der Zuwachs der Branchen belebt: Index {index, number, 1}, davon {anker, number, 1} schon in der Auslastung.",
+ "welle_h5b.wk.mangelGapText": "{fehlt, number, 1} % der Energie fehlen, {ref, number, 1} % sind schon verkraftet. Ein neuer Mangel bremst, ein alter kaum noch."
+}
