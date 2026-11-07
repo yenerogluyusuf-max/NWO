@@ -26,6 +26,7 @@ import {
   presseFaktor,
 } from "../src/sim/krieg";
 import { wirke } from "../src/sim/wirkung";
+import { parlamentInFerien } from "../src/sim/krieg-recht";
 import { nationalAverage } from "../src/sim/netz";
 import { NET } from "../src/sim/modell";
 import { weltZustand } from "../src/sim/laender";
@@ -66,6 +67,8 @@ function inDrohkulisse(w: World, k: KriegVorgang): void {
   advance(w, 1);
   expect(k.phase, "Übergang spannung → drohkulisse").toBe("drohkulisse");
   k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
+  // Welle 3, K1: Vor einem eigenen Einsatz steht das Ultimatum (dritte Sprosse der Leiter); hier gilt es als gestellt und abgelehnt
+  k.ultimatum = true;
 }
 
 describe("Phasengerüst: der volle Weg durch den Vorgang", () => {
@@ -169,6 +172,12 @@ describe("Parlamentspflicht und Erlass", () => {
     // Der Gegner steht kurz vor dem Schlag, bevor die Türkei Selbstverteidigung erklärt (seit dem 6. November Bedingung des Erlasses)
     k.eskalation = KRIEG.verteidigungGlaubhaftAb + 1;
     fuehreKriegHandlungAus(w, k.id, "ziel_verteidigung");
+    // Welle 3, K1: Art. 92 Abs. 2 gilt nur in den Parlamentsferien (1. Juli bis 30. September, Art. 93 Verfassung, Art. 5 İçtüzük).
+    // In der Sitzungszeit entscheidet die Große Nationalversammlung, im Eilverfahren.
+    expect(parlamentInFerien(w)).toBe(false);
+    expect(handlungenFuer(w, k.id).find((h) => h.id === "beschluss_erlass")!.grund).toMatch(/Ferien/);
+    w.date = `${w.date.slice(0, 4)}-07-15`;
+    expect(parlamentInFerien(w)).toBe(true);
     const sichtB = handlungenFuer(w, k.id).find((h) => h.id === "beschluss")!;
     const sichtE = handlungenFuer(w, k.id).find((h) => h.id === "beschluss_erlass")!;
     expect(sichtE.pk, "Erlass kostet das Doppelte").toBe(sichtB.pk * 2);
@@ -196,6 +205,7 @@ describe("Vorlauf und Art. 92 (Befund G-2/G-3, 6. November)", () => {
     expect(frueh.moeglich, "Beschluss erst nach der Mindestdauer").toBe(false);
     expect(frueh.grund).toMatch(/frühestens/);
     advance(w, KRIEG.drohkulisseMinTage);
+    k.ultimatum = true; // Welle 3, K1: das Ultimatum ist gestellt und abgelehnt
     if (k.phase === "drohkulisse") expect(handlungenFuer(w, k.id).find((h) => h.id === "beschluss")!.moeglich).toBe(true);
     // Vom Krisenbeginn bis zum frühesten selbst begonnenen Krieg vergehen mindestens Spannung + Drohkulisse + Abstimmung
     expect(KRIEG.spannungMinTage + KRIEG.drohkulisseMinTage + KRIEG.beschlussTage).toBeGreaterThanOrEqual(42);

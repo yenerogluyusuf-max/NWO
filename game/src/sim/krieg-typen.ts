@@ -24,7 +24,8 @@ export type KriegsAusgang = "sieg" | "niederlage" | "rueckzug" | "weisser_friede
 
 /** Ein eingebrachter Einsatzbeschluss, der auf die Abstimmung wartet (Weg „parlament“) oder sofort galt („erlass“). */
 export interface KriegBeschluss {
-  weg: "parlament" | "erlass";
+  /** „vollmacht“: Einsatz auf eine stehende Rahmenvollmacht der Großen Nationalversammlung (sim/krieg-recht.ts), ohne neue Abstimmung */
+  weg: "parlament" | "erlass" | "vollmacht";
   /** Tag der Abstimmung (nur Weg „parlament“) */
   abstimmung: number;
   rahmung: KriegsRahmung;
@@ -92,7 +93,17 @@ export interface FriedensPaket {
   garantien: boolean;
   /** Gegenseitiger Truppenrückzug (weißer Frieden) */
   rueckzug: boolean;
+  /**
+   * Forderungen je Region (Welle 3, K1; Schritt 7 baut den Friedenstisch darauf): „halten“ bleibt unter türkischer Kontrolle, „rueckgabe“
+   * geht zurück. Fehlt das Feld, gilt die alte Regel: Bei `gebiet` = 1 hält die Türkei, was die Front hält.
+   */
+  forderungen?: Record<string, RegionForderung>;
 }
+
+export type RegionForderung = "halten" | "rueckgabe";
+
+/** Ziele eines Fernkonflikts ohne gemeinsame Grenze (sim/fernkonflikt.ts): kein Gebiet, sondern ein Ergebnis am Verhandlungstisch. */
+export type FernZiel = "abschreckung" | "zugestaendnisse" | "waffenstillstand";
 
 export interface KriegVorgang {
   id: string;
@@ -184,9 +195,24 @@ export interface KriegVorgang {
   bedroht?: number[];
   /** Gefallene bisher (sim/kriegspreis.ts); ältere Spielstände haben das Feld nicht und zählen ab der nächsten Woche */
   gefallene?: number;
+  /**
+   * Sockel der Eskalation aus eigenen Schritten (Welle 3, K1; krieg.md Schritt 1): Krise, Drohkulisse, Kriegsziel, Bereitschaft,
+   * Mobilmachung und ein abgelehntes Ultimatum heben ihn auf den Stand nach dem Schritt. Die Eskalation fällt nicht darunter. Ist das
+   * Kriegsziel erklärt, hält er bis zur Entspannung (Beruhigen, Vermittlung), sonst klingt er nach der Nährfrist ab wie die Eskalation.
+   * Ältere Spielstände haben das Feld nicht: Dann gilt kein Sockel.
+   */
+  sockel?: number;
+  /** Tag, an dem das Kriegsziel erreicht war (alle Zielregionen genommen oder das Fernziel erfüllt); der Gegner ist ab da verhandlungsbereit */
+  zielErreicht?: number;
+  /** Der Gegner ist erschöpft und hat den Rückzug angetreten (Waffenruhe aus seiner Erschöpfung) */
+  rueckzugGegner?: boolean;
+  /** Tag des letzten Waffenruhe-Angebots des Gegners (Abstand zwischen zwei Angeboten) */
+  angebotZuletzt?: number;
+  /** Ziel eines Fernkonflikts (sim/fernkonflikt.ts); ohne Wahl gilt „abschreckung“ */
+  fernZiel?: FernZiel;
 }
 
-export type EinsatzWahl = "luft" | "boden" | "see" | "stellvertreter";
+export type EinsatzWahl = "luft" | "boden" | "see" | "stellvertreter" | "cyber";
 export type KriegsTempoWahl = "vorsichtig" | "normal" | "hart";
 export type GegnerGattungId = "heer" | "luft" | "luftabwehr" | "see" | "drohnen";
 /** Lage einer Region im Krieg: beim Gegner, umkämpft (die Front steht dort) oder unter türkischer Kontrolle */
@@ -202,6 +228,11 @@ export interface BesatzungsGebiet {
   widerstand: number;
   /** Monate in Folge über der Aufstandsschwelle */
   aufstand: number;
+  /**
+   * Rechtsgrund der Kontrolle (Welle 3, K1): „vertrag“ aus einem Friedenspaket, „linie“ als De-facto-Kontrolle an einer eingefrorenen
+   * Waffenstillstandslinie ohne Vertrag (Vorbild Zypern 1974). Ältere Einträge haben das Feld nicht und gelten als „vertrag“.
+   */
+  grundlage?: "vertrag" | "linie";
 }
 
 // Gebietsübertragung (Welle 2, noch nicht gebaut): Der Hebel liegt in sim/krieg.ts, Funktion `friedenSchliessen`: Dort steht heute

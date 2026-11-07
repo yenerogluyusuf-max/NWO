@@ -131,7 +131,8 @@ export const LAENDER: LandDef[] = [
       A("irq-wasser", t("sim2.sim.laender.3af289e"), t("sim2.sim.laender.e23400e"), { art: "land", dim: "vertrauen", min: 45 }),
       A("irq-souveraenitaet", t("sim2.sim.laender.53f7e70"), t("sim2.sim.laender.eff470e"), { art: "land", dim: "konflikt", max: 50 }),
     ],
-    aktionen: ["gipfel", "handel", "hilfe", "entspannen"],
+    // Welle 3, K1 (krieg.md B6): auch gegen Irak gibt es die Geste „Druck“; vorher war der Schauplatz Nordirak nur per Zufall erreichbar
+    aktionen: ["gipfel", "handel", "hilfe", "druck", "entspannen"],
   },
   {
     id: "AZE", dat: "Aserbaidschan", akk: "Aserbaidschan", name: "Aserbaidschan", kurz: "AZ", gruppe: "Verbündete und Partner", iso: "AZE", wdi: "AZE", knoten: "beziehungen_nahost", anteil: 0.2,
@@ -153,7 +154,8 @@ export const LAENDER: LandDef[] = [
       A("arm-grenze", t("sim2.sim.laender.65122a9"), t("sim2.sim.laender.5e7de70"), { art: "land", dim: "vertrauen", min: 45 }),
       A("arm-frieden", t("sim2.sim.laender.5c10bb9"), t("sim2.sim.laender.c0f1e6a"), { art: "land", dim: "konflikt", max: 45 }),
     ],
-    aktionen: ["gipfel", "entspannen", "hilfe"],
+    // Welle 3, K1 (krieg.md B6): ebenso gegen Armenien (Schauplatz Südkaukasus)
+    aktionen: ["gipfel", "entspannen", "hilfe", "druck"],
   },
   {
     id: "SAU", dat: t("sim2.sim.laender.4aa62ec"), akk: t("sim2.sim.laender.49e19bd"), name: t("sim2.sim.laender.5bf93cc"), kurz: "GO", gruppe: "Verbündete und Partner", iso: "SAU", wdi: "SAU", knoten: "beziehungen_nahost", anteil: 0.5,

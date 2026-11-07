@@ -29,6 +29,8 @@ export function Besatzung({ world, onTat, nurLand }: { world: World; onTat: (tex
               <strong>{t(`krieg.region.${b.region}`)}</strong>
               <span>
                 {land(b.land).name} · {t(`krieg.besatzung.form.${b.form}.name`)}
+                {/* Welle 3, K1: eine eingefrorene Waffenstillstandslinie ohne Vertrag (Schritt 8 verwaltet sie) */}
+                {b.grundlage === "linie" ? ` · ${t("welle_k1.besatzung.linie")}` : ""}
               </span>
             </div>
             <div className="ks-zeile" title={t("krieg.besatzung.widerstand_hilfe", { ziel: b.widerstandZiel })}>

@@ -134,7 +134,12 @@ export const ZIELRAUM_REGIONEN: Record<string, string[]> = {
 // ---------------------------------------------------------------------------
 // Einsatzarten (Spielparameter): wie gut eine Art in welchem Gelände vorankommt, welche eigenen Gattungen sie trägt und was sie kostet
 
-export type EinsatzArt = "luft" | "boden" | "see" | "stellvertreter";
+/**
+ * „cyber“ (Welle 3, K1): Angriffe auf Netze, Energie- und Kommandosysteme des Gegners. Nur im Fernkonflikt ohne gemeinsame Grenze
+ * (sim/fernkonflikt.ts); nimmt kein Gelände, zehrt an der Ausdauer des Gegners. Getragen von der Behörde für Cybersicherheit
+ * (data/behoerden.ts „cyber“), nicht von einer Waffengattung. Alle Werte Spielparameter.
+ */
+export type EinsatzArt = "luft" | "boden" | "see" | "stellvertreter" | "cyber";
 
 export const EINSATZ: Record<EinsatzArt, {
   /** Fortschritt je Gelände (1 = normal) */
@@ -176,6 +181,12 @@ export const EINSATZ: Record<EinsatzArt, {
     traeger: { drohnen: 0.4, munition: 0.3, personal: 0.3 },
     gegen: { heer: 0.8, drohnen: 0.2 },
     verlust: 0.25, uhr: 0.55, reichweite: 1, druck: 0.1, ansehen: -0.5,
+  },
+  cyber: {
+    gelaende: { ebene: 0, berge: 0, stadt: 0, insel: 0, kueste: 0 },
+    traeger: {},
+    gegen: { luftabwehr: 0.4, see: 0.2, heer: 0.4 },
+    verlust: 0.05, uhr: 0.5, reichweite: 1, druck: 0.45, ansehen: -0.5,
   },
 };
 

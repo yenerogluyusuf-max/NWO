@@ -7,7 +7,7 @@ import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import {
   KRIEG, PAKETE, RAHMUNG, eigenStaerke, fuehreKriegHandlungAus, gegnerStaerke, handlungenFuer, kriegMit, kriegMonat,
-  kriseEroeffnen, kriseGrund, paketAnnahme, rahmungWerte,
+  kriseEroeffnen, kriseGrund, krisePreis, paketAnnahme, rahmungWerte,
 } from "../src/sim/krieg";
 import { KRAFT, KRAFT_TUERKEI } from "../src/data/kraefte";
 import { KEINE_KRIEGSPARTEI } from "../src/sim/pakte";
@@ -34,6 +34,8 @@ function drohkulisse(w: World, land: string): KriegVorgang {
   k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
   k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
+  // Welle 3, K1: Vor einem eigenen Einsatz steht das Ultimatum (dritte Sprosse der Leiter); hier gilt es als gestellt und abgelehnt
+  k.ultimatum = true;
   return k;
 }
 function angriffDurch(w: World, land: string): KriegVorgang {
@@ -131,6 +133,7 @@ describe("Rahmung und eigener Einstieg", () => {
     for (const seed of [1, 2, 3, 4, 5, 6, 7, 8]) {
       const w = welt(seed);
       const k = drohkulisse(w, "SYR");
+      delete k.ultimatum; // hier wird das Ultimatum selbst geprüft
       const vorher = k.eskalation;
       expect(handlungenFuer(w, k.id).find((h) => h.id === "ultimatum")?.moeglich).toBe(true);
       expect(fuehreKriegHandlungAus(w, k.id, "ultimatum", new Rng(seed)).ok).toBe(true);
@@ -139,16 +142,24 @@ describe("Rahmung und eigener Einstieg", () => {
     }
     expect(nachgegeben + eskaliert).toBe(8);
   });
-  test("eine eigene Krise geht nur bei echter Spannung und legt einen Vorgang an", () => {
+  test("eine eigene Krise geht auch aus ruhiger Lage, kostet dort aber mehr, und legt einen Vorgang an", () => {
+    // Welle 3, K1 (krieg.md 1.2): Früher war die Krise unter Konflikt 55 gesperrt; gegen Syrien (20) führte der Weg über 13 Gesten in zwei
+    // Jahren. Jetzt geht sie immer, aber eine Krise aus ruhiger Lage braucht einen Vorwand und kostet sichtbar mehr.
     const w = welt();
     weltZustand(w)["GRC"]!.konflikt = 40;
-    expect(kriseGrund(w, "GRC")).toBeTruthy();
-    expect(kriseEroeffnen(w, "GRC").ok).toBe(false);
+    const ruhig = krisePreis(w, "GRC");
     weltZustand(w)["GRC"]!.konflikt = 60;
+    const gespannt = krisePreis(w, "GRC");
+    expect(ruhig.pk).toBeGreaterThan(gespannt.pk);
+    expect(ruhig.ansehen).toBeLessThan(gespannt.ansehen);
+    expect(ruhig.aufschlag).toBe(true);
+    weltZustand(w)["GRC"]!.konflikt = 40;
     const pk = w.spiel!.kapital;
+    expect(kriseGrund(w, "GRC")).toBeUndefined();
     expect(kriseEroeffnen(w, "GRC").ok).toBe(true);
     expect(kriegMit(w, "GRC")?.phase).toBe("spannung");
-    expect(w.spiel!.kapital).toBeLessThan(pk);
+    expect(pk - w.spiel!.kapital, "der Knopf bucht den angezeigten Preis").toBe(ruhig.pk);
+    expect(kriseEroeffnen(w, "GRC").ok, "nur ein Vorgang je Land").toBe(false);
   });
   test("Zwischenfälle verschärfen angespannte Lagen auch ohne den Spieler", () => {
     let mehr = 0;

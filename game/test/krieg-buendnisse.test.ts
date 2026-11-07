@@ -53,12 +53,15 @@ function inDenKrieg(w: World, land: string, weg: "angriff" | "revision" | "schut
   k0.seit -= KRIEG.spannungMinTage;
   advance(w, 1);
   if (weg === "angriff") {
+    // Welle 3, K1: Der Gegner schlägt erst zu, wenn auch sein eigener Konfliktwert an der Schwelle steht (KRIEG.angriffKonfliktAb)
+    weltZustand(w)[land]!.konflikt = Math.max(weltZustand(w)[land]!.konflikt, KRIEG.angriffKonfliktAb + 5);
     k0.eskalation = 99;
     advance(w, 1);
   } else {
     expect(fuehreKriegHandlungAus(w, k0.id, `ziel_${weg}`).ok).toBe(true);
     k0.seit -= KRIEG.drohkulisseMinTage;
-    expect(fuehreKriegHandlungAus(w, k0.id, "beschluss").ok).toBe(true);
+    k0.ultimatum = true; // Welle 3, K1: Vor einem eigenen Einsatz steht das Ultimatum; hier gilt es als gestellt und abgelehnt
+    expect(fuehreKriegHandlungAus(w, k0.id, land === "SYR" || land === "IRQ" ? "beschluss_vollmacht" : "beschluss").ok).toBe(true);
     advance(w, KRIEG.beschlussTage);
   }
   const k = kriege(w).find((x) => x.land === land && x.phase === "krieg")!;
