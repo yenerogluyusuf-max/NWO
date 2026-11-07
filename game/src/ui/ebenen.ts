@@ -6,12 +6,14 @@ import { PROVINCES } from "../sim/netz";
 import { PROVINZEN, REGION_DE } from "../sim/regional";
 import { PARTY_COLORS } from "./Parliament";
 import { REGION_COLORS } from "./atlas/overlay";
-import INFRA from "../data/provinz_infra.json";
 import { vertrauenZu, weltZustand } from "../sim/laender";
 import { beziehungZurTuerkei } from "../sim/welt-modell";
 import { WELT } from "../data/welt-daten";
 import { WEITERE } from "../data/welt-weitere";
-import { depremRisiko } from "../sim/katastrophe";
+import { depremRisiko, gebaeudeFaktor } from "../sim/katastrophe";
+import { letzteWahl } from "../sim/wahl";
+import { nationalAverage } from "../sim/netz";
+import { LAGE_WERTE } from "./provinz-handlungen";
 import { ERBE } from "../data/erbe";
 import { STAETTEN_START } from "../data/reich";
 import { ressourcenFarben, strategieFarben } from "./gueter/linsen";
@@ -23,6 +25,10 @@ import { t, aktuelleSprache, zahl } from "../i18n";
 // Neue Ebene („Linse“) anlegen: Kennung in `Kartenebene`, Eintrag in KARTENEBENEN (Gruppe, Symbol, Kurzsatz), Färbung in
 // `farbenFuerEbene`, Verfügbarkeitsregel in ui/linsen/linsen.ts (`REGELN`). Geplant, aber noch ohne Daten und darum nicht
 // ausgeliefert: „Front und Besatzung“, „Bündnisse“, „Wahlkampf“, „Lage nach Beben“.
+//
+// Welle 1, E5 (karte.md K4): Sechs Linsen änderten sich im ganzen Spiel nie. „Regionen“, „Ressourcen“ und „Strategische Orte“ stehen
+// nicht mehr in der Linsenwahl (ohne Gruppe; Färbung und Marken bleiben für Wirtschaft › Güter und spätere Anlässe). „Wirtschaftskraft“,
+// „Infrastruktur“ und „Katastrophenrisiko“ färben jetzt nach Werten aus dem Spiel statt nach den Ausgangsdaten von 2024.
 export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko" | "ressourcen" | "strategie" | "belastung" | "versorgung";
 
 export type LinsenGruppe = "land" | "wirtschaft" | "krisen" | "kultur" | "welt";
@@ -49,26 +55,29 @@ export interface EbenenDef {
 
 export const KARTENEBENEN: EbenenDef[] = [
   { id: "gelaende", label: "Politisch", icon: "karte", gruppe: "land", kurz: "Gelände, Grenzen und Städte, ohne Einfärbung." },
-  { id: "regionen", label: "Regionen", icon: "gebiete", gruppe: "land", kurz: "Die sieben Großregionen mit ihren Provinzen." },
+  { id: "regionen", label: "Regionen", icon: "gebiete", kurz: "Die sieben Großregionen mit ihren Provinzen." },
   { id: "wahl", label: "Wahlausgang", icon: "urne", gruppe: "land", kurz: "Stärkste Partei je Provinz bei der Wahl, die Sie ins Amt brachte." },
   { id: "rueckhalt", label: "Rückhalt", icon: "menge", gruppe: "land", kurz: "Wo die Menschen die Regierung tragen und wo nicht." },
-  { id: "wirtschaft", label: "Wirtschaftskraft", icon: "fabrik", gruppe: "wirtschaft", kurz: "Wirtschaftsleistung je Einwohner und Provinz." },
+  { id: "wirtschaft", label: "Wirtschaftskraft", icon: "fabrik", gruppe: "wirtschaft", kurz: "Regionale Entwicklung je Provinz, wie sie sich im Spiel bewegt." },
   { id: "arbeitslosigkeit", label: "Arbeitslosigkeit", icon: "koffer", gruppe: "wirtschaft", kurz: "Quote je Provinz, teils geschätzt." },
-  { id: "infrastruktur", label: "Infrastruktur", icon: "strasse", gruppe: "wirtschaft", kurz: "Straßennetz; beim Hineinzoomen Bahn, Krankenhäuser, Flughäfen." },
+  { id: "infrastruktur", label: "Infrastruktur", icon: "strasse", gruppe: "wirtschaft", kurz: "Straßen, Kliniken, Wasser, Strom und Breitband im Spiel; beim Hineinzoomen Bahn und Flughäfen." },
   { id: "probleme", label: "Akute Probleme", icon: "warnung", gruppe: "krisen", kurz: "Wo mehrere Probleme zugleich über der Schwelle liegen." },
-  { id: "risiko", label: "Katastrophenrisiko", icon: "beben", gruppe: "krisen", kurz: "Erdbebengefährdung je Provinz, dazu Flut und Brand." },
-  { id: "ressourcen", label: "Ressourcen", icon: "berg", gruppe: "wirtschaft", kurz: "Belegte Vorkommen je Provinz: Bor, Erze, Kohle, Öl und Gas, Wasser, Kornkammern." },
+  { id: "risiko", label: "Katastrophenrisiko", icon: "beben", gruppe: "krisen", kurz: "Wo ein Beben den größten Schaden anrichten würde: Gefährdung mal Zustand der Gebäude." },
+  { id: "ressourcen", label: "Ressourcen", icon: "berg", kurz: "Belegte Vorkommen je Provinz: Bor, Erze, Kohle, Öl und Gas, Wasser, Kornkammern." },
   { id: "belastung", label: "Belastung", icon: "kran", gruppe: "wirtschaft", kurz: "Wie voll Straßen, Bahn, Strom, Wasser, Wohnungen und Kliniken je Provinz sind; der Zeiger zeigt Kapazität und Bau." },
   { id: "erbe", label: "Kulturerbe", icon: "kuppel", gruppe: "kultur", kurz: "Erhaltungszustand der Stätten, dazu Wunder und Bauvorhaben." },
   { id: "welt", label: "Beziehungen", icon: "haende", gruppe: "welt", kurz: "Wie die Länder der Welt zur Türkei stehen; Klick öffnet die Länderkarte." },
-  { id: "strategie", label: "Strategische Orte", icon: "ziel", gruppe: "welt", kurz: "Meerengen, Pipelines, Häfen, Dämme und Inseln, die über Versorgung und Macht entscheiden." },
+  { id: "strategie", label: "Strategische Orte", icon: "ziel", kurz: "Meerengen, Pipelines, Häfen, Dämme und Inseln, die über Versorgung und Macht entscheiden." },
   { id: "versorgung", label: "Versorgungswege", icon: "tausch", gruppe: "wirtschaft", kurz: "Regionale Warenströme und Frontdepots." },
   { id: "netz", label: "Politiknetz", icon: "netz", kurz: "Ein Knoten des Politiknetzes je Provinz." },
 ];
 
-/** Das Jahr, in dem das Spiel begann: Die Sitzverteilung je Provinz stammt aus der Wahl, die den Spieler ins Amt brachte (sie ändert sich im Spiel nicht). */
+/**
+ * Das Jahr der letzten Wahl im Spielstand: Die Sitzverteilung je Provinz stammt aus ihr und gilt bis zur nächsten. Vorher stand hier
+ * immer das Jahr des Spielbeginns, und die Linse hieß 2043 noch „Wahlausgang 2028“, zeigte aber die Sitze von 2038 (Welle 1, E5).
+ */
 export function wahlJahr(w: World): string {
-  return (w.spiel?.start.datum ?? w.date).slice(0, 4);
+  return (letzteWahl(w)?.datum ?? w.spiel?.start.datum ?? w.date).slice(0, 4);
 }
 
 /** Anzeigename der Ebene: Die Wahlebene nennt das Jahr aus dem Spielstand statt einer festen Zahl. */
@@ -81,8 +90,11 @@ export function ebeneName(id: Kartenebene, w: World): string {
 }
 
 /** Kurzsatz der Ebene; die Wahlebene sagt ehrlich, dass sie den Stand zum Amtsantritt zeigt, und nennt die nächste Wahl. */
+/** Linsen, deren Kurzsatz sich mit Welle 1 (E5) geändert hat: eigene Schlüssel statt der alten Sätze über die Daten von 2024 */
+const KURZ_NEU: Partial<Record<Kartenebene, string>> = { wirtschaft: "welle_e5.karte.kurz.wirtschaft", infrastruktur: "welle_e5.karte.kurz.infrastruktur", risiko: "welle_e5.karte.kurz.risiko" };
+
 export function ebeneKurz(id: Kartenebene, w: World): string {
-  const basis = t(`karte.kurz.${id}`);
+  const basis = t(KURZ_NEU[id] ?? `karte.kurz.${id}`);
   if (id !== "wahl") return basis;
   const spiel = w.spiel;
   if (!spiel) return basis;
@@ -120,14 +132,6 @@ const GOLD = [214, 168, 72];
 
 export const farbe = { PAPER: `rgb(${PAPER.join(",")})`, TEAL: `rgb(${TEAL.join(",")})`, RED: `rgb(${RED.join(",")})` };
 
-const infra = INFRA.provinzen as Record<string, { strasse_dichte: number; strasse_km: number; krankenhaeuser: number; flaeche_km2: number }>;
-
-export function strassenDichteVonProvinz(plaka: number): number {
-  return infra[String(plaka)]?.strasse_dichte ?? 0;
-}
-
-export const DICHTE_MIN = Math.min(...Object.values(infra).map((p) => p.strasse_dichte));
-export const DICHTE_MAX = Math.max(...Object.values(infra).map((p) => p.strasse_dichte));
 
 function werteVon(w: World, id: string): number[] {
   const i = NET.index.get(id)!;
@@ -148,6 +152,20 @@ export function problemeJeProvinz(w: World, problemId: string | null): { anzahl:
     }
   }
   return { anzahl, akut };
+}
+
+/** Färbt nach der Spanne der Werte (klein → `von`, groß → `bis`); bei fast gleichen Werten in der Mitte, damit keine Scheinunterschiede entstehen. */
+function skalaFarben(vals: number[], out: Record<number, string>, von: number[], bis: number[]): Record<number, string> {
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  vals.forEach((v, i) => (out[i + 1] = mix(von, bis, max - min < 0.5 ? 0.45 : 0.12 + 0.88 * ((v - min) / (max - min)))));
+  return out;
+}
+
+/** Hinweis mit den drei stärksten und den drei schwächsten Provinzen nach `vals` (höher = stärker). */
+function rangHinweis(vals: number[], key: string): string {
+  const rang = PROVINZEN.map((p, i) => ({ name: p.name, v: vals[i]! })).sort((a, b) => b.v - a.v);
+  return t(key, { hoch: rang.slice(0, 3).map((x) => x.name), tief: rang.slice(-3).reverse().map((x) => x.name) });
 }
 
 export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string | null, netNode: string): { fill: Record<number, string> | undefined; legende: Legende | undefined } {
@@ -266,16 +284,16 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
     }
 
     case "wirtschaft": {
-      const xs = PROVINZEN.map((p) => p.bipProKopf);
-      const min = Math.min(...xs);
-      const max = Math.max(...xs);
-      PROVINZEN.forEach((p) => (out[p.plaka] = mix(PAPER, TEAL, Math.sqrt((p.bipProKopf - min) / (max - min)))));
+      // Regionale Entwicklung im Politiknetz: startet nach der Wirtschaftsleistung je Kopf 2024 (sim/regional.ts) und bewegt sich mit
+      // Regionalförderung, Investitionen und Krisen; vorher färbte die Linse 2043 noch nach den festen Werten von 2024
+      const vals = werteVon(w, "wachstum_regional");
       return {
-        fill: out,
+        fill: skalaFarben(vals, out, PAPER, TEAL),
         legende: {
           titel: t("karte.ebene.wirtschaft"),
-          untertitel: t("karte.legende.wirtschaft.unter"),
-          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: t("karte.legende.tsdLira", { n: Math.round(min / 1000) }), bisText: t("karte.legende.tsdLira", { n: Math.round(max / 1000) }) },
+          untertitel: t("welle_e5.karte.wirtschaft.unter", { land: zahl(nationalAverage(NET, w.net, "wachstum_regional"), 0) }),
+          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: zahl(Math.min(...vals), 0), bisText: zahl(Math.max(...vals), 0) },
+          hinweis: rangHinweis(vals, "welle_e5.karte.wirtschaft.hinweis"),
         },
       };
     }
@@ -314,38 +332,33 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
     }
 
     case "infrastruktur": {
-      PROVINZEN.forEach((p) => {
-        const d = strassenDichteVonProvinz(p.plaka);
-        out[p.plaka] = mix(PAPER, TEAL, Math.sqrt((d - DICHTE_MIN) / (DICHTE_MAX - DICHTE_MIN)));
-      });
+      // Mittel der fünf Werte „Lage im Spiel“ der Provinzkarte (Straßen, Gesundheit, Wasser, Strom, Breitband): Bau und Maßnahmen
+      // bewegen sie; vorher färbte die Linse nach der festen Straßendichte aus OpenStreetMap und änderte sich auch nach Autobahnbau nicht
+      const reihen = LAGE_WERTE.map((id) => werteVon(w, id));
+      const vals = Array.from({ length: PROVINCES }, (_, p) => reihen.reduce((s, r) => s + r[p]!, 0) / reihen.length);
       return {
-        fill: out,
+        fill: skalaFarben(vals, out, PAPER, TEAL),
         legende: {
-          titel: t("karte.legende.strasse.titel"),
-          untertitel: t("karte.legende.strasse.unter"),
-          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: zahl(DICHTE_MIN, 1), bisText: zahl(DICHTE_MAX, 1) },
-          hinweis: t("karte.legende.strasse.hinweis"),
+          titel: t("karte.ebene.infrastruktur"),
+          untertitel: t("welle_e5.karte.infrastruktur.unter"),
+          verlauf: { von: farbe.PAPER, bis: farbe.TEAL, vonText: zahl(Math.min(...vals), 0), bisText: zahl(Math.max(...vals), 0) },
+          hinweis: `${rangHinweis(vals, "welle_e5.karte.infrastruktur.hinweis")} ${t("karte.legende.strasse.hinweis")}`,
         },
       };
     }
 
     case "risiko": {
-      // INF-5: Katastrophenrisiko je Provinz — Erdbeben 1–5 aus kalibrierung/provinz_profile.csv
-      // (data/katastrophe_risiko.json), grob an den Bruchzonen der GEM Global Active Faults
-      PROVINZEN.forEach((p) => {
-        const risiko = depremRisiko(p.plaka);
-        out[p.plaka] = mix(PAPER, RED, 0.15 + 0.17 * risiko);
-      });
-      const gefaehrlich = PROVINZEN.filter((p) => depremRisiko(p.plaka) === 5)
-        .map((p) => p.name)
-        .slice(0, 8);
+      // Erdbebengefährdung 1–5 (data/katastrophe_risiko.json, grob an den Bruchzonen der GEM Global Active Faults) mal Gebäudefaktor
+      // aus Erdbebenvorsorge und Bauqualität im Spiel: dieselbe Rechnung wie der Schaden eines Bebens (sim/katastrophe.ts). Vorsorge
+      // und Gebäudeverstärkung senken den Wert; vorher zeigte die Linse nur die feste Gefährdung
+      const vals = PROVINZEN.map((p) => depremRisiko(p.plaka) * gebaeudeFaktor(w, [p.plaka]));
       return {
-        fill: out,
+        fill: skalaFarben(vals, out, PAPER, RED),
         legende: {
           titel: t("karte.ebene.risiko"),
-          untertitel: t("karte.legende.risiko.unter"),
+          untertitel: t("welle_e5.karte.risiko.unter"),
           verlauf: { von: farbe.PAPER, bis: farbe.RED, vonText: t("karte.legende.risiko.von"), bisText: t("karte.legende.risiko.bis") },
-          hinweis: t("karte.legende.risiko.hinweis", { orte: gefaehrlich }),
+          hinweis: rangHinweis(vals, "welle_e5.karte.risiko.hinweis"),
         },
       };
     }

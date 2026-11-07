@@ -1,4 +1,5 @@
-// Städte als Kartenobjekte: Für jede der 81 Provinzen ein Banner mit Name, Größenzeichen, Streifen in der Farbe der Bürgermeisterpartei,
+// Städte als Kartenobjekte: Für jede der 81 Provinzen ein Banner mit Name, Größenzeichen, Streifen in der Farbe der Bürgermeisterpartei
+// (aus dem Spielstand),
 // Statussymbolen (Ereignis, Frist, Krise, Bau) und der Tafel beim Überfahren (Einwohner, Rathaus, wichtigste akute Lage, Zustimmung vor Ort,
 // offene Vorhaben). Dieses Modul rechnet alles aus dem Spielstand und liefert fertig übersetzte Texte; gezeichnet wird in AtlasMap.tsx.
 // Rein und ohne Browser prüfbar.
@@ -119,8 +120,10 @@ export function stadtInfos(w: World, marken: { plaka: number; art: string }[] = 
     const d = PROVINZEN[plaka - 1]!;
     const art = stadtArt(plaka);
     const p = plaka - 1;
-    const parteiKurz = d.buergermeister2024;
-    const partei = PARTEI_NAME[parteiKurz] ?? parteiKurz;
+    // Rathaus aus dem Spielstand (Kommunalwahlen im Spiel), vor dem ersten Zugriff das Ergebnis von 2024 (Welle 1, E5; karte.md K7)
+    const parteiKurz = w.spiel?.gesellschaft?.kommunen?.rathaus?.[String(plaka)]?.partei ?? d.buergermeister2024;
+    const eigene = w.player?.partei;
+    const partei = parteiKurz === eigene?.kurz ? eigene.name : (PARTEI_NAME[parteiKurz] ?? parteiKurz);
     const lage = top[p];
     const status: StadtStatus = { ereignis: ev.has(plaka), frist: frist.has(plaka), krise: akut.has(p), bau: bau[p]! > 0 };
     const lageText = lage
@@ -143,7 +146,7 @@ export function stadtInfos(w: World, marken: { plaka: number; art: string }[] = 
       einwohner: d.bevoelkerung,
       groesse: zahl(d.bevoelkerung / 1_000_000, 1),
       partei: parteiKurz,
-      parteiFarbe: PARTY_COLORS[parteiKurz] ?? "#8a7a64",
+      parteiFarbe: parteiKurz === eigene?.kurz ? eigene.farbe : (PARTY_COLORS[parteiKurz] ?? "#8a7a64"),
       rang,
       status,
       artText,

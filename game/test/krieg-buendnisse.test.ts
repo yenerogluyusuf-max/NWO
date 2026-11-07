@@ -95,7 +95,9 @@ describe("Wer mit dem Gegner befreundet ist, kämpft nicht für die Türkei gege
   test.runIf(existsSync(SPIELSTAND))("Spielstand des Inhabers: Israel greift an, an der Seite der Türkei stehen weder die USA noch Großbritannien, die Niederlande oder Spanien", () => {
     const w = inhaber();
     const k = inDenKrieg(w, "ISR", "angriff");
-    for (const id of ["USA", "GBR", "NLD", "ESP"]) expect(eigene(k), id).not.toContain(id);
+    // Wie der Inhaber am 04.03.2043: um Beistand bitten (vorher sagten danach zehn Staaten zu, darunter GBR, NLD, FRA und DEU)
+    fuehreKriegHandlungAus(w, k.id, "koalition_rufen");
+    for (const id of ["USA", "GBR", "NLD", "ESP", "FRA", "DEU"]) expect(eigene(k), id).not.toContain(id);
     const hinweis = w.spiel!.hinweise.find((h) => h.id.startsWith(`krieg-koalition-${k.id}`))!;
     expect(hinweis.text.join(" ")).toContain("Kein Kriegseintritt:");
     expect(hinweis.text.join(" ")).toContain("Vereinigte Staaten (befreundet mit Israel)");
@@ -144,6 +146,8 @@ describe("Gegen ein EU-Mitglied: Exportstopp statt Kriegseintritt", () => {
   test("Zypern greift an: Kein EU-Staat kämpft, Großbritannien und die USA bleiben ebenfalls draußen; es gibt keinen Exportstopp", () => {
     const w = frisch(6);
     const k = inDenKrieg(w, "CYP", "angriff");
+    // Auch auf Bitten nicht (vorher traten danach USA, Polen, Italien, Ungarn, Bulgarien, Spanien und Rumänien bei)
+    fuehreKriegHandlungAus(w, k.id, "koalition_rufen");
     expect([...eigene(k), ...gegnerPartner(k)].some(istEuStaat)).toBe(false);
     expect(eigene(k)).not.toContain("GBR");
     expect(eigene(k)).not.toContain("USA");

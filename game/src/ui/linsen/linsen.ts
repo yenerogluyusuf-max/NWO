@@ -28,9 +28,12 @@ export function linsenVerfuegbar(w: World): Kartenebene[] {
     .map((e) => e.id);
 }
 
-/** Tastenkürzel nach Platz in der Tafel: 1 bis 9, dann 0, dann R (Katastrophenrisiko), K (Kulturerbe), B (Beziehungen), S (Strategische Orte). */
-export const LINSEN_TASTEN = "123456789v0rkbs";
-const TASTE: Partial<Record<Kartenebene,string>> = {gelaende:"1",regionen:"2",wahl:"3",rueckhalt:"4",wirtschaft:"5",arbeitslosigkeit:"6",infrastruktur:"7",ressourcen:"8",belastung:"9",versorgung:"V",probleme:"0",risiko:"R",erbe:"K",welt:"B",strategie:"S"};
+/**
+ * Tastenkürzel nach Platz in der Tafel: Ziffern, V (Versorgungswege), 0, R (Katastrophenrisiko), K (Kulturerbe), B (Beziehungen). Seit Welle 1
+ * (E5) fehlen 2, 8 und S: Regionen, Ressourcen und Strategische Orte stehen nicht mehr in der Tafel. Die übrigen Tasten bleiben, wie sie waren.
+ */
+export const LINSEN_TASTEN = "1345679v0rkb";
+const TASTE: Partial<Record<Kartenebene,string>> = {gelaende:"1",wahl:"3",rueckhalt:"4",wirtschaft:"5",arbeitslosigkeit:"6",infrastruktur:"7",belastung:"9",versorgung:"V",probleme:"0",risiko:"R",erbe:"K",welt:"B"};
 
 export interface Linse {
   id: Kartenebene;

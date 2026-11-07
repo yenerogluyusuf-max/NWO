@@ -80,6 +80,8 @@ import { erstelleBilanz } from "../sim/bilanz";
 import { Plakette } from "./Kartenlegende";
 import { LinsenWahl } from "./linsen/LinsenWahl";
 import { ProvinceCard } from "./ProvinceCard";
+import { vorschlagStufe } from "./provinz-handlungen";
+import type { NetzId } from "../sim/infrastruktur";
 import { ansicht, entscheide, vorlage } from "../sim/ereignisse";
 import { stimmenSicht, stufeIn } from "../sim/handeln";
 import { kapitalEinkommen, waehleZiele } from "../sim/spiel";
@@ -186,6 +188,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   /** Maßnahme, die „Politik“ gleich geöffnet zeigt (aus „Heute“ oder vom Schreibtisch) */
   const [politikStart, setPolitikStart] = useState<{ theme?: Theme; offen?: { id: string; level?: number; ort?: number[] | null } } | null>(null);
   const [netOrt, setNetOrt] = useState<number[] | null>(null);
+  /** Netz und Provinz, die Land › Netze vorwählt (Knopf der Provinzkarte; Welle 1, E5) */
+  const [netzeStart, setNetzeStart] = useState<{ netz: NetzId; plaka: number } | null>(null);
+  // Die Vorwahl gilt nur für den einen Sprung: Wer Land › Netze später selbst öffnet, beginnt wie gewohnt beim schlimmsten Engpass
+  useEffect(() => {
+    if (dossier !== "netze") setNetzeStart(null);
+  }, [dossier]);
   const [selected, setSelected] = useState<number | undefined>(undefined);
   /** Kamerafahrt der Karte, etwa zu einem fertigen Wunder */
   /** Reiter der Reich-Akte, den eine Marke der Karte vorgibt (sonst beginnt die Akte bei der Lage) */
@@ -1125,7 +1133,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                 />
               </>
             )}
-            {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "netze" && <Netze key={netzeStart ? `${netzeStart.netz}-${netzeStart.plaka}` : "netze"} world={w} {...(netzeStart ? { startNetz: netzeStart.netz, startOrt: netzeStart.plaka } : {})} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "fokusbaum" && <Fokusbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
             {dossier === "grosseziele" && <GrosseZiele world={w} geaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "wissensbaum" && (
@@ -1226,9 +1234,17 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             setSelected(undefined);
             zeigeVorgang(id);
           }}
-          onBauen={(p) => {
-            setNetTheme("infrastruktur");
+          onBauen={(p, bedarf) => {
+            // Öffnet, was hier fehlt (ui/provinz-handlungen.ts): das überlastete Netz in Land › Netze oder die Maßnahme gegen das
+            // akuteste Problem bzw. für den schwächsten Wert, mit dieser Provinz vorgewählt
+            if (bedarf?.art === "netz") {
+              setNetzeStart({ netz: bedarf.netz, plaka: p });
+              setDossier("netze");
+              return;
+            }
+            setNetTheme(bedarf ? bedarf.theme : "infrastruktur");
             setNetOrt([p]);
+            setNetVorhaben(bedarf ? { id: bedarf.massnahme, level: vorschlagStufe(w, bedarf, p) } : null);
             setDossier("netz");
           }}
         />
