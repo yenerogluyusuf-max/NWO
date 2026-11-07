@@ -140,6 +140,42 @@ describe("Ereignis-Wettbewerb (ZEI-1)", () => {
     expect(w.spiel!.eskalation?.korruptionsaffaere).toBeUndefined();
   });
 
+  test("Ein Vorgang ohne Zusatzplatz nimmt den Platz, nicht den Monat: der verdrängte gärt und wartet seine Abkühlung ab", () => {
+    // Integration Welle E: Kam der verdrängte gärende Vorgang schon im nächsten Monat zurück, schuf er dort einen Platz, den es ohne den
+    // Bereichsvorgang nicht gegeben hätte. Ohne Bereichsvorgang läge die Affäre im ersten Monat auf dem Tisch; mit ihm liegt dort nur er.
+    const w = welt(7, "normal");
+    const rutsch = vorlage("waehrungsrutsch");
+    rutsch.ohneZusatzplatz = true;
+    restaurierungen.push(() => delete rutsch.ohneZusatzplatz);
+    nurDiese(["waehrungsrutsch", "korruptionsaffaere"]);
+    ereignisMonat(w, new Rng(3));
+    expect(w.spiel!.ereignisse.map((e) => e.vorlage)).toEqual(["waehrungsrutsch"]);
+    // Die Affäre gärt (Stufe 1, Haken in der Chronik), ihre Abkühlung läuft wie nach einer Vorlage
+    expect(w.spiel!.eskalation?.korruptionsaffaere).toBe(1);
+    expect(w.spiel!.zuletzt.korruptionsaffaere).toBe(w.day);
+    // Im nächsten Monat kommt sie nicht zurück, obwohl sie sicher auslöst: über beide Monate ein Vorgang, wie ohne den Bereichsvorgang
+    restaurierungen.splice(1).forEach((r) => r());
+    restaurierungen.push(setzeChancen({ korruptionsaffaere: 1 }));
+    w.spiel!.ereignisse = [];
+    w.day += 30;
+    ereignisMonat(w, new Rng(4));
+    expect(w.spiel!.ereignisse.some((e) => e.vorlage === "korruptionsaffaere")).toBe(false);
+    // Nach der Abkühlung kommt sie wieder, dringlicher und härter
+    w.day += vorlage("korruptionsaffaere").abkuehlung;
+    ereignisMonat(w, new Rng(5));
+    const ev = w.spiel!.ereignisse.find((e) => e.vorlage === "korruptionsaffaere");
+    expect(ev).toBeDefined();
+    expect(ev!.staerke).toBeGreaterThan(1);
+  });
+
+  test("Ein Verlierer gegen gewöhnliche Vorgänge behält seine Rückkehr im nächsten Monat (keine Abkühlung)", () => {
+    const w = welt(7, "normal");
+    nurDiese(["anschlag", "waehrungsrutsch", "korruptionsaffaere"]);
+    ereignisMonat(w, new Rng(3));
+    expect(w.spiel!.eskalation?.korruptionsaffaere).toBe(1);
+    expect(w.spiel!.zuletzt.korruptionsaffaere).toBeUndefined();
+  });
+
   test("Chronik-Haken: „Im Hintergrund … gärt weiter“ ist als solcher erkennbar", () => {
     const w = welt(7, "normal");
     nurDiese(["anschlag", "waehrungsrutsch", "streikwelle", "aerztestreik"]);

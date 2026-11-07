@@ -263,6 +263,9 @@ describe("Spielbarkeit: einfache Spieler gegeneinander", () => {
     // dafür öffnen die Ereignisse nicht mehr am Monatsersten: Die Fluten (mehr als drei Entscheidungen in zehn Tagen) sanken von 0,40 auf 0,10 je Lauf.
     // Seit 5. November zählt der Lauf geöffnete Entscheidungen statt Chronikzeilen (gemessen 16,4 je Jahr in den ersten zwei Jahren, mit den
     // drei einmaligen Startereignissen; die Chronik führt zusätzlich Berichte, Termine und historische Momente, rund 21 Zeilen im Jahr).
+    // Welle E (7. November): 15,41 vor, 16,14 nach dem Zusammenführen. Ein Vorgang ohne Zusatzplatz verdrängte einen gärenden, der im
+    // nächsten Monat zurückkam und dort einen Platz schuf; seitdem wartet der verdrängte seine Abkühlung ab (sim/ereignisse.ts): 15,89.
+    // Davon rund 0,35 aus den Vorgängen mit eigenem Platz (Stufe des Nachfolgedrucks, beim untätigen Spieler meist alle drei Stufen).
     expect(e).toBeLessThan(16);
   });
 });

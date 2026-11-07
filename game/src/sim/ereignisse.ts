@@ -1351,6 +1351,12 @@ export function ereignisMonat(world: World, rng: Rng): void {
   const slots = Math.min(EREIGNIS_WETTBEWERB.slots[grad], rest.filter((k) => !k.v.ohneZusatzplatz).length);
   const gewinner = [...feste, ...rest.slice(0, slots)];
   const verlierer = rest.slice(slots);
+  // Verdrängt ein Vorgang ohne Zusatzplatz einen anderen, hatte der verdrängte seinen Monat (Integration Welle E): Er gärt oder wird
+  // ausgesessen wie jeder Verlierer, kommt aber erst nach seiner Abkühlung wieder, so als hätte er auf dem Tisch gelegen. Sonst kehrte ein
+  // gärender Vorgang schon im nächsten Monat zurück und schuf dort einen Platz, den es ohne den Bereichsvorgang nicht gegeben hätte.
+  // Gemessen (untätiger Spieler wie in test/spielbarkeit, Samen 1 bis 24): Die Vorlagen ohne Zusatzplatz der Welle E brachten so +0,55
+  // Vorgänge im Jahr (15,28 → 15,83), mit der Regel +0,17 (15,17 → 15,34).
+  for (const k of rest.filter((x) => !x.v.ohneZusatzplatz).slice(0, slots)) if (verlierer.includes(k)) spiel.zuletzt[k.v.id] = world.day;
 
   // AUS-1 (Eigeninitiative): höchstens eine Länder-Initiative pro Monat gesamt — die dringlichste gewinnt,
   // weitere rutschen in die Verliererbehandlung (sie gären weiter oder verfallen wie gehabt)
