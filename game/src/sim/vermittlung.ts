@@ -81,6 +81,13 @@ export const VERMITTLUNG = {
   erfolg: { ansehen: 4, vertrauenAlle: 1, parteien: 5, parteienKonflikt: -6, dritte: 3 },
   /** Scheitern: ohne Garantie-Angebot klein, mit Angebot ein Gesichtsverlust */
   scheitern: { ansehen: -1, reif: -4, gesichtNachGarantie: -2 },
+  /**
+   * Welle E1, „Istanbul lädt ein“ (Vorlage `vermittlung_einladung`): Die Delegationen sitzen so viele Tage nach der Einladung am Tisch, der Versuch
+   * läuft im nächsten Monatsschritt. Vorbild sind die Runden in Istanbul vom 16.05. und 02.06.2025 (rund zwei Wochen Abstand). Spielparameter.
+   */
+  einladungTage: 14,
+  /** Schon die Einladung zeigt Führung (wie die Gastgeberrolle, data/konflikte.ts) */
+  einladungAnsehen: 1,
 } as const;
 
 export type ZopaStufe = "geschlossen" | "schmal" | "breit";
@@ -229,6 +236,7 @@ export function konfliktSicht(w: World, def: KonfliktDef): KonfliktSicht {
   let grund: string | undefined;
   const zuletzt = spiel?.vermittelt?.[def.id] ?? -1e9;
   if (spiel && !kannZahlen(spiel.kapital, def.pk)) grund = t("tag_t8.verm.grund.kapital");
+  else if (z.einladung !== undefined) grund = t("welle_e1.verm.grund.eingeladen", { tage: Math.max(0, z.einladung - w.day) });
   else if (spiel && w.day - zuletzt < def.abkuehlung) grund = t("tag_t8.verm.grund.wieder", { n: def.abkuehlung - (w.day - zuletzt) });
   else if (va < def.minA) grund = t("tag_t8.verm.grund.misstrauen", { name: def.a.name });
   else if (vb < def.minB) grund = t("tag_t8.verm.grund.misstrauen", { name: def.b.name });
@@ -393,10 +401,45 @@ export function vermittle(w: World, konfliktId: string, rng: Rng): Antwort {
   if (!def) return { ok: false, text: t("tag_t8.verm.fehlt.vermittlung") };
   const sicht = konfliktSicht(w, def);
   if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? t("tag_t8.verm.geht_nicht") };
-  const z = sicht.z;
   spiel.kapital -= def.pk;
   (spiel.vermittelt ??= {})[konfliktId] = w.day;
-  if (rng.next() * 100 < sicht.aussicht) {
+  return versuchAusgang(w, def, rng.next() * 100 < sicht.aussicht);
+}
+
+/**
+ * „Istanbul lädt ein“ (Welle E1): Ankara bezahlt die Runde jetzt (derselbe Preis wie „Vermitteln“), die Delegationen kommen nach
+ * `einladungTage`, und der Versuch läuft im Monatsschritt mit der dann gültigen Aussicht. Der Wurf hängt an Samen, Konflikt und Tag, nicht am
+ * Zufallsstrom der Partie: So zeigt die Vorschau der Antwort genau das, was gebucht wird, und verrät den Ausgang nicht.
+ */
+export function ladeEin(w: World, konfliktId: string): Antwort {
+  const spiel = w.spiel;
+  const def = KONFLIKT_NACH_ID[konfliktId];
+  if (!spiel || !def) return { ok: false, text: t("tag_t8.verm.fehlt.vermittlung") };
+  const sicht = konfliktSicht(w, def);
+  if (!sicht.moeglich) return { ok: false, text: sicht.grund ?? t("tag_t8.verm.geht_nicht") };
+  spiel.kapital -= def.pk;
+  (spiel.vermittelt ??= {})[konfliktId] = w.day;
+  sicht.z.einladung = w.day + VERMITTLUNG.einladungTage;
+  wirke(w, "ansehen", VERMITTLUNG.einladungAnsehen);
+  const text = t("welle_e1.verm.eingeladen", { namen: namen(def), tage: VERMITTLUNG.einladungTage });
+  addLog(w, "entscheidung", text, t("welle_e1.verm.eingeladen.log", { pk: def.pk, aussicht: sicht.aussicht }));
+  return { ok: true, text };
+}
+
+/** Der Versuch einer Einladung, sobald die Delegationen da sind (aus dem Monatsschritt). */
+function einladungsRunde(w: World, def: KonfliktDef, z: KonfliktZustand): void {
+  z.einladung = undefined;
+  if (z.einigung !== undefined) return;
+  const aussicht = aussichtFuer(w, def);
+  const erfolg = hashWert(`${w.seed}|istanbul|${def.id}|${w.day}`) * 100 < aussicht;
+  const r = versuchAusgang(w, def, erfolg);
+  w.spiel!.hinweise.push({ id: `vermittlung-runde-${def.id}-${w.day}`, titel: t(erfolg ? "welle_e1.verm.runde.ja" : "welle_e1.verm.runde.nein", { titel: def.titel }), szene: "istanbul", text: [r.text, t("welle_e1.verm.runde.aussicht", { aussicht })] });
+}
+
+/** Ausgang eines Vermittlungsversuchs (Knopf „Vermitteln“ oder Runde nach einer Einladung): dieselben Buchungen in beiden Fällen. */
+function versuchAusgang(w: World, def: KonfliktDef, erfolg: boolean): Antwort {
+  const z = konfliktZustand(w, def.id);
+  if (erfolg) {
     // Einigung: ein Abkommen zwischen den Dritten — der Konflikt-Index sinkt ab jetzt über Monate
     z.einigung = w.day;
     const E = VERMITTLUNG.erfolg;
@@ -537,6 +580,9 @@ export function vermittlungMonat(w: World, rng: Rng): void {
 
   for (const def of KONFLIKTE) {
     const z = alle[def.id]!;
+
+    // Welle E1: Die Delegationen einer Einladung nach Istanbul sind da, die Runde läuft
+    if (z.einladung !== undefined && w.day >= z.einladung) einladungsRunde(w, def, z);
 
     // Reif-Verlauf für die Kurve (vor der Veränderung des Monats)
     z.reifVerlauf.push({ monat, wert: Math.round(z.reif) });

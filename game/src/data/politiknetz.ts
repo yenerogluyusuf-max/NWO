@@ -975,6 +975,12 @@ e("beziehungen_russland", "tourismus", 0.02, 6, "Russische Gäste sind eine gro�
 e("beziehungen_nahost", "export", 0.02, 12, "Irak und Golfstaaten sind wichtige Märkte.");
 e("beziehungen_nahost", "terrorgefahr", -0.02, 12, "Zusammenarbeit an den Grenzen.");
 e("ansehen", "tourismus", 0.02, 6, "Ein gutes Bild zieht Gäste an.");
+// Welle E1 (ENTSCHEIDUNGEN AA 3: „Ansehen in der Welt wirkt über eine neue, schwache Kante auf das Vertrauen in die Regierung“). Spielparameter.
+// Stärke 0,02 wie die schwächsten vorhandenen Kanten ins Vertrauen (Staatsmedien, Korruption, Wohnungsnot), Verzögerung drei Monate.
+// Messung (4 Samen, frische Partie, test/aussen-schreibtisch.test.ts): Ansehen +4 hebt die Zielzustimmung nach 12 Monaten um 0,16 Punkte
+// (0,01: 0,08; 0,03: 0,23), ein Rentengesetz +10 um 0,09. Ohne Handlung bewegt die Kante eine frische Partie um höchstens 0,02 Punkte.
+// Im Spielstand des Inhabers (Ansehen 74 statt 45) steigt die Zielzustimmung nach 12 Monaten um 0,9 Punkte, beim Laden um nichts.
+e("ansehen", "vertrauen_regierung", 0.02, 3, "Ein Land, das in der Welt etwas gilt, traut seiner Regierung eher etwas zu.");
 e("pressefreiheit", "ansehen", 0.02, 6, "Das Ausland schaut auf die Pressefreiheit.");
 
 // ---------------------------------------------------------------------------

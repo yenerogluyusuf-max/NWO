@@ -1392,6 +1392,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               setWirtschaftStart("zentralbank");
               setWirtschaftZb(st.abschnitt ?? "sitzung");
               oeffneDossier("wirtschaft");
+            } else if (st.art === "welt") {
+              // Welle E1: Außenakte auf Land und Reiter, Block oder Vermittlung
+              setWeltStart(st.vermittlung ? "vermittlung" : st.block ? `block:${st.block}` : st.land ?? "EU");
+              setWeltTab(st.tab ?? "ueberblick");
+              oeffneDossier("welt");
             } else {
               setReichStart("bestand");
               setReichStaette(st.id);

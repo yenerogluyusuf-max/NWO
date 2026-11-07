@@ -21,7 +21,9 @@ export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahl
 export type Stelle =
   | { art: "medien"; cluster?: string }
   | { art: "zentralbank"; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" }
-  | { art: "staette"; id: string };
+  | { art: "staette"; id: string }
+  /** Welle E1: die Außenakte, auf ein Land (mit Reiter), einen Block oder die Vermittlung gestellt */
+  | { art: "welt"; land?: string; tab?: "beitritt" | "verhandeln" | "handeln"; block?: string; vermittlung?: true };
 
 export interface Option {
   id: string;

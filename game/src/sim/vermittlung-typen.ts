@@ -22,6 +22,8 @@ export interface KonfliktZustand {
   vorbereitet: Partial<Record<VorbereitungId, number>>;
   /** Zuletzt gemeldetes Reif-Band (Auto-Stopp B an den Kipppunkten) */
   reifBand?: number;
+  /** Welle E1: Tag, an dem die Delegationen der Einladung nach Istanbul am Tisch sitzen (die Runde ist bezahlt, der Versuch folgt im Monatsschritt) */
+  einladung?: number;
   /** Monatlicher Reif-Verlauf für die Kurve in der Anzeige (neueste zuletzt, höchstens 24 Einträge) */
   reifVerlauf: { monat: string; wert: number }[];
 }

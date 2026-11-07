@@ -233,6 +233,8 @@ export function stelleLabel(s: Stelle): string {
       return t(`welle_h3.stelle.zentralbank.${s.abschnitt ?? "sitzung"}`);
     case "staette":
       return t("welle_h3.stelle.staette", { name: ERBE_NACH_ID[s.id]?.name ?? s.id });
+    case "welt":
+      return t(s.vermittlung ? "welle_e1.stelle.vermittlung" : s.block ? "welle_e1.stelle.block" : s.tab === "beitritt" ? "welle_e1.stelle.eu" : "welle_e1.stelle.land");
   }
 }
 

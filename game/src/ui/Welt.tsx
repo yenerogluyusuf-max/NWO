@@ -46,9 +46,11 @@ type Modus = "laender" | "bloecke" | "dienst" | "vermittlung";
 const MODI: Modus[] = ["laender", "bloecke", "dienst", "vermittlung"];
 
 export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: World; refresh: () => void; onMassnahme?: (id: string, richtung: 1 | -1) => void; start?: string; startTab?: WeltTab }) {
-  const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : "laender");
-  const [gewaehlt, setGewaehlt] = useState<string>(start && start !== "vermittlung" ? start : "EU");
-  const [block, setBlock] = useState<string>("eu");
+  // Welle E1: „block:<id>“ öffnet die Blöcke mit diesem Block (Sprung aus einem Gipfel-Vorgang)
+  const startBlock = start?.startsWith("block:") ? start.slice(6) : undefined;
+  const [modus, setModus] = useState<Modus>(start === "vermittlung" ? "vermittlung" : startBlock ? "bloecke" : "laender");
+  const [gewaehlt, setGewaehlt] = useState<string>(start && start !== "vermittlung" && !startBlock ? start : "EU");
+  const [block, setBlock] = useState<string>(startBlock ?? "eu");
   const [filter, setFilter] = useState<string>("alle");
   const [suche, setSuche] = useState("");
   const [tab, setTab] = useState<WeltTab>(startTab ?? "ueberblick");
@@ -231,7 +233,7 @@ export function Welt({ world, refresh, onMassnahme, start, startTab }: { world: 
             {tab === "verhandeln" && <Verhandlungstisch key={gewaehlt} world={world} landId={gewaehlt} refresh={refresh} onVertraege={() => setTab("vertraege")} />}
             {tab === "vertraege" && <Vertraege world={world} landId={gewaehlt} refresh={refresh} />}
             {tab === "konflikt" && <KriegDossier world={world} landId={gewaehlt} refresh={refresh} onTab={setTab} />}
-            {tab === "beitritt" && gewaehlt === "EU" && <EuDossier world={world} refresh={refresh} />}
+            {tab === "beitritt" && gewaehlt === "EU" && <EuDossier world={world} refresh={refresh} onMassnahme={onMassnahme} onVerhandeln={() => setTab("verhandeln")} />}
             {tab === "handeln" && (
               <div className="we-gesten">
                 <p className="subtitle">{t("ui.Welt.0d4ca65")}</p>
