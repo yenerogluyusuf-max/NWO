@@ -49,7 +49,8 @@ import { LAENDER } from "./laender";
 import { weltNachrichten } from "./welt-modell";
 import { wirke } from "./wirkung";
 import { umfrageMessung } from "./umfrage";
-import { blattAuswahlWelt, istGesperrt, medienMonat, medienVon, publikationsverbot, reichweiteJetzt, wirksamerCluster } from "./medien";
+import { blattAuswahlWelt, istGesperrt, medienLager, medienMonat, medienVon, publikationsverbot, reichweiteJetzt, wirksamerCluster, type MedienLager } from "./medien";
+import { stufenName } from "../data/skalen";
 import { fmt } from "./log";
 import { formatMonthDe } from "./dates";
 import type { MonthlySnapshot, World } from "./types";
@@ -167,7 +168,10 @@ export interface ZeitungBlatt {
   /** Zeile unter dem Titel — Charakter in einem Satz */
   unterzeile: string;
   digital: boolean;
+  /** Der Dreh der Texte (regierungsnah, oppositionell, neutral); angepasste Häuser drehen regierungsnah, nur schwächer */
   ton: FramingArt;
+  /** Das Lager des Hauses, dieselbe Rechnung wie in der Medienansicht (`medienLager`); fehlt in älteren Ausgaben */
+  lager?: MedienLager;
   artikel: ZeitungArtikel[];
   /** Titel der Vorgänge, die dieses Blatt (noch) nicht gebracht hat — Sichtbarkeit des Schweigens */
   verschwiegen: string[];
@@ -555,6 +559,7 @@ function baueBlaetter(
       unterzeile: def.unterzeile,
       digital: cluster.digital,
       ton: f,
+      ...(world ? { lager: medienLager(world, basis) } : {}),
       artikel,
       verschwiegen: verschwiegen.slice(0, 3),
       kommentar,
@@ -952,40 +957,59 @@ function berichtVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
   return out.sort((a, b) => Math.abs(b.wertung) - Math.abs(a.wertung)).slice(0, 2);
 }
 
-const ZAHL = "([\\d.]+(?:,\\d+)?)";
-const num = (s: string): number => Number(s.replace(/\./g, "").replace(",", "."));
+const num = (s: string): number => Number(s.replace(/\./g, "").replace(",", ".").replace("−", "-"));
 
-/** Zerlegt die Textzeilen eines Wirkungsberichts in Zahlen; was nicht passt, bleibt als Rohzeile erhalten. */
+/**
+ * Ein Wirkungsbericht als Zeitungsvorgang. Die Zahlen kommen aus den Feldern des Berichts (Name, Stufen, Größen, Restmonate), nie aus
+ * seinem übersetzten Text (ENTSCHEIDUNGEN U). Früher zerlegte ein regulärer Ausdruck aus dem Katalog den Titel nach „Stufe X auf Y“; seit
+ * die Regler Einheiten zeigen („37.050 Lira“), griff er nicht mehr, und die Zeitung schrieb „Stufe 0 auf 0“ und den ganzen Titel als Namen.
+ * Nur Berichte älterer Spielstände ohne diese Felder werden aus ihrem deutschen Text gelesen (wie sim/chronik.ts bei der Chronik).
+ */
 export function berichtZuVorgang(r: Bericht, index: number): ZeitungVorgang {
-  const t = new RegExp(tx("sim2.sim.zeitung.d1d87fa")).exec(r.titel);
-  const name = t?.[1] ?? r.titel;
-  const von = t ? Number(t[2]) : 0;
-  const auf = t ? Number(t[3]) : 0;
-  const veraenderungen: { name: string; von: number; auf: number }[] = [];
-  const akut: { name: string; von: number; auf: number }[] = [];
-  const roh: string[] = [];
-  for (const zeile of r.zeilen) {
-    const a = new RegExp(tx("sim2.sim.zeitung.4fe013f", { p0: ZAHL, p1: ZAHL, p2: ZAHL })).exec(zeile);
-    const b = /^(.+?): akut in (\d+) auf (\d+) Provinzen$/.exec(zeile);
-    if (a) veraenderungen.push({ name: a[1]!, von: num(a[2]!), auf: num(a[3]!) });
-    else if (b) akut.push({ name: b[1]!, von: Number(b[2]), auf: Number(b[3]) });
-    else roh.push(zeile);
-  }
+  const alt = r.groessen === undefined || r.name === undefined ? altBerichtLesen(r) : undefined;
+  const name = r.name ?? alt?.name ?? r.titel;
+  const von = r.von ?? alt?.von;
+  const auf = r.auf ?? alt?.auf;
+  const veraenderungen = alt ? alt.veraenderungen : (r.groessen ?? []).filter((g) => g.art === "groesse").map((g) => ({ name: g.name, von: g.vorher, auf: g.nachher }));
+  const akut = alt ? alt.akut : (r.groessen ?? []).filter((g) => g.art === "problem" && g.delta !== 0).map((g) => ({ name: g.name, von: g.vorher, auf: g.nachher }));
+  const roh = alt?.roh ?? [];
   veraenderungen.sort((x, y) => Math.abs(y.auf - y.von) - Math.abs(x.auf - x.von));
-  const rest = /noch etwa (\d+) Monat/.exec(r.hinweis);
+  const rest = r.rest !== undefined ? r.rest || undefined : alt?.rest;
   const wertung = r.urteil === "gut" ? 0.4 : r.urteil === "keine" ? -0.35 : r.urteil === "gemischt" ? 0 : -0.1;
+  // Die Stufen in Worten der Maßnahme (Einheit oder Zustand), wie Regler und Bericht sie zeigen; Rückblicke haben keine Stufe
+  const stufen = von !== undefined && auf !== undefined && !r.massnahme.startsWith("rueckblick:") ? { von: stufenName(r.massnahme, von), auf: stufenName(r.massnahme, auf) } : undefined;
+  // Was sich nicht in Zahlen zerlegen ließ (anderes Zeilenformat), bleibt im Fakt stehen — es geht nichts verloren
+  const zusatz = !veraenderungen.length && !akut.length && roh.length ? ` ${roh.join("; ")}.` : "";
   return {
     id: `bericht-${r.tag}-${index}`,
     art: "bericht",
     sparte: "programm",
     titel: tx("sim2.sim.zeitung.a3cd068", { p0: name }),
-    // Was sich nicht in Zahlen zerlegen ließ (anderes Zeilenformat), bleibt im Fakt stehen — es geht nichts verloren
-    fakt: tx("sim2.sim.zeitung.4c7f9a2", { p0: r.monate, p1: name, p2: von, p3: auf, p4: !veraenderungen.length && !akut.length && roh.length ? ` ${roh.join("; ")}.` : "" }),
+    fakt: stufen
+      ? tx("welle_e4.zeitung.bericht_fakt", { monate: r.monate, name, von: stufen.von, auf: stufen.auf, zusatz })
+      : tx("welle_e4.zeitung.bericht_fakt_ohne", { monate: r.monate, name, zusatz }),
     wertung,
     tag: r.tag,
     datum: r.datum,
-    daten: { typ: "bericht", name, monate: r.monate, urteil: r.urteil, von, auf, veraenderungen, akut, ...(rest ? { rest: Number(rest[1]) } : {}) },
+    daten: { typ: "bericht", name, monate: r.monate, urteil: r.urteil, von: von ?? 0, auf: auf ?? 0, veraenderungen, akut, ...(rest ? { rest } : {}) },
   };
+}
+
+/** Berichte älterer Spielstände tragen nur deutsche Sätze: Titel, Zeilen und Hinweis werden nach den festen deutschen Mustern gelesen. */
+function altBerichtLesen(r: Bericht): { name?: string; von?: number; auf?: number; veraenderungen: { name: string; von: number; auf: number }[]; akut: { name: string; von: number; auf: number }[]; roh: string[]; rest?: number } {
+  const ti = /^(.*?)(?: \(nur in \d+ Provinzen?\))?: Stufe (\d+) auf (\d+), \d+ Monate danach$/.exec(r.titel);
+  const veraenderungen: { name: string; von: number; auf: number }[] = [];
+  const akut: { name: string; von: number; auf: number }[] = [];
+  const roh: string[] = [];
+  for (const zeile of r.zeilen) {
+    const a = /^(.+?): ([\d.,−-]+) auf ([\d.,−-]+) \([+−-]?[\d.,]+\)$/.exec(zeile);
+    const b = /^(.+?): akut in (\d+) auf (\d+) Provinzen$/.exec(zeile);
+    if (a) veraenderungen.push({ name: a[1]!, von: num(a[2]!), auf: num(a[3]!) });
+    else if (b) akut.push({ name: b[1]!, von: Number(b[2]), auf: Number(b[3]) });
+    else roh.push(zeile);
+  }
+  const rest = /noch etwa (\d+) Monat/.exec(r.hinweis);
+  return { ...(ti ? { name: ti[1]!, von: Number(ti[2]), auf: Number(ti[3]) } : {}), veraenderungen, akut, roh, ...(rest ? { rest: Number(rest[1]) } : {}) };
 }
 
 /** Chronik-Einträge des Monats als Vorgänge (Ereignisse, Skandale, Programme) — ohne das, was die Eilmeldung schon griff. */
@@ -997,7 +1021,10 @@ function chronikVorgaenge(world: World, z: ZeitungZustand): ZeitungVorgang[] {
     if (c.tag <= z.letzteMonatsausgabeTag || c.tag >= world.day) continue;
     if (gesperrt.some((s) => c.titel.includes(s) || c.ausgang.includes(s))) continue;
     if (c.art === "zustand" || c.art === "moment" || c.art === "epoche") continue; // Verfassung ist intern; Momente erzählt die Bilanz
-    if (c.art === "bericht" && c.titel.startsWith("Wirkungsbericht:")) continue; // erscheint mit Zahlen über spiel.berichte
+    // Wirkungsberichte erscheinen mit Zahlen über spiel.berichte. Ihre Chronikzeile trägt weder Presse noch Vorlage; die Prüfung liest
+    // kein Titelwort, denn der Rückblick schreibt seinen Titel übersetzt (ENTSCHEIDUNGEN U: sonst brachte die englische Zeitung ihn doppelt).
+    // Nur Programmschritte älterer Stände tragen ebenfalls nichts und werden an ihrem festen deutschen Titel erkannt.
+    if (c.art === "bericht" && !c.presse && !c.vorlage && !/^(Schritt erreicht|Programm erfüllt): /.test(c.titel)) continue;
     let art: VorgangArt = "ereignis";
     let sparte: Sparte = "ereignis";
     let wertung = c.ohneEntscheidung ? -0.55 : -0.15;
@@ -1314,7 +1341,7 @@ export function zeitungEreignis(world: World, e: Grossereignis): void {
       // Die Einordnung steht in der Eilmeldung im eigenen Kasten; der Text wiederholt sie nicht (die Warteschlange behält sie für den Print)
       const artikel = artikelFuer(cluster, { ...vorgang, daten: undefined }, kontext, `e${z.naechsteNummer}-${id}`);
       const mitEinordnung: ZeitungArtikel = einordnung.feststeht.length || einordnung.offen.length ? { ...artikel, einordnung: { feststeht: einordnung.feststeht, offen: einordnung.offen } } : artikel;
-      blaetter.push({ clusterId: id, name: def.name, unterzeile: def.unterzeile, digital: true, ton: framingFuer(cluster), artikel: [mitEinordnung], verschwiegen: [], reichweite: Math.round(reichweiteJetzt(world, id) * 100) / 100 });
+      blaetter.push({ clusterId: id, name: def.name, unterzeile: def.unterzeile, digital: true, ton: framingFuer(cluster), lager: medienLager(world, medienCluster(id)!), artikel: [mitEinordnung], verschwiegen: [], reichweite: Math.round(reichweiteJetzt(world, id) * 100) / 100 });
     } else {
       blaetter.push({
         clusterId: id,
@@ -1322,6 +1349,7 @@ export function zeitungEreignis(world: World, e: Grossereignis): void {
         unterzeile: def.unterzeile,
         digital: false,
         ton: framingFuer(cluster),
+        lager: medienLager(world, medienCluster(id)!),
         artikel: [
           {
             id: `e${z.naechsteNummer}-${id}-hinweis`,

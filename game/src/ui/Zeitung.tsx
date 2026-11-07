@@ -23,7 +23,7 @@ import {
 } from "../sim/zeitung";
 import type { Ziel } from "./schreibtisch/briefing";
 import { Flourish } from "./art/Ornament";
-import { startSelbstzensur } from "../sim/medien";
+import { lagerVonAusrichtung, startSelbstzensur } from "../sim/medien";
 import { medienCluster } from "../data/medien";
 import { aktuelleLocale, t } from "../i18n";
 import { t as tx } from "../i18n";
@@ -32,6 +32,12 @@ import "./zeitung.css";
 type Gehe = ((ziel: Ziel) => void) | undefined;
 
 const TON_NAME = (ton: FramingArt): string => t(`reste.zeitung.ton.${ton}`);
+/** Das Lager des Blattes wie in der Medienansicht (eine Einordnung, Welle E4). Ältere Ausgaben ohne Feld: aus der Ausrichtung des Hauses. */
+const LAGER_NAME = (b: ZeitungBlatt): string => {
+  const c = medienCluster(b.clusterId);
+  const lager = b.lager ?? (c ? lagerVonAusrichtung(c.ausrichtung) : undefined);
+  return lager ? t(`tag_t1.medien.lager.${lager}`) : TON_NAME(b.ton);
+};
 
 const SPARTEN = new Set(["politik", "wirtschaft", "ereignis", "programm", "welt", "umfrage"]);
 const SPARTE_NAME = (s: string): string | undefined => (SPARTEN.has(s) ? t(`nacht_n2.zeitung.sparte.${s}`) : undefined);
@@ -76,7 +82,7 @@ function Masthead({ ausgabe, blatt }: { ausgabe: ZeitungAusgabe; blatt: ZeitungB
       <h3 className="zt-blattname">{blatt.name}</h3>
       <p className="zt-unterzeile">{blatt.unterzeile}</p>
       <p className="zt-zeile-unten">
-        <span>{TON_NAME(blatt.ton)}</span>
+        <span>{LAGER_NAME(blatt)}</span>
         <Flourish width={180} />
         <span>{blatt.digital ? tx("ui2.ui.Zeitung.5c03644") : tx("ui2.ui.Zeitung.52a9271")}</span>
       </p>
@@ -531,7 +537,7 @@ export function Zeitung({ world, onGehe, onMedien }: { world: World; onGehe?: (z
             {ausgabe.blaetter.map((b, i) => (
               <button key={b.clusterId} role="tab" aria-selected={b === blatt} className={`zt-blatt-tab ton-${b.ton}${b === blatt ? " on" : ""}`} onClick={() => setBlattIdx(i)}>
                 <strong>{b.name}</strong>
-                <span>{TON_NAME(b.ton)}</span>
+                <span>{LAGER_NAME(b)}</span>
               </button>
             ))}
           </nav>

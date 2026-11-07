@@ -947,7 +947,11 @@ export function hausmedienAnteil(w: World): number {
 export type MedienLager = "regierung" | "angepasst" | "kritisch";
 
 export function medienLager(w: World, c: MedienCluster): MedienLager {
-  const a = wirksamerCluster(w, c).ausrichtung;
+  return lagerVonAusrichtung(wirksamerCluster(w, c).ausrichtung);
+}
+
+/** Das Lager zu einer Ausrichtung: die eine Einordnung für Medienansicht und Zeitung (Kopf des Blattes, Reiter). */
+export function lagerVonAusrichtung(a: MedienAusrichtung): MedienLager {
   if (loyalAusrichtung(a)) return "regierung";
   return a === "linientreu_opportunistisch" || a === "konform_kommerziell" ? "angepasst" : "kritisch";
 }
