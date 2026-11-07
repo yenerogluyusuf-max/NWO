@@ -90,4 +90,16 @@ Zweig `welle/e3b`, abgezweigt von `welle/ein3`. Spielstand des Inhabers: `scratc
 
 ## Tests
 
-`npx tsc --noEmit` sauber. Ergebnisse siehe Antwort an den Koordinator.
+- **Typprüfung:** `npx tsc --noEmit` sauber.
+- **Neu:** `welle-e3b` mit 6 Tests:
+  - Ankündigung je Stufe einmal, nur in der letzten Amtszeit
+  - die Wege und ihr gebuchter Preis
+  - „zu spät“ und „nur mit 400“
+  - Art. 116 Abs. 3 öffnet einmal eine Kandidatur, ohne Volksabstimmung
+  - Spielstand 2043: Die Ankündigung wäre gekommen, drei Tage vor der Wahl ist „zu spät“.
+- **Grün:**
+  - `amtszeit`, `verfassung`, `unbegrenzt`, `enden`, `enden-katalog`
+  - `datentexte`, `reparaturen-welle2`, `ressortpolitik`, `umbildung-tisch`
+  - `vermaechtnis-ansicht`, `wahl-ansichten`, `wahl-katalog`, `katastrophe-sprachen`
+  - `ereignisse-texte`, `ereignisse-sprachen`, `welle-e3`, `spielbarkeit`, `linsen`
+  - `schau-antworten`: unter Last mehrfach über die Zeit, einzeln grün.
