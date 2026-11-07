@@ -3,7 +3,7 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createWorld,advance,save,load} from '../src/sim/world';
 import {turkey2026} from '../src/sim/scenario';
 import {startAfterElection,schnellProfil} from '../src/sim/prolog';
-import {ressortAnliegenTag,ressortAntwortPlan,beantworteRessortAnliegen} from '../src/sim/ressortanliegen';
+import {ressortAnliegenTag,ressortAntwortPlan,beantworteRessortAnliegen,RESSORT_ANLIEGEN} from '../src/sim/ressortanliegen';
 import {ressortPolitikPlan,entscheideRessortVorfall,type RessortReaktion} from '../src/sim/ressortpolitik';
 import {ressortNachsorgeTag,aktiveRessortNachsorge,beginneRessortNachsorge} from '../src/sim/ressortnachsorge';
 import {AEMTER,HOCH_SCHLECHT,eigenVon,wertVon} from '../src/sim/personen';
@@ -63,7 +63,8 @@ test.each([['inneres','kriminalitaet',62,false],['inneres','kriminalitaet',62.00
 test('laufendes Verfahren ist keine Erholung und erzeugt keinen doppelten Gesetzentwurf',()=>{
  const w=entscheide(welt());meldung(w);const a=letzte(w).anliegen!;beantworteRessortAnliegen(w,ressortAntwortPlan(w,a,'umsetzen')!);wert(w,'kriminalitaet',95);meldung(w);
  expect(letzte(w).entwicklung).toBe('rueckschlag');expect(letzte(w).schritt).toBe('bearbeitung');expect(letzte(w).anliegen).toBeUndefined();expect(w.spiel!.gesetze).toHaveLength(1);expect(spur(w).status).toBe('beobachtung');
- w.spiel!.gesetze=[];meldung(w);expect(letzte(w).schritt).toBe('anliegen');expect(letzte(w).anliegen).not.toBe(a);expect(letzte(w).vorschlag).toBeDefined();
+ // Seit 07.11.2026 fragt das Ressort nach einer Antwort 90 Tage nicht wieder nach derselben Größe (RESSORT_ANLIEGEN.pause)
+ w.spiel!.gesetze=[];meldung(w);expect(letzte(w).schritt).toBe('warteschlange');meldung(w,RESSORT_ANLIEGEN.pause);expect(letzte(w).schritt).toBe('anliegen');expect(letzte(w).anliegen).not.toBe(a);expect(letzte(w).vorschlag).toBeDefined();
 });
 test('bestehendes Anliegen wird verwendet, nicht dupliziert oder kostenlos verlängert',()=>{
  const w=entscheide(welt());meldung(w);const m=letzte(w),a=w.spiel!.ministerfluss!.ressortAnliegen!.find(a=>a.id===m.anliegen)!;const frist=a.frist;meldung(w);

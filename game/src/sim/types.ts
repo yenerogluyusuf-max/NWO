@@ -190,6 +190,8 @@ export interface LogEntry {
   /** Dieser Eintrag setzt etwas in Kraft (Gesetz verkündet, Erlass, Präsidialbeschluss, Kommissionsbeschluss, Ausnahmezustand);
    *  die Umsetzungsakte zählt nur diese als Beschlüsse (befund-B B-23) */
   beschluss?: "gesetz" | "erlass" | "beschluss" | "kommission" | "notstand";
+  /** Monatszeile eines Ressorts: Meldungen und Parteireaktionen eines Monats in einem Eintrag (sim/ressortlog.ts) */
+  sammel?: import("./ressortlog").RessortMonat;
 }
 
 export interface World {

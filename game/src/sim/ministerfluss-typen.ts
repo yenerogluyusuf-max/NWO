@@ -177,6 +177,8 @@ export interface MinisterFlussZustand {
   ressortTag?:number;
   /** Tag des letzten Anliegens aus dem täglichen Ressortlauf (kabinettsweiter Abstand, sim/ressortanliegen.ts) */
   ressortAnliegenTag?:number;
+  /** Pause nach einer Ressortanfrage: „Amt|Größe“ → Spieltag, bis zu dem dieselbe Frage nicht wieder kommt (sim/ressortanliegen.ts) */
+  ressortPause?:Record<string,number>;
   ressortNachsorgeTag?:number;
   ressortNachsorge?:import("./ressortnachsorge").RessortNachsorge[];
   ressortAnliegen?:import("./ressortanliegen").RessortAnliegen[];

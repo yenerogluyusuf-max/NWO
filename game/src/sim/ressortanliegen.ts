@@ -4,8 +4,8 @@ import type { Figur } from './spiel-typen';
 import { KABINETT_AMT, flussZustand } from './ministerfluss-kern';
 import { AEMTER, eigenVon, schlechtesteGroesse, HOCH_SCHLECHT, wertVon, loyalitaetVerschieben, grollVerschieben, merke } from './personen';
 import { schritteFuer, fuehreGespraech } from './gespraeche';
-import { bringeEin, gesetzSicht } from './handeln';
-import { POSTEN } from './haushalt';
+import { bringeEin, gesetzSicht, pruefeVorhaben, stufeIn } from './handeln';
+import { POSTEN, POSTEN_NACH_ID } from './haushalt';
 import { haushaltsHilfen, haushaltsHilfePlan, fuehreHaushaltsHilfeAus, type HaushaltsHilfe } from './haushaltshilfe';
 import { letzterHaushaltsBeschluss } from './haushaltsbericht';
 import { defizitJetzt } from './wirtschaft';
@@ -14,6 +14,7 @@ import { kosten } from './ereignis-hilfen';
 import { addLog } from './log';
 import { addDays } from './dates';
 import { NET } from './modell';
+import { nationalAverage } from './netz';
 import { t } from '../i18n';
 import { erfasseRessortVorfall, ressortPolitikTag } from './ressortpolitik';
 
@@ -24,9 +25,16 @@ export const ressortEntspannt=(id:string,wert:number)=>(HOCH_SCHLECHT.has(id)?we
 // abstand: Tage zwischen zwei neuen Anliegen im ganzen Kabinett. Mit 17 Ministerien statt 7 Ämtern meldeten sich die Ressorts dreimal so oft
 // (5,0 statt 1,6 Anliegen im Monat ohne Antwort des Präsidenten); nach F3 (ENTSCHEIDUNGEN W, Nachtrag) bleibt der Druck des Kabinetts in der
 // Summe der von vorher. Spielparameter, am Zählwerkzeug gemessen; es spricht zuerst das Ressort mit der schlimmsten Lage.
-export const RESSORT_ANLIEGEN={ruhe:30,frist:14,beratung:21,aufschub:7,maxOffen:3,abstand:18};
-/** Folge einer unbeantworteten Anfrage (Spielparameter): die Ressortgröße und das Vertrauen in die Regierung; der Schreibtisch nennt dieselben Zahlen */
-export const RESSORT_STILLSTAND={groesse:1.5,vertrauen:0.3};
+// pause: Nach Antwort, Erledigung oder Verfall hakt die Nachbeobachtung so viele Tage nicht wieder zu derselben Größe nach (Spielparameter;
+// vorher fragte die Justizministerin über die Nachbeobachtung alle 44 Tage neu, 15 Mal in 22 Monaten)
+export const RESSORT_ANLIEGEN={ruhe:30,frist:14,beratung:21,aufschub:7,maxOffen:3,abstand:18,pause:90};
+/**
+ * Folge einer unbeantworteten Anfrage (Spielparameter): die Ressortgröße und das Vertrauen in die Regierung; der Schreibtisch nennt dieselben
+ * Zahlen. boden: Unter diesen Rest (von 100, in der guten Richtung) drückt Liegenlassen eine Größe nicht (Befund 07.11.2026: Die Unabhängigkeit
+ * der Justiz lag bei 0,4 und fiel alle sechs Wochen weiter). Ohne Hebel (kein möglicher Vorschlag) sinkt die Größe gar nicht: Wer nichts tun
+ * kann, wird nicht für das Nichtstun bestraft, nur der Minister ist verstimmt.
+ */
+export const RESSORT_STILLSTAND={groesse:1.5,vertrauen:0.3,boden:5};
 export type RessortAntwort='reden'|'umsetzen'|'spaeter'|'ablehnen';
 export interface RessortAnliegen {
  id:string;figur:string;amt:Figur['amt'];name:string;groesse:string;vorher:number;seit:number;frist:number;
@@ -47,6 +55,17 @@ const schlecht=(w:World,id:string)=>HOCH_SCHLECHT.has(id)?wertVon(w,id):100-wert
 const signal=(w:World,f:Figur)=>JSON.stringify({ziele:AEMTER[f.amt].massnahmen.map(id=>[id,w.net.targets[id],w.net.ziele?.[id]]),
  etats:POSTEN.filter(p=>p.amt===f.amt).map(p=>[p.id,w.spiel?.wirtschaft?.haushalt.stufen[p.id]??0]),
  auftrag:f.eigen?.auftrag?.seit,programme:f.amt==='wirtschaft'?w.spiel?.gueter?.regierung?.programme:undefined});
+/**
+ * Eine Maßnahme ist noch auf dem Weg: Sie nähert sich ihrem Ziel oder ihre Umsetzung läuft (sim/umsetzung.ts). Die Justizreform des Inhabers
+ * lief zwei Jahre in der Umsetzung und sperrte alle anderen Justizmaßnahmen (Krise „Justiz im Umbau“); die Ministerin schlug trotzdem alle
+ * sechs Wochen genau diese Reform vor und meldete „unbearbeiteten Rückstand“. Läuft der Hebel einer Anfrage schon, wartet das Ressort.
+ * Bewusst nur der eigene Hebel, nicht jede laufende Maßnahme des Ressorts: Das verschob sonst die Partien des klugen Testspielers
+ * (spielbarkeit „hart“: 11 statt 7 von 16 ersten Wahlen verloren, gemessen 07.11.2026), weil er fast immer irgendetwas umsetzt.
+ */
+export const massnahmeUnterwegs=(w:World,id:string)=>(w.net.umsetzung?.[id]??100)<100
+ ||(w.net.targets[id]!==undefined&&Math.abs(w.net.targets[id]!-nationalAverage(NET,w.net,id))>1)||!!w.net.ziele?.[id]?.some(z=>z>=0);
+/** Der Hebel (Gesetzesvorschlag) einer Anfrage ist schon in Umsetzung */
+export const hebelUnterwegs=(w:World,a:Pick<RessortAnliegen,'vorschlag'>)=>a.vorschlag?.art==='gesetz'&&massnahmeUnterwegs(w,a.vorschlag.id);
 export const ressortArbeitet=(w:World,f:Figur)=>w.spiel!.gesetze.some(g=>AEMTER[f.amt].massnahmen.includes(g.massnahme))
  ||Object.keys(w.spiel!.wirtschaft?.haushalt.gesetz?.schritte??{}).some(id=>POSTEN.some(p=>p.id===id&&p.amt===f.amt))
  ||(f.amt==='wirtschaft'&&Object.values(w.spiel!.gueter?.regierung?.vorlagen??{}).some(v=>v?.status==='offen'))
@@ -73,8 +92,8 @@ export function ressortAnliegenTag(w:World):void {
   if(!f){a.status='entfallen';a.ende=w.day;beleg(w,a,'wechsel',wertVon(w,a.groesse),0,0);continue;}
   const e=eigenVon(w,f),b=beob[a.amt],neu=signal(w,f);
   // Fachliche Schritte an anderer Stelle und laufende Gesetzesarbeit zählen ebenfalls; bloßes Lesen nicht.
-  if(ressortEntspannt(a.groesse,wertVon(w,a.groesse))||(b&&b.signal!==neu)||ressortArbeitet(w,f)){
-   a.status='erledigt';a.ende=w.day;beleg(w,a,ressortEntspannt(a.groesse,wertVon(w,a.groesse))?'entschaerft':'bearbeitet',wertVon(w,a.groesse),f.loyalitaet,e.groll);if(b){b.seit=w.day;b.signal=neu;}continue;
+  if(ressortEntspannt(a.groesse,wertVon(w,a.groesse))||(b&&b.signal!==neu)||ressortArbeitet(w,f)||hebelUnterwegs(w,a)){
+   a.status='erledigt';a.ende=w.day;pausiere(w,a);beleg(w,a,ressortEntspannt(a.groesse,wertVon(w,a.groesse))?'entschaerft':'bearbeitet',wertVon(w,a.groesse),f.loyalitaet,e.groll);if(b){b.seit=w.day;b.signal=neu;}continue;
   }
   // Ein Gespräch außerhalb der Karte verhindert die soziale Zurückweisung, löst die Sachfrage aber nicht.
   if(a.status==='offen'&&(f.gespraech??-1)>=a.seit){a.status='besprochen';a.frist=w.day+RESSORT_ANLIEGEN.beratung;}
@@ -85,8 +104,12 @@ export function ressortAnliegenTag(w:World):void {
   if(typ.eigen){
    // Begrenzte Verwaltungsinitiative: kein Gesetz, kein Kriegsbeginn und kein Umgehen parlamentarischer Sachziele.
    wirke(w,a.groesse,richtung*(typ.faehig?1.2:-0.8));bip=0.01;kosten(w,bip);wirke(w,'legitimitaet',-0.3);leg=wertVon(w,'legitimitaet')-legVor;grollVerschieben(w,f,1);
-  }else{wirke(w,a.groesse,-richtung*RESSORT_STILLSTAND.groesse);wirke(w,'vertrauen_regierung',-RESSORT_STILLSTAND.vertrauen);}
-  a.status='eskaliert';a.ende=w.day;if(b)b.seit=w.day;
+  }else{
+   // Nur wo es einen Hebel gab, und nie unter den Boden (RESSORT_STILLSTAND.boden)
+   const rest=100-schlecht(w,a.groesse),fall=a.vorschlag?Math.min(RESSORT_STILLSTAND.groesse,Math.max(0,rest-RESSORT_STILLSTAND.boden)):0;
+   if(fall>0)wirke(w,a.groesse,-richtung*fall);wirke(w,'vertrauen_regierung',-RESSORT_STILLSTAND.vertrauen);
+  }
+  a.status='eskaliert';a.ende=w.day;pausiere(w,a);if(b)b.seit=w.day;
   const folge=beleg(w,a,typ.eigen?'eigeninitiative':'stillstand',vorher,loy,groll,bip,leg,wertVon(w,'vertrauen_regierung')-vertrauenVor);
   erfasseRessortVorfall(w,a,folge,richtung*(folge.nachher-vorher)>1e-8);
   merke(w,f,t(typ.eigen?'ra.erinnerungEigen':'ra.erinnerungStill'));
@@ -113,16 +136,54 @@ export function ressortAnliegenTag(w:World):void {
  const alt=alle.filter(a=>!offen(a)).slice(-20);z.ressortAnliegen=[...alt,...alle.filter(offen)];
 }
 
+const pausenSchluessel=(amt:string,groesse:string)=>`${amt}|${groesse}`;
+/** Merkt die Pause nach dem Ende einer Anfrage (Antwort, Erledigung, Verfall) */
+function pausiere(w:World,a:RessortAnliegen){(flussZustand(w).ressortPause??={})[pausenSchluessel(a.amt,a.groesse)]=w.day+RESSORT_ANLIEGEN.pause;}
+/** Tag, bis zu dem das Ressort nicht wieder nach dieser Größe fragt (undefined: keine Pause) */
+export function ressortPauseBis(w:World,amt:string,groesse:string):number|undefined {
+ const bis=w.spiel?.ministerfluss?.ressortPause?.[pausenSchluessel(amt,groesse)];return bis!==undefined&&bis>w.day?bis:undefined;
+}
+
+/**
+ * Der Hebel einer Anfrage (Befund 07.11.2026): die Maßnahme oder der Etat, die die Größe wirklich bewegen, ob der Weg gerade offen ist, und
+ * wenn es keinen gibt, warum. Nur Lesen; die Prüfung ist dieselbe wie beim Einbringen (pruefeVorhaben).
+ */
+export type RessortHebel =
+ | { art:'gesetz'; id:string; name:string; von:number; ziel:number; ok:boolean; grund?:string }
+ | { art:'haushalt'; name:string; ok:boolean }
+ | { art:'keiner'; grund?:string };
+export function ressortHebel(w:World,a:RessortAnliegen):RessortHebel {
+ const v=a.vorschlag;
+ if(v?.art==='gesetz'){const p=pruefeVorhaben(w,v.id,v.ziel,null);return {art:'gesetz',id:v.id,name:knotenName(v.id),von:Math.round(stufeIn(w,v.id,null)),ziel:v.ziel,ok:p.ok,...(p.ok?{}:{grund:p.grund})};}
+ if(v?.art==='haushalt')return {art:'haushalt',name:v.aktion.art==='etat'?(POSTEN_NACH_ID[v.aktion.posten]?.name??v.aktion.posten):v.aktion.art==='programm'?t(`regierung.${v.aktion.programm}.titel`):'',ok:!!haushaltsHilfePlan(w,v.beschluss,v.aktion)?.moeglich};
+ // Kein Vorschlag: Steht ein Weg des Ressorts still, nennt die erste Sperre den Grund (etwa „Justiz im Umbau“)
+ for(const id of AEMTER[a.amt].massnahmen){
+  const jetzt=Math.round(stufeIn(w,id,null)),p=pruefeVorhaben(w,id,Math.min(100,jetzt+10),null);
+  if(!p.ok&&p.grund)return {art:'keiner',grund:p.grund};
+ }
+ return {art:'keiner'};
+}
+
 /** Gemeinsamer Vorschlagsweg für Vernachlässigung und spätere Fortschrittsmeldungen. */
 export function legeRessortAnliegenAn(w:World,f:Figur,groesse:string,nachsorge?:string):RessortAnliegen|undefined {
  const alle=flussZustand(w).ressortAnliegen??=[];
  const vorhanden=alle.find(a=>a.amt===f.amt&&offen(a));if(vorhanden)return vorhanden;
+ // Die Pause gilt für das Nachhaken der Nachbeobachtung, das sonst alle 14 Tage neu fragen konnte. Der Tageslauf hat seine eigene Ruhe
+ // (RESSORT_ANLIEGEN.ruhe ab der letzten Antwort oder dem Verfall, Abstand im Kabinett) und bleibt unverändert; eine zusätzliche Pause dort
+ // verschob nur, welches Ressort zuerst fragt (untätiger Testspieler: 15,89 → 16,05 Ereignisse im Jahr, je Samen ±2 in beide Richtungen).
+ if(nachsorge&&ressortPauseBis(w,f.amt,groesse)!==undefined)return;
  if(alle.filter(offen).length>=RESSORT_ANLIEGEN.maxOffen)return;
  const a:RessortAnliegen={id:`ressort-${f.amt}-${w.day}`,figur:f.id,name:f.name,amt:f.amt,amtsantritt:f.eigen?.seit,groesse,vorher:wertVon(w,groesse),seit:w.day,frist:w.day+RESSORT_ANLIEGEN.frist,status:'offen',nachsorge};
  const hb=letzterHaushaltsBeschluss(w),hilfe=f.amt==='wirtschaft'&&hb?haushaltsHilfen(w,hb.id).find(p=>p.moeglich&&(p.aktion.art==='etat'||p.aktion.art==='programm')):undefined;
  if(hilfe)a.vorschlag={art:'haushalt',beschluss:hilfe.beschluss,aktion:hilfe.aktion};
  else{const schritt=schritteFuer(w,f,groesse,HOCH_SCHLECHT.has(groesse)?-1:1,1)[0];if(schritt)a.vorschlag={art:'gesetz',id:schritt.id,ziel:schritt.nach};}
- alle.push(a);addLog(w,'ereignis',t('ra.neu',{name:f.name,groesse:NET.nodes[NET.index.get(groesse)!]!.name,datum:addDays(w.date,RESSORT_ANLIEGEN.frist)}));
+ // Der vorgeschlagene Hebel läuft schon: keine Anfrage, das Ressort wartet auf seine Wirkung
+ if(hebelUnterwegs(w,a))return;
+ alle.push(a);
+ // Die Anfrage nennt ihren Hebel oder dass es keinen gibt (Befund 07.11.2026)
+ const h=ressortHebel(w,a);
+ addLog(w,'ereignis',t('h4b.ra.neu',{name:f.name,groesse:NET.nodes[NET.index.get(groesse)!]!.name,datum:addDays(w.date,RESSORT_ANLIEGEN.frist),
+  hebel:h.art==='gesetz'?(h.ok?'gesetz':'gesperrt'):h.art==='haushalt'?'haushalt':'keiner',massnahme:h.art==='gesetz'||h.art==='haushalt'?h.name:'',ziel:h.art==='gesetz'?h.ziel:0}));
  return a;
 }
 
@@ -143,7 +204,7 @@ function antwort(w:World,id:string,art:RessortAntwort):{ok:boolean;text:string;d
   const v=a.vorschlag;if(!v)return {ok:false,text:t('ra.keinVorschlag')};
   const p=v.art==='haushalt'?haushaltsHilfePlan(w,v.beschluss,v.aktion):undefined;
   const r=v.art==='gesetz'?bringeEin(w,v.id,v.ziel,null,'gesetz'):p?fuehreHaushaltsHilfeAus(w,p):{ok:false,text:t('ra.veraltet')};
-  if(!r.ok)return r;a.status='beauftragt';a.ende=w.day;
+  if(!r.ok)return r;a.status='beauftragt';a.ende=w.day;pausiere(w,a);
  }else if(art==='spaeter'){
   if(a.verschoben)return {ok:false,text:t('ra.nurEinmal')};a.verschoben=true;a.frist+=RESSORT_ANLIEGEN.aufschub;loyalitaetVerschieben(f,-1);grollVerschieben(w,f,1);
  }else if(art==='ablehnen'){

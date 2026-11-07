@@ -8,7 +8,7 @@ import { bereitschaftAendern, startBereitschaft } from './fraktionen';
 import { oppositionsFraktionen, oppositionVon } from './opposition';
 import { clamp } from './economy';
 import { addDays } from './dates';
-import { addLog } from './log';
+import { ressortMonatslog } from './ressortlog';
 import { t } from '../i18n';
 
 type Rolle='koalition'|'duldung'|'opposition';
@@ -114,7 +114,7 @@ export function bewerteRessortErholung(w:World,n:RessortNachsorge,m:RessortMeldu
     const o=oppositionVon(w),b=o.staerke;o.partei=fr[0]!.partei;
     o.staerke=clamp(b+(negativ?2:urteil==='bestaetigt'?-2:-1),0,100);opposition={partei:o.partei,vorher:b,nachher:o.staerke};
     const text=t(negativ?'rr.opp.druck':'rr.opp.erfolg',{partei:o.partei,name:m.name});
-    o.zuege.push({tag:w.day,datum:w.date,art:'anfrage',text});if(o.zuege.length>40)o.zuege.shift();addLog(w,'ereignis',text);
+    o.zuege.push({tag:w.day,datum:w.date,art:'anfrage',text});if(o.zuege.length>40)o.zuege.shift();ressortMonatslog(w,n.amt,{art:negativ?'forderung':'entlastung',partei:o.partei});
   }
   if(negativ){
     const coal=[...new Set(w.spiel!.lager)].filter(p=>p!==w.player?.partei.kurz&&(w.parliament?.seats[p]??0)>0).sort((a,b)=>(a===traeger?-1:b===traeger?1:0)||(w.parliament?.seats[b]??0)-(w.parliament?.seats[a]??0));
