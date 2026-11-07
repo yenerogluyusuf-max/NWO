@@ -2,6 +2,7 @@ import { initialisiereStaatsgeld, staatsgeldMonat } from "./staatsgeld";
 // Weltzustand, Zeit und Handlungen. Jede verbindliche Zustandsänderung wird
 // protokolliert (Entwicklungsplan, Abschnitt 6).
 
+import { migriereEingefroreneLinien } from "./kriegsschauplatz";
 import { t } from "../i18n";
 import type { EconomyState, MonthlySnapshot, Scenario, World } from "./types";
 import { Rng, seedToState } from "./rng";
@@ -332,6 +333,8 @@ export function load(json: string): World {
   migriereChronik(w);
   // Ältere Spielstände (Welle E3): eine Nebenfigur des Machtkreises mit dem Namen eines Amtsträgers bekommt einen eigenen
   bereinigeNamensdoppel(w);
+  // Ältere Spielstände (Welle 3, K1): Ein eingefrorener Konflikt behält seine Linie (sim/kriegsschauplatz.ts)
+  migriereEingefroreneLinien(w);
   return w;
 }
 

@@ -38,6 +38,7 @@ import { kannZahlen } from "./kapital";
 import { land, landAendern, weltZustand } from "./laender";
 import { eigenVon } from "./welt-modell";
 import { aussenZustand } from "./diplomatie";
+import { FERN, cyberFaktor, istFernkonflikt } from "./fernkonflikt";
 import { t } from "../i18n";
 import type { World } from "./types";
 
@@ -69,9 +70,9 @@ export const SCHAUPLATZ = {
   gegnerVorstoss: 0.006,
   gegnerDruck: 0.004,
   /** Kriegsbelastung des Gegnerlandes im Weltmodell (treibt Flucht und Instabilität, sim/diplomatie.ts) */
-  kriegsLast: { luft: 55, boden: 80, see: 45, stellvertreter: 60, gemischt: 70 } as Record<EinsatzArt | "gemischt", number>,
+  kriegsLast: { luft: 55, boden: 80, see: 45, stellvertreter: 60, cyber: 20, gemischt: 70 } as Record<EinsatzArt | "gemischt", number>,
   /** Laufende Kosten der Operationen je Kriegswoche in % des BIP (Treibstoff, Munition, Einsatzzulagen; Spielparameter) */
-  kostenWoche: { luft: 0.012, boden: 0.025, see: 0.016, stellvertreter: 0.006, gemischt: 0.018 } as Record<EinsatzArt | "gemischt", number>,
+  kostenWoche: { luft: 0.012, boden: 0.025, see: 0.016, stellvertreter: 0.006, cyber: 0.002, gemischt: 0.018 } as Record<EinsatzArt | "gemischt", number>,
   /** Zustimmung je Prozentpunkt eigener Wochenverluste („die Särge kommen heim“) */
   verlustZustimmung: 40,
   /** Munitionsvorrat (Gefechtstage), unter dem die Kampfkraft einbricht */
@@ -183,6 +184,8 @@ function gegnerGeneration(w: World, k: KriegVorgang): number {
  */
 export function eigenerBestandsFaktor(w: World, k: KriegVorgang): number | null {
   if (!k.einsatz) return null;
+  // Cyber trägt keine Waffengattung, sondern die Behörde für Cybersicherheit (sim/fernkonflikt.ts)
+  if (k.einsatz === "cyber") return cyberFaktor(w);
   const traeger = traegerVon(k);
   const idx = einsatzIndex(w, traeger);
   const basis = clamp(0.3 + 0.7 * idx, 0.3, 1.9);
@@ -254,10 +257,13 @@ export function einsatzSichten(w: World, k: KriegVorgang): EinsatzSicht[] {
   const s = schauplatzFuer(k.land);
   const r = umkaempfteRegion(k);
   const rest = (k.einsatzSeit ?? -1e9) + SCHAUPLATZ.einsatzAbkuehlung - w.day;
-  return (Object.keys(EINSATZ) as EinsatzArt[]).map((id) => {
+  // Im Fernkonflikt ohne gemeinsame Grenze gibt es keine Bodenoffensive, dafür Cyber (sim/fernkonflikt.ts); im Landkrieg kein Cyber als Einsatzart
+  const fern = istFernkonflikt(k.land);
+  const arten = fern ? FERN.mittel : (Object.keys(EINSATZ) as EinsatzArt[]).filter((id) => id !== "cyber");
+  return arten.map((id) => {
     let grund: string | undefined;
     if (id === "see" && !(s?.kueste ?? true)) grund = t("krieg.einsatz.grund_kueste");
-    else if (id === "stellvertreter" && !(s?.stellvertreter ?? false)) grund = t("krieg.einsatz.grund_stellvertreter");
+    else if (id === "stellvertreter" && !fern && !(s?.stellvertreter ?? false)) grund = t("krieg.einsatz.grund_stellvertreter");
     else if (k.einsatz === id) grund = undefined;
     else if (k.einsatz && k.phase === "krieg" && rest > 0) grund = t("krieg.einsatz.grund_abkuehlung", { tage: rest });
     else if (k.einsatz && k.phase === "krieg" && w.spiel && !kannZahlen(w.spiel.kapital, SCHAUPLATZ.einsatzPk)) grund = t("krieg.einsatz.grund_kapital");
@@ -267,7 +273,7 @@ export function einsatzSichten(w: World, k: KriegVorgang): EinsatzSicht[] {
       ...(grund ? { grund } : {}),
       aktiv: k.einsatz === id,
       eignung: r ? EINSATZ[id].gelaende[r.gelaende] : 1,
-      kraft: r1(einsatzIndex(w, EINSATZ[id].traeger as Partial<Record<GattungId, number>>)),
+      kraft: r1(id === "cyber" ? cyberFaktor(w) : einsatzIndex(w, EINSATZ[id].traeger as Partial<Record<GattungId, number>>)),
     };
   });
 }
@@ -308,7 +314,8 @@ export function waehleTempo(w: World, k: KriegVorgang, tempo: KriegsTempo): { ok
 export function schauplatzWoche(w: World, k: KriegVorgang, delta: number): void {
   const e = einsatzVon(k);
   const tp = TEMPO[tempoVon(k)];
-  const verlustArt = e === "gemischt" ? 1 : EINSATZ[e].verlust;
+  // Im Fernkonflikt kämpfen keine Bodentruppen: Die eigenen Verluste sind ein kleiner Bruchteil (sim/fernkonflikt.ts, Vorbild Klauenschwert)
+  const verlustArt = (e === "gemischt" ? 1 : EINSATZ[e].verlust) * (istFernkonflikt(k.land) ? FERN.verlust : 1);
   // Eigene Verluste: Verschleiß, Rückschläge, ein Teil der Vorstöße
   const eigen = (SCHAUPLATZ.verlustBasis + Math.max(0, -delta) * SCHAUPLATZ.verlustRueckzug + Math.max(0, delta) * SCHAUPLATZ.verlustVorstoss) * verlustArt * tp.verlust;
   kriegsVerluste(w, traegerVon(k), eigen);
@@ -372,11 +379,13 @@ export function regionenSetzen(w: World, k: KriegVorgang): void {
   }
   n = genommen;
   if (k.phase === "krieg" && k.front > 50 && n < ziel.length) lage[ziel[n]!.id] = "umkaempft";
+  // Was die Türkei schon besetzt hält (Frieden oder eingefrorene Linie), bleibt türkisch: Ein neuer Krieg erobert es nicht ein zweites Mal
+  // (krieg.md Befund A6; die Eingliederung baut Schritt 9)
+  for (const b of w.spiel?.besatzung ?? []) if (b.land === k.land && lage[b.region] !== undefined) lage[b.region] = "eigen";
   k.regionen = lage;
   const s = schauplatzFuer(k.land);
   const druck = clamp((SCHAUPLATZ.bedrohtAb - k.front) / SCHAUPLATZ.bedrohtSpanne, 0, 1);
   k.bedroht = s && k.phase === "krieg" && druck > 0 ? s.grenzprovinzen.slice(0, Math.ceil(druck * s.grenzprovinzen.length)) : [];
-  void w;
 }
 
 /** Einen Zielraum wechseln oder setzen: Die Regionen ordnen sich neu (Bereits Genommenes bleibt, solange die Front es deckt). */
@@ -416,24 +425,41 @@ export function besatzung(w: World): BesatzungsGebiet[] {
  * Nach einem Frieden mit Gebietsgewinn (Paket mit `gebiet` = 1): Was die Türkei hält, wird besetzt (Form „Pufferzone“, die der Spieler
  * später ändern kann). Hält sie nichts, wird die umkämpfte Grenzregion zur Pufferzone (der frühere Sinn des Pakets). Ohne Gebietsgewinn
  * kehren alle Regionen zurück. Rückgabe: die Namen der besetzten Regionen (für den Friedenstext).
+ *
+ * Welle 3, K1: Ein Paket mit `forderungen` hält genau die Regionen mit „halten“ (Schritt 7 baut die Forderungen je Region aus). Mit
+ * `grundlage` „linie“ (eingefrorener Konflikt ohne Vertrag) bleibt nur, was die Front tatsächlich hält, und nichts wird ersatzweise besetzt.
  */
-export function besatzungNachFrieden(w: World, k: KriegVorgang, gebiet: -1 | 0 | 1): string[] {
+export function besatzungNachFrieden(w: World, k: KriegVorgang, gebiet: -1 | 0 | 1, opts: { forderungen?: Record<string, string>; grundlage?: "vertrag" | "linie" } = {}): string[] {
   const lage = k.regionen ?? {};
   const liste = besatzung(w);
   const out: string[] = [];
+  const grundlage = opts.grundlage ?? "vertrag";
   if (gebiet === 1) {
-    let ids = zielRegionen(k).filter((r) => lage[r.id] === "eigen").map((r) => r.id);
-    if (!ids.length) {
+    const gehalten = zielRegionen(k).filter((r) => lage[r.id] === "eigen").map((r) => r.id);
+    // Auch was außerhalb des Zielraums schon besetzt war, zählt als gehalten (regionenSetzen hält es auf „eigen“)
+    for (const r of regionenVon(k.land)) if (lage[r.id] === "eigen" && !gehalten.includes(r.id)) gehalten.push(r.id);
+    let ids = opts.forderungen ? gehalten.filter((id) => opts.forderungen![id] === "halten") : gehalten;
+    if (!ids.length && grundlage === "vertrag" && !opts.forderungen) {
       const erste = zielRegionen(k)[0];
       if (erste) ids = [erste.id];
     }
     for (const id of ids) {
-      if (liste.some((b) => b.region === id)) continue;
-      liste.push({ region: id, land: k.land, seit: w.day, form: "pufferzone", widerstand: 30, aufstand: 0 });
+      const da = liste.find((b) => b.region === id);
+      if (da) {
+        // Eine eingefrorene Linie, die ein Vertrag nun festschreibt
+        if (grundlage === "vertrag" && da.grundlage === "linie") delete da.grundlage;
+        continue;
+      }
+      liste.push({ region: id, land: k.land, seit: w.day, form: "pufferzone", widerstand: 30, aufstand: 0, ...(grundlage === "linie" ? { grundlage } : {}) });
       out.push(t(`krieg.region.${id}`));
     }
   }
-  k.regionen = Object.fromEntries(regionenVon(k.land).map((r) => [r.id, liste.some((b) => b.region === r.id) ? "eigen" : "gegner"] as const));
+  if (gebiet !== 1 && grundlage === "vertrag") {
+    // Ein Frieden ohne Gebiet gibt auch eine eingefrorene Linie zurück
+    w.spiel!.besatzung = liste.filter((b) => !(b.land === k.land && b.grundlage === "linie"));
+  }
+  const jetzt = besatzung(w);
+  k.regionen = Object.fromEntries(regionenVon(k.land).map((r) => [r.id, jetzt.some((b) => b.region === r.id) ? "eigen" : "gegner"] as const));
   k.bedroht = [];
   return out;
 }
@@ -576,7 +602,7 @@ export interface KriegsKarte {
 
 /** Tragende Teilstreitkräfte je Einsatzart (für die Marken auf der Karte). */
 const MARKEN_TEILE: Record<EinsatzArt | "gemischt", ("heer" | "luft" | "see")[]> = {
-  luft: ["luft"], boden: ["heer", "luft"], see: ["see"], stellvertreter: ["heer"], gemischt: ["heer", "luft"],
+  luft: ["luft"], boden: ["heer", "luft"], see: ["see"], stellvertreter: ["heer"], cyber: [], gemischt: ["heer", "luft"],
 };
 const TEIL_GATTUNGEN: Record<"heer" | "luft" | "see", Partial<Record<GattungId, number>>> = {
   heer: { personal: 0.35, panzer: 0.4, munition: 0.25 },
@@ -671,4 +697,23 @@ export function kriegsKarte(w: World, kriege: KriegVorgang[], grenzpunkt: (plaka
   }
   if (!regionen.length) return null;
   return { regionen, pfeile, bedroht, aktiv, ...(fronten.length ? { fronten, verbaende } : {}) };
+}
+
+/**
+ * Ältere Spielstände (Welle 3, K1): Ein eingefrorener Konflikt warf früher alle gehaltenen Regionen weg, ließ sie aber im Vorgang als
+ * „eigen“ stehen (Spielstand 2045 des Inhabers: Lesbos, Chios, Kos und Alexandroupoli nach dem Einfrieren mit Griechenland). Beim Laden
+ * werden sie zur De-facto-Linie, wie es das Einfrieren jetzt tut, sofern kein späterer Vorgang mit demselben Land sie neu geordnet hat.
+ */
+export function migriereEingefroreneLinien(w: World): void {
+  const sp = w.spiel;
+  if (!sp?.kriege?.length) return;
+  const liste = besatzung(w);
+  for (const k of sp.kriege) {
+    if (k.ausgang !== "eingefroren" || !k.regionen) continue;
+    if (sp.kriege.some((x) => x !== k && x.land === k.land && x.seit > k.seit)) continue;
+    for (const [id, lage] of Object.entries(k.regionen)) {
+      if (lage !== "eigen" || !REGION_NACH_ID[id] || liste.some((b) => b.region === id)) continue;
+      liste.push({ region: id, land: k.land, seit: k.seit, form: "pufferzone", widerstand: 30, aufstand: 0, grundlage: "linie" });
+    }
+  }
 }

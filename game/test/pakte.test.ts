@@ -68,6 +68,8 @@ function inDenKrieg(land: string, weg: "angriff" | "verteidigung" | "schutz" | "
   k0.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
   advance(w, 1);
   if (weg === "angriff") {
+    // Welle 3, K1: Der Gegner schlägt erst zu, wenn auch sein eigener Konfliktwert an der Schwelle steht (KRIEG.angriffKonfliktAb)
+    weltZustand(w)[land]!.konflikt = Math.max(weltZustand(w)[land]!.konflikt, KRIEG.angriffKonfliktAb + 5);
     k0.eskalation = 99;
     advance(w, 1);
   } else {
@@ -75,7 +77,8 @@ function inDenKrieg(land: string, weg: "angriff" | "verteidigung" | "schutz" | "
     // einem Angriff auf die Türkei. Vorher ging dieser Hilfsweg per Erlass.
     expect(fuehreKriegHandlungAus(w, k0.id, `ziel_${weg}`).ok).toBe(true);
     k0.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
-    expect(fuehreKriegHandlungAus(w, k0.id, "beschluss").ok).toBe(true);
+    k0.ultimatum = true; // Welle 3, K1: Vor einem eigenen Einsatz steht das Ultimatum; hier gilt es als gestellt und abgelehnt
+    expect(fuehreKriegHandlungAus(w, k0.id, land === "SYR" || land === "IRQ" ? "beschluss_vollmacht" : "beschluss").ok).toBe(true);
     advance(w, KRIEG.beschlussTage);
   }
   const k = kriege(w).find((x) => x.land === land)!;
@@ -204,6 +207,7 @@ describe("Koalitionen im Krieg der Türkei: Pflicht nur für das Opfer", () => {
     k.eskalation = 80;
     k.seit -= KRIEG.spannungMinTage; // Die Spannung läuft schon drei Wochen (Mindestdauer KRIEG.spannungMinTage, Befund G-2 vom 5. November)
     advance(w, 1);
+    weltZustand(w)["IRN"]!.konflikt = KRIEG.angriffKonfliktAb + 5; // Welle 3, K1: Der Gegner schlägt erst bei eigenem Konflikt an der Schwelle zu
     k.eskalation = 99;
     advance(w, 1);
     const ko = k.koalition!;

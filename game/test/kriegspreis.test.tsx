@@ -37,8 +37,11 @@ function krieg(w: World, landId: string): KriegVorgang {
   advance(w, 1);
   fuehreKriegHandlungAus(w, k.id, "ziel_verteidigung");
   k.seit -= KRIEG.drohkulisseMinTage; // Die Drohkulisse steht schon zwei Wochen (Mindestdauer KRIEG.drohkulisseMinTage vor dem Einsatzbeschluss, Befund G-2)
-  fuehreKriegHandlungAus(w, k.id, "beschluss");
-  advance(w, KRIEG.beschlussTage);
+  // Welle 3, K1: Vor einem eigenen Einsatz steht das Ultimatum (dritte Sprosse der Leiter); hier gilt es als gestellt und abgelehnt
+  k.ultimatum = true;
+  fuehreKriegHandlungAus(w, k.id, k.land === "SYR" || k.land === "IRQ" ? "beschluss_vollmacht" : "beschluss");
+  // Auf die Vollmacht (Syrien, Irak bis 30.10.2028) beginnt der Krieg ohne Abstimmung sofort
+  if (k.phase === "beschluss") advance(w, KRIEG.beschlussTage);
   expect(k.phase).toBe("krieg");
   w.spiel!.ereignisse = [];
   return k;
