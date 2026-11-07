@@ -57,7 +57,10 @@
 /* Chance als Wort und Spanne in --schrift-1 (Tag 6. November): die Spanne stand als <small> bei 10 px */
 .gzk-chance { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 6px; padding: 0 8px; font: var(--schrift-1)/1.3 var(--sans); }
 .gzk-chance b { font-weight: 600; }
-.gzk-chance small { font-size: var(--schrift-1); color: var(--tinte-3); }
+.gzk-chance small { font-size: var(--schrift-1); color: var(--tinte-3); white-space: nowrap; }
+/* Welle E2: „aussichtsreich“ ist länger als „gut“: Die Spanne bricht als Ganzes in die nächste Zeile, nie zwischen Zahl und Prozent */
+.gzk-chance { display: flex; flex-wrap: wrap; align-items: baseline; }
+.gzk-chance > i { flex-basis: 100%; }
 .gzk-chance > i { grid-column: 1 / -1; position: relative; display: block; height: 5px; border-radius: 999px; background: #5a40281f; }
 .gzk-chance > i s { position: absolute; top: 0; bottom: 0; border-radius: 999px; background: linear-gradient(90deg, #c9a45a, #674b3b); }
 .gzk-chance.gering b { color: #a23d3e; } .gzk-chance.moeglich b { color: #8a6418; } .gzk-chance.aussichtsreich b { color: #3d5a2e; }

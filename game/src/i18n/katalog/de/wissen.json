@@ -173,7 +173,7 @@
  "wissen.e.partnerGrund": "Partner beim Werk {name}",
  "wissen.e.weg.lizenz": "mit Lizenz, Lizenzgeber {land}",
  "wissen.e.weg.selbst": "aus eigener Forschung",
- "wissen.e.begonnen": "Begonnen: {name}, {weg}. Geplant sind etwa {monate} Monate.",
+ "wissen.e.begonnen": "Begonnen: {name}, {weg}. Bei heutigem Tempo etwa {monate} Monate.",
  "wissen.e.lizenzWarum": "Eine Lizenz spart Jahre, kostet Kapital und Gebühren und macht abhängig: Sperrt der Lizenzgeber, stocken Bau und Werk. Sein Rivale nimmt es übel.",
  "wissen.e.selbstWarum": "Eigene Forschung ist langsamer und ungewisser, aber das Wissen bleibt im Land.",
  "wissen.e.nichtLaufend": "Das läuft gerade nicht.",

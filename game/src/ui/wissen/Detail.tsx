@@ -107,7 +107,7 @@ export function Detail({
           <div>
             <h3>{knotenName(k.id)}</h3>
             <p className="wb-detail-zweig">
-              {t(`wissen.z.${k.zweig}.name`)} · {t(`wissen.ui.zustand.${k.zustand}`)}
+              {t(`wissen.z.${k.zweig}.name`)} · {k.zustand === "moeglich" && k.grund ? t("welle_e2.ui.blockiert") : t(`wissen.ui.zustand.${k.zustand}`)}
             </p>
           </div>
         </div>
@@ -131,7 +131,7 @@ export function Detail({
 
       {k.zustand !== "fertig" && (
         <p className="wb-kosten">
-          {k.zustand === "laeuft" ? knotenTermin(k) : t("wissen.ui.kosten", { pk: k.pk, monate: k.monate })}
+          {k.zustand === "laeuft" ? knotenTermin(k) : k.monateEcht === undefined ? t("welle_e2.ui.kostenOffen", { pk: k.pk }) : t("wissen.ui.kosten", { pk: k.pk, monate: k.monateEcht })}
           {k.zustand === "laeuft" && <span className="wbf-prozent"> · {Math.round(k.fortschritt * 100)} %</span>}
         </p>
       )}

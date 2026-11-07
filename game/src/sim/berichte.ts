@@ -681,7 +681,7 @@ export function berichteTag(world: World): void {
 /** Ein Rückblick auf eine Entscheidung (gespeichert in `spiel.rueckblicke`). */
 export interface Rueckblick {
   id: string;
-  art: "ereignis" | "programm" | "vertrag";
+  art: "ereignis" | "programm" | "vertrag" | "forschung"; // Welle E2: „forschung“ für Durchbrüche im Wissensbaum
   name: string;
   tag: number;
   /** Landesmittel der beobachteten Größen beim Beschluss (Knoten-Kennung → Wert) */
