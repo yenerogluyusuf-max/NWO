@@ -668,7 +668,9 @@ function eingehendeMonat(w: World, m: WeltModell, dz: DienstZustand, rng: Rng): 
     }
     if (!x.aufgedeckt) wirkeEingehend(w, x.art, dz.abwehr > 0 ? 0.6 : 1);
   }
-  dz.eingehend = rest.filter((x) => !(x.aufgedeckt && w.day >= x.ende + 120));
+  // Welle E3: Eine aufgedeckte Operation, die noch nicht als Vorgang vorlag, wartet bis zu einem Jahr auf ihren Platz (ohne Zusatzplatz kommt
+  // sie nur in einem Monat mit anderen Vorgängen; vorher verfiel sie nach 120 Tagen ungesehen)
+  dz.eingehend = rest.filter((x) => !(x.aufgedeckt && w.day >= x.ende + (x.gemeldet ? 120 : 365)));
 }
 
 /**
