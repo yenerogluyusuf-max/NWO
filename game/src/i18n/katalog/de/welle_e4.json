@@ -1,0 +1,5 @@
+{
+ "welle_e4.zeitung.bericht_fakt": "Amtliche Wirkungsprüfung {monate} Monate nach dem Beschluss „{name}“: von {von} auf {auf}.{zusatz}",
+ "welle_e4.zeitung.bericht_fakt_ohne": "Amtliche Wirkungsprüfung {monate} Monate nach dem Beschluss „{name}“.{zusatz}",
+ "welle_e4.militaer.einzelgenehmigung": "einzeln genehmigt trotz CAATSA"
+}

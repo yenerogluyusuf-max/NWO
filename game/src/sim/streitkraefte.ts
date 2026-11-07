@@ -11,7 +11,8 @@
 
 import { kaufkraft } from "./staatsgeld";
 import { militaerVersorgung } from "./versorgung";
-import { GATTUNGEN, GATTUNG_NACH_ID, START_BESCHAFFUNGEN, type GattungId, type Teilstreitkraft } from "../data/streitkraefte";
+import { GATTUNGEN, GATTUNG_NACH_ID, START_BESCHAFFUNGEN, type GattungId, type Lizenz, type Teilstreitkraft } from "../data/streitkraefte";
+import { SANKTION_GEZIELT } from "./sanktion-art";
 import { NET } from "./modell";
 import { nationalAverage, startAverage } from "./netz";
 import { wirke } from "./wirkung";
@@ -22,7 +23,7 @@ import { kosten } from "./ereignis-hilfen";
 import { haushaltZustand } from "./wirtschaft";
 import { RESSORT_NACH_ID } from "../data/haushaltsplan";
 import { innovationsGrenze as wissensGrenze, WISSEN } from "./wissensbasis";
-import { reichZustand, warteschlange } from "./reich";
+import { reichZustand, vorhabenDef, warteschlange } from "./reich";
 import { t } from "../i18n";
 import type { World } from "./types";
 
@@ -55,6 +56,8 @@ export interface Beschaffung {
   scheitert?: boolean;
   gestoppt?: boolean;
   versorgungsVerzug?: number;
+  /** Einzeln genehmigt (data/streitkraefte.ts `Lizenz`): läuft unter einer gezielten Sanktion weiter; fehlt in älteren Spielständen */
+  lizenz?: Lizenz;
 }
 
 export interface StreitkraefteZustand {
@@ -68,6 +71,8 @@ export interface StreitkraefteZustand {
   zaehler: number;
   /** Monate in Folge, in denen der Etat unter der Erhaltungsschwelle lag */
   unterdeckung?: number;
+  /** Welle E4: Einzelgenehmigungen und fehlende Rüstungsvorhaben älterer Spielstände sind nachgetragen (einmalig) */
+  lizenzNachtrag?: true;
 }
 
 export const STREITKRAEFTE = {
@@ -82,6 +87,9 @@ export const STREITKRAEFTE = {
   /** Unter diesem Etat-Faktor fehlt Geld für den Erhalt: alle so viele Monate wird ein Los des ältesten Geräts ausgemustert */
   erhaltSchwelle: 0.8,
   erhaltMonate: 6,
+  /** Ab diesem Konflikt mit dem Lieferland widerruft es auch Einzelgenehmigungen: dieselbe Schwelle, ab der die USA neue Sanktionen
+   * verhängen (sim/diplomatie.ts, Spielparameter) */
+  widerrufKonflikt: 70,
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -139,7 +147,34 @@ export function streitkraefte(w: World): StreitkraefteZustand {
       if (s) b.vorhaben = s.vorhaben;
     }
   }
+  if (!sp.streitkraefte.lizenzNachtrag) lizenzNachtrag(w, sp.streitkraefte);
   return sp.streitkraefte;
+}
+
+/**
+ * Migration Welle E4 (ENTSCHEIDUNGEN R): Früher hielt CAATSA jede US-Lieferung an und schob sie jeden Monat um 30 Tage. Im Spielstand des
+ * Inhabers kam KAAN so erst 2047, die F-16 elf Jahre nach ihrer Fertigstellung. Einzeln genehmigte Geschäfte bekommen ihre Genehmigung,
+ * ihr eigenes Datum verliert den Sanktionsaufschub (Beginn plus Laufzeit plus belegter Versorgungsverzug), und ein Rüstungsvorhaben, das in
+ * einem älteren Stand gar nicht in der Bauliste steht, wird dort nachgetragen: mit dem Fortschritt, den es seit seinem Beginn erreicht
+ * hätte. Fertig gebaut, schließt die Bauliste es im nächsten Monat mit allen Folgen ab, und die Streitkräfte liefern (ein Modell, ein Datum).
+ */
+function lizenzNachtrag(w: World, z: StreitkraefteZustand): void {
+  z.lizenzNachtrag = true;
+  const reich = w.spiel?.reich;
+  for (const b of z.laufend) {
+    const s = START_BESCHAFFUNGEN.find((x) => x.vorhaben === b.vorhaben);
+    if (!s) continue;
+    if (s.lizenz && !b.lizenz) b.lizenz = s.lizenz;
+    if (b.lizenz) {
+      const soll = b.beginn + s.monate * 30 + (b.versorgungsVerzug ?? 0);
+      if (b.fertig > soll) b.fertig = soll;
+      b.gestoppt = false;
+    }
+    const v = vorhabenDef(s.vorhaben);
+    if (!reich || !v || reich.bestand[v.id] || reich.laufend.some((l) => l.id === v.id)) continue;
+    const anteil = clamp((v.start?.status === "im_bau" ? (v.start.fortschritt ?? 0.3) : 0) + (w.day - b.beginn) / (30 * Math.max(1, v.kosten.monate)), 0, 1);
+    reich.laufend.push({ id: v.id, fortschritt: Math.round(v.kosten.bau * anteil), start: "Spielbeginn" });
+  }
 }
 
 /**
@@ -188,8 +223,9 @@ function neuerZustand(w: World): StreitkraefteZustand {
     bipMonat: 0,
     name: b.name,
     vorhaben: b.vorhaben,
+    ...(b.lizenz ? { lizenz: b.lizenz } : {}),
   }));
-  const z: StreitkraefteZustand = { v: 1, gattungen, laufend, wehrdienst: 6, gemeldet: { modern: 0, autarkie: 0, index: 1 }, zaehler: 0 };
+  const z: StreitkraefteZustand = { v: 1, gattungen, laufend, wehrdienst: 6, gemeldet: { modern: 0, autarkie: 0, index: 1 }, zaehler: 0, lizenzNachtrag: true };
   z.gemeldet = { modern: generationMittel(z), autarkie: autarkie(z), index: kampfkraftIndex(w, z) };
   return z;
 }
@@ -304,11 +340,25 @@ export function verbraucheMunition(w: World, tage: number): void {
   m.menge = Math.max(0, Math.round((m.menge - tage) * 10) / 10);
 }
 
-const sanktioniert = (w: World, land: string | null): boolean => {
-  if (!land) return false;
-  const a = w.spiel?.weltmodell as unknown as { aussen?: { sanktionen?: { von: string }[] } } | undefined;
-  return !!a?.aussen?.sanktionen?.some((s) => s.von === land);
+const sanktionenVon = (w: World, land: string): { id: string; von: string }[] => {
+  const a = w.spiel?.weltmodell as unknown as { aussen?: { sanktionen?: { id: string; von: string }[] } } | undefined;
+  return (a?.aussen?.sanktionen ?? []).filter((s) => s.von === land);
 };
+const sanktioniert = (w: World, land: string | null): boolean => !!land && sanktionenVon(w, land).length > 0;
+
+/**
+ * Hält das Lieferland diese Lieferung an? Eine gezielte Sanktion (CAATSA, ENTSCHEIDUNGEN R) sperrt die allgemeine Lizenz an die SSB,
+ * nicht ein einzeln genehmigtes Geschäft: Die F-16 (DSCA 26.01.2024) und das F110 für KAAN (Kongress 09.07.2026) kamen trotz CAATSA.
+ * Eine Einzelgenehmigung fällt erst, wenn das Lieferland breit sanktioniert oder der Konflikt die Schwelle neuer Sanktionen erreicht.
+ */
+export function lieferungGesperrt(w: World, b: Pick<Beschaffung, "lieferland" | "lizenz">): boolean {
+  if (!b.lieferland) return false;
+  const sanktionen = sanktionenVon(w, b.lieferland);
+  if (!sanktionen.length) return false;
+  if (b.lizenz !== "einzelgenehmigung") return true;
+  if (sanktionen.some((s) => !SANKTION_GEZIELT.has(s.id))) return true;
+  return (w.spiel?.welt?.[b.lieferland]?.konflikt ?? 0) >= STREITKRAEFTE.widerrufKonflikt;
+}
 
 // ---------------------------------------------------------------------------
 // Ausbau
@@ -453,8 +503,8 @@ export function streitkraefteMonat(w: World, imKrieg: boolean): void {
     // An ein Rüstungsvorhaben gebunden: Geliefert wird, wenn die Bauliste es fertig meldet; das Datum folgt ihr (ein Modell, ein Datum)
     const stand = b.vorhaben ? vorhabenStand(w, b.vorhaben, schlange) : undefined;
     if (stand && stand.stand !== "fehlt") {
-      // Sperrt das Lieferland (etwa CAATSA), hält es die Lieferung zurück, auch wenn das Vorhaben fertig ist
-      if (b.lieferland && sanktioniert(w, b.lieferland)) {
+      // Sperrt das Lieferland (etwa CAATSA ohne Einzelgenehmigung), hält es die Lieferung zurück, auch wenn das Vorhaben fertig ist
+      if (lieferungGesperrt(w, b)) {
         if (!b.gestoppt) {
           b.gestoppt = true;
           w.spiel.hinweise.push({ id: `militaer-lieferstopp-${b.id}`, titel: t("militaer.lieferstopp.titel"), text: [t("militaer.lieferstopp.text", { gattung: b.name ? `${b.name} (${t(`militaer.gattung.${b.gattung}`)})` : t(`militaer.gattung.${b.gattung}`) })], szene: "parlament" });
@@ -474,7 +524,7 @@ export function streitkraefteMonat(w: World, imKrieg: boolean): void {
       continue;
     }
     // Lieferstopp bei Sanktionen des Lieferlands: die Lieferung verschiebt sich um einen Monat
-    if (b.lieferland && sanktioniert(w, b.lieferland)) {
+    if (lieferungGesperrt(w, b)) {
       b.fertig += 30;
       if (!b.gestoppt) {
         b.gestoppt = true;

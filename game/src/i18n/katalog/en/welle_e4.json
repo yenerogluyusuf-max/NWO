@@ -1,0 +1,5 @@
+{
+ "welle_e4.zeitung.bericht_fakt": "Official impact review {monate} months after the decision “{name}”: from {von} to {auf}.{zusatz}",
+ "welle_e4.zeitung.bericht_fakt_ohne": "Official impact review {monate} months after the decision “{name}”.{zusatz}",
+ "welle_e4.militaer.einzelgenehmigung": "individually licensed despite CAATSA"
+}

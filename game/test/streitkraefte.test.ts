@@ -103,19 +103,51 @@ describe("Ausbau", () => {
   });
 
   test("Sanktionen des Lieferlands sperren den Kauf und halten laufende Lieferungen auf", () => {
+    // Welle E4: Bis zum 7. November prüfte dieser Test die F-16 unter CAATSA. Die F-16 hat aber eine Einzelgenehmigung (DSCA 26.01.2024)
+    // und läuft unter der gezielten Sanktion weiter (ENTSCHEIDUNGEN R, eigener Test unten). Die Sperre selbst prüft der Test jetzt am
+    // Eurofighter unter der breiten Handelssanktion der EU: Dort gibt es keine Einzelgenehmigung.
     const w = welt();
-    aussenZustand(w).sanktionen.push({ id: "caatsa", von: "USA", seit: w.day });
+    // CAATSA gilt beim Start (sim/diplomatie.ts): Ein allgemeiner Kauf aus den USA bleibt gesperrt
+    expect(aussenZustand(w).sanktionen.some((s) => s.id === "caatsa")).toBe(true);
     const v = vorschauAusbau(w, "kampfflugzeuge", "kauf");
     expect(v.ok).toBe(false);
+    aussenZustand(w).sanktionen.push({ id: "eu_handel", von: "EU", seit: w.day });
+    const z = streitkraefte(w);
+    const ef = z.laufend.find((b) => b.name === "Eurofighter")!;
+    // Seit dem 6. November folgt das Datum der Bauliste (Befund G-4); die Sperre hält die Lieferung auch dann zurück, wenn das Vorhaben fertig ist
+    reichZustand(w).bestand["mil_eurofighter"] = { seit: w.date, zustand: 90 };
+    reichZustand(w).laufend = reichZustand(w).laufend.filter((l) => l.id !== "mil_eurofighter");
+    streitkraefteMonat(w, false);
+    expect(z.laufend.includes(ef), "keine Lieferung trotz fertigem Vorhaben").toBe(true);
+    expect(ef.gestoppt).toBe(true);
+    expect(w.spiel!.hinweise.some((h) => h.id.startsWith("militaer-lieferstopp"))).toBe(true);
+  });
+
+  test("CAATSA ist gezielt: Einzeln genehmigte F-16 und KAAN kommen trotzdem, erst ein offener Konflikt widerruft sie", () => {
+    const w = welt();
+    expect(aussenZustand(w).sanktionen.some((s) => s.id === "caatsa")).toBe(true);
     const z = streitkraefte(w);
     const f16 = z.laufend.find((b) => b.name?.startsWith("F-16"))!;
-    // Seit dem 6. November folgt das Datum der Bauliste (Befund G-4); die Sperre hält die Lieferung auch dann zurück, wenn das Vorhaben fertig ist
+    const kaan = z.laufend.find((b) => b.vorhaben === "mil_kaan")!;
+    expect(f16.lizenz).toBe("einzelgenehmigung");
+    expect(kaan.lizenz).toBe("einzelgenehmigung");
+    const menge = z.gattungen.kampfflugzeuge.menge;
     reichZustand(w).bestand["mil_f16"] = { seit: w.date, zustand: 90 };
     reichZustand(w).laufend = reichZustand(w).laufend.filter((l) => l.id !== "mil_f16");
     streitkraefteMonat(w, false);
-    expect(z.laufend.includes(f16), "keine Lieferung trotz fertigem Vorhaben").toBe(true);
-    expect(f16.gestoppt).toBe(true);
-    expect(w.spiel!.hinweise.some((h) => h.id.startsWith("militaer-lieferstopp"))).toBe(true);
+    expect(z.laufend.includes(f16), "F-16 geliefert").toBe(false);
+    expect(z.gattungen.kampfflugzeuge.menge).toBe(menge + 40);
+    expect(w.spiel!.hinweise.some((h) => h.id.startsWith("militaer-lieferstopp"))).toBe(false);
+    // Steigt der Konflikt mit den USA auf die Schwelle neuer Sanktionen, widerruft Washington auch die Einzelgenehmigung
+    weltZustand(w)["USA"]!.konflikt = STREITKRAEFTE.widerrufKonflikt;
+    reichZustand(w).bestand["mil_kaan"] = { seit: w.date, zustand: 90 };
+    reichZustand(w).laufend = reichZustand(w).laufend.filter((l) => l.id !== "mil_kaan");
+    streitkraefteMonat(w, false);
+    expect(z.laufend.includes(kaan), "KAAN zurückgehalten").toBe(true);
+    expect(kaan.gestoppt).toBe(true);
+    weltZustand(w)["USA"]!.konflikt = STREITKRAEFTE.widerrufKonflikt - 25;
+    streitkraefteMonat(w, false);
+    expect(z.laufend.includes(kaan), "KAAN nach Entspannung geliefert").toBe(false);
   });
 
   test("Mehr Verteidigungsetat erlaubt mehr Vorhaben zugleich, weniger Etat verzögert", () => {
@@ -237,6 +269,28 @@ describe("Speicherkompatibilität", () => {
     }
     expect(Number.isFinite(bestandsFaktor(w))).toBe(true);
     for (const g of GATTUNGEN) expect(Number.isFinite(streitkraefte(w).gattungen[g.id].menge)).toBe(true);
+  });
+
+  // Welle E4: Im Stand des Inhabers (03.08.2043) steht KAAN nicht in der Bauliste; CAATSA schob die Lieferung jeden Monat um 30 Tage bis
+  // zum 22.02.2047. Die Migration trägt das Vorhaben fertig gebaut nach: Die Bauliste schließt es ab, die Streitkräfte liefern.
+  const inhaber2043 = new URL("../../spielstand/staatsraeson_2043-08-03.json", import.meta.url);
+  test.skipIf(!existsSync(inhaber2043))("Stand des Inhabers 2043: KAAN kommt nach dem Laden, nicht erst 2047", () => {
+    const w = load(JSON.stringify((JSON.parse(readFileSync(inhaber2043, "utf8")) as { welt: World }).welt));
+    const roh = w.spiel!.streitkraefte!.laufend.find((b) => b.vorhaben === "mil_kaan")!;
+    expect(roh.fertig).toBeGreaterThan(w.day + 30 * 40);
+    const z = streitkraefte(w);
+    const kaan = z.laufend.find((b) => b.vorhaben === "mil_kaan")!;
+    expect(kaan.lizenz).toBe("einzelgenehmigung");
+    expect(kaan.fertig).toBeLessThanOrEqual(kaan.beginn + 72 * 30);
+    expect(reichZustand(w).laufend.some((l) => l.id === "mil_kaan")).toBe(true);
+    const gen = z.gattungen.kampfflugzeuge.generation;
+    w.spiel!.ereignisse = [];
+    advance(w, 31);
+    expect(reichZustand(w).bestand["mil_kaan"], "KAAN in der Bauliste fertig").toBeDefined();
+    expect(streitkraefte(w).laufend.some((b) => b.vorhaben === "mil_kaan"), "KAAN geliefert").toBe(false);
+    expect(streitkraefte(w).gattungen.kampfflugzeuge.generation).toBeGreaterThan(gen);
+    // Die Migration läuft einmal: Ein neues Laden trägt nichts doppelt nach
+    expect(reichZustand(w).laufend.some((l) => l.id === "mil_kaan")).toBe(false);
   });
 
   test("Ein Stand ohne Streitkräfte legt sie beim ersten Zugriff an", () => {
