@@ -32,7 +32,9 @@ export type Stelle =
   | { art: "ruestung" }
   // Welle E3: Machtkreis (mit vorgewählter Person) und Dienst
   | { art: "machtkreis"; person?: string }
-  | { art: "dienst"; ziel?: string };
+  | { art: "dienst"; ziel?: string }
+  // Welle E3b: die Verfassungswerkstatt
+  | { art: "verfassung" };
 
 export interface Option {
   id: string;

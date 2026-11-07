@@ -45,6 +45,7 @@ import { FORSCHUNG_VORLAGEN } from "./ereignisse-forschung";
 import { RUESTUNG_VORLAGEN } from "./ereignisse-ruestung";
 import { MEDIEN_VORLAGEN } from "./ereignisse-medien";
 import { KREIS_VORLAGEN } from "./ereignisse-kreis";
+import { LETZTE_VORLAGEN } from "./ereignisse-letzte";
 import { DIENST_VORLAGEN } from "./ereignisse-dienst";
 import type { Stelle } from "./ereignis-hilfen";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
@@ -1047,6 +1048,8 @@ export const VORLAGEN: Vorlage[] = [
   ...MEDIEN_VORLAGEN,
   // Welle E3: Machtkreis und Dienst melden sich (eigener Wurf, ohne Zusatzplatz)
   ...KREIS_VORLAGEN, ...DIENST_VORLAGEN,
+  // Welle E3b: Die letzte Amtszeit kündigt sich an (eigener Platz, fester Tag)
+  ...LETZTE_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */

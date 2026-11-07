@@ -294,6 +294,8 @@ export interface VerfassungsZustand {
   aktiv: Record<string, string>;
   /** Abgeschlossene Vorgänge für Chronik und Anzeige */
   historie: { tag: number; datum: string; ausgang: string; artikel: string[] }[];
+  /** Welle E3b: Amtszeit, in der das Parlament nach Art. 116 Abs. 3 Neuwahlen beschloss; der Präsident darf einmal mehr antreten */
+  zusatzKandidatur?: number;
 }
 
 /** Katastrophen (INF-5): Art der Lage, mit der ein Fall ins Spiel kommt. */

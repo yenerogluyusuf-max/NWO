@@ -227,6 +227,8 @@ export interface MachtkreisZustand {
   parteitag?: { tag: number };
   /** Welle E3: Ein Parteitag ist fällig und der Kronprinz tritt an (Tag des Termins), bis der Vorgang eröffnet */
   parteitagFaellig?: number;
+  /** Welle E3b: Ankündigung der letzten Amtszeit, schon gemeldete Stufe (1 Beginn, 2 rund 19 Monate, 3 rund 9 Monate vor der Wahl) */
+  letzteAnkuendigung?: { amtszeit: number; stufe: number };
   /** Welle E3: Tag des letzten Parteitags (ordentlich oder außerordentlich) */
   letzterParteitag?: number;
 }

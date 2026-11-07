@@ -1446,6 +1446,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               setPersonenPerson(st.person);
               setDossier("personen");
               beendeZeit();
+            } else if (st.art === "verfassung") {
+              // Welle E3b: Verfassungswerkstatt
+              setDossier("verfassung");
+              beendeZeit();
             } else if (st.art === "dienst") {
               // Welle E3: Außen › Dienst
               setWeltStart("dienst");

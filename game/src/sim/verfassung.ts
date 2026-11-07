@@ -433,6 +433,45 @@ export function verfassungAktiv(w: World, artikelId: string): string | undefined
   return w.spiel?.verfassungsvorgang?.aktiv[artikelId];
 }
 
+/**
+ * Wie viele Amtszeiten die Verfassung erlaubt: zwei (Art. 101 Abs. 2: „Bir kimse en fazla iki defa Cumhurbaşkanı seçilebilir“), drei
+ * („Weitere Wiederwahl“) oder keine Grenze. Dazu einmal eine mehr, wenn das Parlament in der letzten erlaubten Amtszeit Neuwahlen beschloss
+ * (Art. 116 Abs. 3: „Cumhurbaşkanının ikinci döneminde Meclis tarafından seçimlerin yenilenmesine karar verilmesi halinde, Cumhurbaşkanı bir defa
+ * daha aday olabilir“; Anayasa, mevzuat.gov.tr/MevzuatMetin/1.5.2709.pdf). Im Spiel gilt die Ausnahme auch für die dritte Amtszeit nach „Weitere
+ * Wiederwahl“ (Spielparameter: die gelockerte Grenze ersetzt die zweite Amtszeit des Artikels). Der Wert wird nie gespeichert (JSON kennt kein Infinity).
+ */
+export function amtszeitGrenze(w: World): number {
+  const v = verfassungAktiv(w, "amtszeit");
+  const basis = v === "unbegrenzt" ? Infinity : v === "wiederwahl_plus" ? 3 : 2;
+  return basis + (w.spiel?.verfassungsvorgang?.zusatzKandidatur !== undefined ? 1 : 0);
+}
+
+/** Ob ein Neuwahlbeschluss des Parlaments jetzt nach Art. 116 Abs. 3 eine weitere Kandidatur öffnen würde (letzte Amtszeit, Ausnahme noch nicht genutzt). */
+export function zusatzKandidaturMoeglich(w: World): boolean {
+  const sp = w.spiel;
+  if (!sp || sp.ende) return false;
+  const g = amtszeitGrenze(w);
+  return Number.isFinite(g) && sp.amtszeit >= g && sp.verfassungsvorgang?.zusatzKandidatur === undefined;
+}
+
+/** Ob ein Paket nur die vorgezogene Neuwahl enthält: Das ist ein Beschluss des Parlaments nach Art. 116 Abs. 1 (drei Fünftel), keine Verfassungsänderung. */
+export function nurNeuwahl(paket: Record<string, string>): boolean {
+  const g = geaenderteArtikel(paket);
+  return g.length === 1 && g[0]!.variante.id === "neuwahl_jetzt";
+}
+
+/**
+ * Welle E3b: Ob ein Paket vor der Wahl in Kraft treten kann. Schnellster Weg: Abstimmung nach 28 Tagen mit 400 Stimmen (bei der Neuwahl nach
+ * Art. 116 genügen 360); mit Volksabstimmung kommen 35 Tage Kampagne dazu, mit Anfechtung 14 Tage Gericht.
+ */
+export function paketFrist(w: World, paket: Record<string, string>): { tageBisWahl: number; schnell: number; referendum: number; zuSpaet: boolean; nurDirekt: boolean } {
+  const r = VERFASSUNG_REGELN;
+  const tageBisWahl = (w.spiel?.wahltag ?? w.day) - w.day;
+  const schnell = r.tageBisAbstimmung;
+  const referendum = nurNeuwahl(paket) ? schnell : r.tageBisAbstimmung + r.kampagnenTage;
+  return { tageBisWahl, schnell, referendum, zuSpaet: schnell >= tageBisWahl, nurDirekt: schnell < tageBisWahl && referendum >= tageBisWahl };
+}
+
 /** Ob in dieser Amtszeit schon ein Verfassungsvorgang lief (harte Regel: einer je Amtszeit). */
 export function amtszeitBelegt(w: World): boolean {
   const spiel = w.spiel;
@@ -485,8 +524,13 @@ export function paketStimmen(w: World, paket: Record<string, string>, absprachen
   // Präferenz: Mittel über die geänderten Artikel; wer nichts zum Thema sagt, misstraut dem Vorgang leicht
   // Die Opposition schenkt dem Amtsinhaber keine Macht: Fassungen, die Macht zum Palast ziehen, trägt sie höchstens neutral mit,
   // auch wenn sie die Einrichtung grundsätzlich mag (eine AKP in der Opposition gibt einem fremden Präsidenten keine dritte Amtszeit)
+  // Welle E3b: Öffnet die Neuwahl nach Art. 116 Abs. 3 dem Präsidenten eine weitere Kandidatur, ist sie keine Sache der Opposition mehr, sondern
+  // eine Verlängerung seiner Macht: Die Opposition ist dagegen (−1), der Partner dafür (+1). Spielparameter.
+  const zusatz = zusatzKandidaturMoeglich(w);
+  const praefVariante = (x: { variante: VerfassungsVariante }, partei: string, opposition: boolean): number =>
+    zusatz && x.variante.id === "neuwahl_jetzt" ? (opposition ? -1 : 1) : x.variante.parteien[partei] ?? -0.5;
   const praefVon = (partei: string, opposition: boolean) =>
-    geaendert.length ? geaendert.reduce((s, x) => { const p = x.variante.parteien[partei] ?? -0.5; return s + (opposition && x.variante.autoritaer > 0 ? Math.min(0, p) : p); }, 0) / geaendert.length : 0;
+    geaendert.length ? geaendert.reduce((s, x) => { const p = praefVariante(x, partei, opposition); return s + (opposition && x.variante.autoritaer > 0 ? Math.min(0, p) : p); }, 0) / geaendert.length : 0;
   const fraktionen: PaketStimmen["fraktionen"] = [];
   let partnerJa = 0;
   for (const [partei, sitze] of Object.entries(parl.seats)) {
@@ -531,6 +575,8 @@ export interface VerfassungPruefung {
   stimmen: PaketStimmen;
   autoritaer: number;
   hinweise: string[];
+  /** Welle E3b: Das Paket kann frühestens nach der nächsten Wahl in Kraft treten */
+  zuSpaet?: true;
 }
 
 export function pruefeVerfassung(w: World, paketRoh: Record<string, string>): VerfassungPruefung {
@@ -545,11 +591,17 @@ export function pruefeVerfassung(w: World, paketRoh: Record<string, string>): Ve
   else hinweise.push(t("sim2.sim.verfassung.1fb3b28", { p0: VERFASSUNG_REGELN.mehrheit }));
   if (aut >= 2) hinweise.push(t("sim2.sim.verfassung.e816112"));
   if (aut <= -2) hinweise.push(t("sim2.sim.verfassung.36d36d2"));
+  // Welle E3b: Ein Paket, das erst nach der Wahl wirken könnte, sagt das klar (beim Inhaber am 1. Juni 2045 eingebracht, Wahl am 4. Juni)
+  const frist = paketFrist(w, paket);
+  if (w.spiel && !w.spiel.ende && geaendert.length) {
+    if (frist.zuSpaet) hinweise.unshift(t("welle_e3b.frist.zuSpaet", { tage: frist.tageBisWahl, abstimmung: frist.schnell }));
+    else if (frist.nurDirekt) hinweise.unshift(t("welle_e3b.frist.nurDirekt", { tage: frist.tageBisWahl, direkt: VERFASSUNG_REGELN.direkt, referendum: frist.referendum }));
+  }
   const aym = aymSicht(w, paket);
   hinweise.push(
     t("sim2.sim.verfassung.ca7e403", { p0: aym.pKassation < 0.12 ? t("sim2.sim.verfassung.i76ce50c") : aym.pKassation < 0.25 ? t("sim2.sim.verfassung.i743db5d") : t("sim2.sim.verfassung.i0e98fb6") }),
   );
-  const base: VerfassungPruefung = { ok: true, pk, geaendert: geaendert.length, stimmen, autoritaer: aut, hinweise };
+  const base: VerfassungPruefung = { ok: true, pk, geaendert: geaendert.length, stimmen, autoritaer: aut, hinweise, ...(frist.zuSpaet && geaendert.length ? { zuSpaet: true } : {}) };
   const spiel = w.spiel;
   if (!spiel) return { ...base, ok: false, grund: t("sim2.sim.verfassung.1dc1eb2") };
   if (spiel.ende) return { ...base, ok: false, grund: t("sim2.sim.verfassung.56f5ccf") };
@@ -596,7 +648,8 @@ export function bringeVerfassungEin(w: World, paketRoh: Record<string, string>):
   z.amtszeitBelegt = spiel.amtszeit;
   const namen = geaenderteArtikel(paket).map((x) => `„${x.artikel.name}: ${x.variante.name}“`).join(", ");
   const datum = formatDateDe(addDays(w.date, VERFASSUNG_REGELN.tageBisAbstimmung));
-  const text = t("sim2.sim.verfassung.c2f4d96", { p0: namen, p1: datum });
+  // Welle E3b: Wer trotzdem einbringt, liest im Ergebnis, dass es für diese Wahl zu spät ist
+  const text = t("sim2.sim.verfassung.c2f4d96", { p0: namen, p1: datum }) + (pr.zuSpaet ? ` ${t("welle_e3b.frist.eingebrachtZuSpaet", { tage: Math.max(0, spiel.wahltag - w.day) })}` : "");
   const why = t("sim2.sim.verfassung.d4e5840", { p0: pr.pk, p1: pr.stimmen.erwartet, p2: pr.stimmen.tief, p3: pr.stimmen.hoch, p4: VERFASSUNG_REGELN.direkt, p5: VERFASSUNG_REGELN.mehrheit });
   addLog(w, "entscheidung", text, why);
   spiel.chronik.push({ tag: w.day, datum: w.date, titel: "Verfassungspaket eingebracht", ausgang: namen });
@@ -658,6 +711,8 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
   v.ja = ja;
   const nein = 600 - ja;
 
+  // Welle E3b: Die Neuwahl allein ist ein Parlamentsbeschluss nach Art. 116 Abs. 1 (drei Fünftel), keine Verfassungsänderung: ab 360 gilt sie ohne Volksabstimmung
+  const direktAb = nurNeuwahl(v.paket) ? VERFASSUNG_REGELN.mehrheit : VERFASSUNG_REGELN.direkt;
   if (ja < VERFASSUNG_REGELN.mehrheit) {
     // Gescheitert: Kapital teilweise verbrannt, Vertrauen sinkt, die Artikel sind zwölf Monate gesperrt
     const zurueck = Math.floor(v.pk * VERFASSUNG_REGELN.scheiternZurueck);
@@ -678,7 +733,7 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
     return { ja, weg: "gescheitert", angefochten: false, text };
   }
 
-  const weg: AbstimmungsErgebnis["weg"] = ja >= VERFASSUNG_REGELN.direkt ? "direkt" : "referendum";
+  const weg: AbstimmungsErgebnis["weg"] = ja >= direktAb ? "direkt" : "referendum";
   // Die Opposition prüft die Anfechtung: eher bei autoritären Paketen, eher wenn sie stark ist, eher bei Polarisierung
   const aut = autoritaerScore(v.paket);
   const oppSitze = 600 - sicht.lager;
@@ -706,7 +761,7 @@ export function verfassungAbstimmen(w: World, rng: Rng): AbstimmungsErgebnis {
 function weiterNachAym(w: World, rng: Rng): void {
   const z = verfassungsZustand(w);
   const v = z.laufend!;
-  if ((v.ja ?? 0) >= VERFASSUNG_REGELN.direkt) {
+  if ((v.ja ?? 0) >= VERFASSUNG_REGELN.direkt || (nurNeuwahl(v.paket) && (v.ja ?? 0) >= VERFASSUNG_REGELN.mehrheit)) {
     beschliessePaket(w, rng);
     return;
   }
@@ -920,7 +975,12 @@ function beschliessePaket(w: World, rng: Rng): void {
       sitze.reform = Math.max(0, sitze.reform + x.variante.sitze.reform);
     }
   }
-  // Sonderwirkung: vorgezogene Neuwahl stellt den Wahltermin
+  // Sonderwirkung: vorgezogene Neuwahl stellt den Wahltermin. Welle E3b: In der letzten erlaubten Amtszeit darf der Präsident danach noch einmal
+  // antreten (Art. 116 Abs. 3); die Ausnahme gilt einmal
+  if (geaendert.some((x) => x.variante.id === "neuwahl_jetzt") && zusatzKandidaturMoeglich(w)) {
+    z.zusatzKandidatur = spiel.amtszeit;
+    addLog(w, "ereignis", t("welle_e3b.art116.log"), t("welle_e3b.art116.warum"));
+  }
   if (geaendert.some((x) => x.variante.id === "neuwahl_jetzt")) {
     spiel.wahltag = Math.min(spiel.wahltag, w.day + 60);
     addLog(w, "ereignis", t("sim2.sim.verfassung.8ee9e3e"), t("sim2.sim.verfassung.b98881e"));

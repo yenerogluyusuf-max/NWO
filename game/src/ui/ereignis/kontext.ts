@@ -287,6 +287,8 @@ export function stelleLabel(s: Stelle): string {
       return t("welle_e3.stelle.machtkreis");
     case "dienst":
       return t("welle_e3.stelle.dienst");
+    case "verfassung":
+      return t("welle_e3b.stelle.verfassung");
   }
 }
 

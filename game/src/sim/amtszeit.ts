@@ -21,7 +21,7 @@ import { zielDef, zielStand } from "./ziele";
 import { zusageAnlegen } from "./ereignis-hilfen";
 import { kannZahlen } from "./kapital";
 import { PARTEI_NAME } from "./fraktionen";
-import { verfassungAktiv } from "./verfassung";
+import { amtszeitGrenze, verfassungAktiv } from "./verfassung";
 import { akuteProbleme } from "./bilanz";
 import { oeffne } from "./ereignisse";
 import { SPIEL } from "./spiel";
@@ -70,10 +70,7 @@ export const AMTSZEIT = {
  * Wie viele Amtszeiten die Verfassung erlaubt: zwei (Standard, AY 101), drei („Weitere Wiederwahl“) oder keine Grenze („unbegrenzt“, Infinity).
  * Der Wert wird nie gespeichert (JSON kennt kein Infinity); wer ihn braucht, rechnet ihn aus dem Verfassungsartikel.
  */
-export const maxAmtszeiten = (w: World): number => {
-  const v = verfassungAktiv(w, "amtszeit");
-  return v === "unbegrenzt" ? Infinity : v === "wiederwahl_plus" ? 3 : 2;
-};
+export const maxAmtszeiten = (w: World): number => amtszeitGrenze(w);
 
 /** Ob die Verfassung die Zahl der Amtszeiten begrenzt (nur dann gibt es eine letzte Amtszeit, Kronprinzen und den Nachfolger-Wahlkampf). */
 export const amtszeitBegrenzt = (w: World): boolean => Number.isFinite(maxAmtszeiten(w));
