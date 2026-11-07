@@ -391,7 +391,75 @@ export interface MedienAktionSicht {
   /** Kurze Zeilen mit den erwarteten Folgen (Kosten, Zustand, Gegenreaktion) */
   vorschau: string[];
   rsfMalus: number;
+  /** Was der Eingriff sofort bringt und kostet, je Größe eine Zahl: dieselben Werte, die `fuehreMedienAktionAus` bucht (Welle E4) */
+  bilanz: EingriffBilanz;
 }
+
+/** Ein Posten der Bilanz eines Eingriffs: Größe (Netzknoten, „pressefreiheitswert“ oder „selbstzensur“) und gebuchte Punkte. */
+export interface BilanzPosten {
+  id: string;
+  wert: number;
+}
+export interface EingriffBilanz {
+  bringt: BilanzPosten[];
+  kostet: BilanzPosten[];
+  /** Der Eingriff schreckt die Märkte (ohne feste Zahl: der Marktschock wirkt über den Risikoaufschlag) */
+  markt: boolean;
+}
+
+/**
+ * Bringt und kostet eines Eingriffs aus denselben Zahlen, die die Ausführung bucht: Pressefreiheitswert (`rsfBuchen`), Ausland, Gruppen und
+ * Ruhe (`auswirkungen`, MEDIEN.wirkung), dazu die Sonderwirkungen der Aktion (Gespräch, Sperre, Selbstzensur des Hauses). Was der Regierung
+ * nützt, steht unter „bringt“, was ihr schadet, unter „kostet“ (Welle E4: beides gleich groß auf der Karte).
+ */
+export function eingriffBilanz(a: AktionDef, c: MedienCluster | undefined): EingriffBilanz {
+  const k = MEDIEN.wirkung;
+  const rsf = rsfMalusVon(a);
+  const summe = new Map<string, number>();
+  const plus = (id: string, d: number) => { if (d !== 0) summe.set(id, (summe.get(id) ?? 0) + d); };
+  plus("pressefreiheitswert", -rsf);
+  if (rsf > 0) {
+    plus("vertrauen_regierung", k.ruhe * rsf);
+    plus("konservative", k.konservative * rsf);
+    plus("staedtische_saekulare", -k.staedtisch * rsf);
+    plus("junge", -k.junge * rsf);
+    plus("ansehen", -k.ansehen * rsf);
+    plus("beziehungen_eu", -k.eu * rsf);
+    plus("protestdruck", -0.8 * mobilisierungVon(a));
+  } else if (rsf < 0) {
+    plus("ansehen", -k.ansehen * rsf);
+    plus("beziehungen_eu", -k.eu * rsf);
+  }
+  if (a.id === "pressekonferenz") {
+    plus("vertrauen_regierung", MEDIEN.gespraech.vertrauen);
+    plus("ansehen", MEDIEN.gespraech.ansehen);
+  }
+  if (a.id === "interview") {
+    plus("staedtische_saekulare", MEDIEN.gespraech.interview);
+    plus("ansehen", MEDIEN.gespraech.ansehen);
+  }
+  if (a.id === "sperre_netz") plus("junge", -1);
+  const sz = SELBSTZENSUR_PLUS[a.id];
+  if (sz !== undefined && c) plus("selbstzensur", typeof sz === "number" ? sz : sz(c));
+  const runde = (x: number) => Math.round(x * 100) / 100;
+  const posten = [...summe].map(([id, wert]) => ({ id, wert: runde(wert) })).filter((x) => x.wert !== 0);
+  // Protest ist ein Schaden mit positivem Vorzeichen: Er steht als Zuwachs unter „kostet“
+  const gut = (x: BilanzPosten) => (x.id === "protestdruck" ? false : x.wert > 0);
+  return {
+    bringt: posten.filter(gut),
+    kostet: posten.filter((x) => !gut(x)).map((x) => (x.id === "protestdruck" ? { ...x, wert: -x.wert } : x)),
+    markt: a.markt > 0,
+  };
+}
+
+/** Selbstzensur, die ein Eingriff im Haus erzeugt (dieselben Zahlen wie in `fuehreMedienAktionAus`). */
+const SELBSTZENSUR_PLUS: Partial<Record<AktionId, number | ((c: MedienCluster) => number)>> = {
+  eigentuemerdruck: (c) => Math.round(22 * (c.eigentuemerEmpfindlichkeit / 100) + 6),
+  staatsanzeigen: 8,
+  anzeigenstopp: 10,
+  aufsichtsstrafe: 8,
+  verfahren: 12,
+};
 
 const loyalAusrichtung = (a: MedienAusrichtung): boolean => a === "staatlich" || a === "loyalistisch";
 
@@ -543,6 +611,7 @@ export function medienAktionen(w: World): MedienAktionSicht[] {
         ...(grund ? { grund } : {}),
         vorschau: vorschauVon(w, a, c),
         rsfMalus: rsfMalusVon(a),
+        bilanz: eingriffBilanz(a, c),
       });
     }
   }
@@ -565,6 +634,11 @@ function rsfBuchen(w: World, m: MedienZustand, punkte: number): void {
   m.rsfScore = clamp(m.rsfScore - punkte, 0, 100);
   // Der Netzknoten folgt dem Index (Netzpunkte je Indexpunkt: MEDIEN.wirkung.pressefreiheitNetz)
   if (NET.index.has("pressefreiheit") && punkte !== 0) wirke(w, "pressefreiheit", -MEDIEN.wirkung.pressefreiheitNetz * punkte);
+}
+
+/** Pressefreiheitswert und Netzknoten ändern, wie ein Eingriff es bucht (`punkte` > 0 kostet, < 0 gewinnt); für Vorgänge (Welle E4). */
+export function pressefreiheitBuchen(w: World, punkte: number): void {
+  rsfBuchen(w, medienVon(w), punkte);
 }
 
 /** Wirkung eines Eingriffs auf Ausland, Straße und Gruppen (alles aus den Punkten des Preises). */
