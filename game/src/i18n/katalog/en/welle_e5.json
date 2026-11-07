@@ -1,0 +1,11 @@
+{
+ "welle_e5.koalition.sperre.eu": "an EU member like {land}: does not fight another member",
+ "welle_e5.koalition.sperre.verbuendet": "on friendly terms with {land}",
+ "welle_e5.koalition.sperre.grossmacht": "will not go to war with a member of the EU or NATO",
+ "welle_e5.koalition.draussen": "Staying out of the war: {namen}.",
+ "welle_e5.koalition.exportstopp": "Instead of sending troops, {namen} {n, plural, one {halts its} other {halt their}} arms exports to Türkiye. Deliveries from there are on hold for as long as the war lasts.",
+ "welle_e5.koalition.exportstopp.notiz": "Arms export halt over the attack on an EU member",
+ "welle_e5.koalition.exportstopp.grund": "arms export halt instead of entering the war",
+ "welle_e5.koalition.exportstopp.ende": "The war is over: {namen} {n, plural, one {resumes} other {resume}} arms deliveries.",
+ "welle_e5.vorschau.exportstopp": "{namen} would halt arms exports, but not fight"
+}

@@ -172,14 +172,15 @@ describe("Koalitionen im Krieg der Türkei: Pflicht nur für das Opfer", () => {
     for (const p of ko.partner.filter((x) => x.seite === "gegner")) expect(p.pflicht).toBe(false);
   });
 
-  test("Türkei gegen ein NATO-Mitglied: Der Pakt wird gespalten, niemand tritt aus der NATO-Klausel bei; die EU steht Griechenland bei", () => {
+  test("Türkei gegen ein NATO-Mitglied: Der Pakt wird gespalten, niemand tritt aus der NATO-Klausel bei; die EU-Staaten stoppen die Rüstungsausfuhr", () => {
     const { k } = inDenKrieg("GRC", "revision");
     const ko = k.koalition!;
     expect(ko.spaltung).toBe("nato");
     expect(ko.partner.some((p) => p.pakt === "nato" && p.pflicht)).toBe(false);
-    const gegner = ko.partner.filter((p) => p.seite === "gegner");
-    expect(gegner.some((p) => p.pakt === "eu" && p.pflicht), "Art. 42 Abs. 7 EUV: Beistand für das angegriffene Mitglied").toBe(true);
-    expect(gegner.map((p) => p.id)).toEqual(expect.arrayContaining(["CYP"]));
+    // Geändert in Welle 1 (E5, krieg.md B2): Früher traten zehn EU-Staaten aus Art. 42 Abs. 7 EUV in den Kampf. Gegen ein EU-Mitglied
+    // antworten die übrigen Mitglieder jetzt einzeln mit einem Rüstungsexportstopp statt mit Truppen (Vorbild 2019, ST 13090/19).
+    expect(ko.partner.filter((p) => p.seite === "gegner").map((p) => p.id)).not.toContain("CYP");
+    expect(ko.exportstopp).toEqual(expect.arrayContaining(["CYP"]));
   });
 
   test("Griechenland greift an: Die Türkei kann auf Mekka-Partner zählen, nicht auf die NATO (Spaltung)", () => {
@@ -239,8 +240,10 @@ describe("Wirkung der Koalitionen auf den Krieg", () => {
     k.koalition = ko;
   });
 
-  test("Stärke des Gegners: Griechenlands EU-Partner erhöhen sie über den Tabellenwert plus Eskalation", () => {
+  test("Stärke des Gegners: Partner Griechenlands erhöhen sie über den Tabellenwert plus Eskalation", () => {
     const { w, k } = inDenKrieg("GRC", "revision");
+    // Seit Welle 1 (E5) kämpfen die EU-Staaten nicht mehr mit; der Partner wird hier gesetzt, die Rechnung bleibt dieselbe
+    k.koalition!.partner.push({ id: "USA", seite: "gegner", seit: w.day, grund: "Test", pflicht: false, rest: 1, einsatz: 1 });
     expect(koalitionsFaktoren(w, k).gegnerPlus).toBeGreaterThan(0);
     // Grundwert aus der gemeinsamen, belegten Kräfteskala (data/kraefte.ts) statt einer festen Zahl
     expect(gegnerStaerke(w, "GRC")).toBeGreaterThan(KRAFT.GRC! + k.eskalation * 0.08);
@@ -248,6 +251,8 @@ describe("Wirkung der Koalitionen auf den Krieg", () => {
 
   test("Friedensannahme: Partner des Gegners blockieren harte Pakete stärker als weiche", () => {
     const { w, k } = inDenKrieg("GRC", "revision");
+    // Seit Welle 1 (E5) kämpfen die EU-Staaten nicht mehr mit; zwei Partner werden hier gesetzt, die Rechnung bleibt dieselbe
+    for (const id of ["USA", "GBR"]) k.koalition!.partner.push({ id, seite: "gegner", seit: w.day, grund: "Test", pflicht: false, rest: 1, einsatz: 1 });
     // Eine Lage, in der die Annahme nicht an den Rändern 5 und 98 klebt
     k.front = 75;
     k.uhrGegner = 30;

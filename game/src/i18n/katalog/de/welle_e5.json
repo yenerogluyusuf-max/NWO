@@ -1,0 +1,11 @@
+{
+ "welle_e5.koalition.sperre.eu": "EU-Mitglied wie {land}: kämpft gegen kein anderes Mitglied",
+ "welle_e5.koalition.sperre.verbuendet": "befreundet mit {land}",
+ "welle_e5.koalition.sperre.grossmacht": "führt keinen Krieg gegen ein Mitglied von EU oder NATO",
+ "welle_e5.koalition.draussen": "Kein Kriegseintritt: {namen}.",
+ "welle_e5.koalition.exportstopp": "Statt Truppen zu schicken, {n, plural, one {stoppt} other {stoppen}} {namen} die Rüstungsausfuhr in die Türkei. Lieferungen von dort ruhen, solange der Krieg läuft.",
+ "welle_e5.koalition.exportstopp.notiz": "Rüstungsexportstopp wegen des Angriffs auf ein EU-Mitglied",
+ "welle_e5.koalition.exportstopp.grund": "Rüstungsexportstopp statt Kriegseintritt",
+ "welle_e5.koalition.exportstopp.ende": "Der Krieg ist vorbei: {namen} {n, plural, one {liefert} other {liefern}} wieder Rüstungsgüter.",
+ "welle_e5.vorschau.exportstopp": "{namen} {n, plural, one {würde} other {würden}} die Rüstungsausfuhr stoppen, aber nicht mitkämpfen"
+}

@@ -1,0 +1,11 @@
+{
+ "welle_e5.koalition.sperre.eu": "{land} gibi bir AB üyesi: başka bir üyeye karşı savaşmaz",
+ "welle_e5.koalition.sperre.verbuendet": "{land} ile dost",
+ "welle_e5.koalition.sperre.grossmacht": "bir AB veya NATO üyesine karşı savaşa girmez",
+ "welle_e5.koalition.draussen": "Savaşa girmeyenler: {namen}.",
+ "welle_e5.koalition.exportstopp": "Asker göndermek yerine {namen} Türkiye'ye silah ihracatını durduruyor. Savaş sürdükçe oradan teslimat yapılmaz.",
+ "welle_e5.koalition.exportstopp.notiz": "Bir AB üyesine saldırı nedeniyle silah ihracatı durduruldu",
+ "welle_e5.koalition.exportstopp.grund": "savaşa girmek yerine silah ihracatını durdurma",
+ "welle_e5.koalition.exportstopp.ende": "Savaş sona erdi: {namen} yeniden silah teslim ediyor.",
+ "welle_e5.vorschau.exportstopp": "{namen} silah ihracatını durdurur ama savaşa katılmaz"
+}

@@ -307,7 +307,10 @@ export function verbraucheMunition(w: World, tage: number): void {
 const sanktioniert = (w: World, land: string | null): boolean => {
   if (!land) return false;
   const a = w.spiel?.weltmodell as unknown as { aussen?: { sanktionen?: { von: string }[] } } | undefined;
-  return !!a?.aussen?.sanktionen?.some((s) => s.von === land);
+  if (a?.aussen?.sanktionen?.some((s) => s.von === land)) return true;
+  // Rüstungsexportstopp von EU-Staaten, solange die Türkei ein EU-Mitglied angreift (sim/pakte.ts kampfSperre; Welle 1, E5). Lieferland
+  // „EU“ steht für Zulieferungen aus mehreren Mitgliedern; schon ein Stopp hält sie auf (real: der Altay-Antrieb von MTU/Renk scheiterte am deutschen Embargo, Defense News 08.03.2021).
+  return !!w.spiel?.kriege?.some((k) => (k.phase === "krieg" || k.phase === "waffenruhe") && !!k.koalition?.exportstopp?.some((x) => x === land || land === "EU"));
 };
 
 // ---------------------------------------------------------------------------
