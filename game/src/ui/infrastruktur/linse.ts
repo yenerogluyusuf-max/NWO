@@ -1,6 +1,6 @@
 // Linse „Belastung“: höchste Auslastung der Netze je Provinz, grün bis rot (Daten: sim/infrastruktur.ts).
 
-import { belastungJeProvinz } from "../../sim/infrastruktur";
+import { ueberlastJeProvinz } from "./ueberlast";
 import { PROVINZEN } from "../../sim/regional";
 import { SCHWELLE } from "../../data/infrastruktur-netze";
 import { t } from "../../i18n";
@@ -27,19 +27,24 @@ export function belastungFarben(w: World): {
   legende: { titel: string; untertitel?: string; verlauf?: { von: string; bis: string; vonText: string; bisText: string; mitte?: string }; hinweis?: string } | undefined;
 } {
   if (!w.spiel) return { fill: undefined, legende: undefined };
-  const werte = belastungJeProvinz(w);
+  // Welle 1, E5: Farbe nach der Überlast aller Netze der Provinz zusammen (ui/infrastruktur/ueberlast.ts). Ohne Überlast bleibt es bei
+  // der Ampel des am stärksten ausgelasteten Netzes; vorher war die Linse im Spielstand des Inhabers überall gleich rot.
+  const { provinzen, ueberall } = ueberlastJeProvinz(w);
   const fill: Record<number, string> = {};
-  for (const x of werte) fill[x.plaka] = belastungsFarbe(x.a);
-  const top = [...werte].sort((a, b) => b.a - a.a).slice(0, 3);
+  for (const x of provinzen) fill[x.plaka] = x.summe > 0 ? mix(GELB, ROT, x.not) : belastungsFarbe(x.a);
+  const top = [...provinzen].sort((a, b) => b.summe - a.summe || b.a - a.a).slice(0, 3);
   return {
     fill,
     legende: {
       titel: t("infra.linse.titel"),
-      untertitel: t("infra.linse.untertitel"),
-      verlauf: { von: rgb(GRUEN), mitte: rgb(GELB), bis: rgb(ROT), vonText: t("infra.linse.von"), bisText: t("infra.linse.bis") },
-      hinweis: t("infra.linse.hinweis", {
-        orte: top.map((x) => t("infra.linse.ort", { ort: PROVINZEN[x.plaka - 1]?.name ?? String(x.plaka), netz: t(`infra.netz.${x.netz}`), a: Math.round(x.a * 100) })).join("; "),
-      }),
+      untertitel: t("welle_e5.belastung.unter"),
+      verlauf: { von: rgb(GRUEN), mitte: rgb(GELB), bis: rgb(ROT), vonText: t("infra.linse.von"), bisText: t("welle_e5.belastung.bis") },
+      hinweis: [
+        t("welle_e5.belastung.hinweis", {
+          orte: top.map((x) => t("welle_e5.belastung.ort", { ort: PROVINZEN[x.plaka - 1]?.name ?? String(x.plaka), n: x.anzahl })).join("; "),
+        }),
+        ...(ueberall.length ? [t("welle_e5.rl.ueberall", { netze: ueberall.map((n) => t(`infra.netz.${n}`)) })] : []),
+      ].join(" "),
     },
   };
 }

@@ -64,6 +64,8 @@ export interface KoalitionsAbwesender {
   punkte: number;
   /** Ob er noch zögert (wird weiter geprüft) oder endgültig draußen bleibt */
   zoegert: boolean;
+  /** Kämpft auf dieser Seite grundsätzlich nicht (enger Verbündeter des Gegners, EU gegen EU; sim/pakte.ts kampfSperre) */
+  gesperrt?: boolean;
 }
 
 export interface KriegKoalition {
@@ -73,6 +75,8 @@ export interface KriegKoalition {
   abwesend: KoalitionsAbwesender[];
   /** Pakt, der durch den Krieg zwischen zwei Mitgliedern gespalten wurde (keine automatische Pflicht) */
   spaltung?: string;
+  /** EU-Staaten, die statt eines Kriegseintritts ihre Rüstungsausfuhr in die Türkei stoppen, solange der Krieg läuft */
+  exportstopp?: string[];
   /** Tag der letzten Bewertung und der letzten Bitte um Beistand (Abkühlung) */
   bewertet: number;
   gerufen?: number;

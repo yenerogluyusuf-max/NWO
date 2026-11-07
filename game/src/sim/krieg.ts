@@ -166,6 +166,9 @@ export const PHASEN_NAME: Record<KriegPhase, string> = {
   get beendet() { return t("krieg.k.phase.beendet"); },
 };
 
+/** Vollstand des Rückhalts im Land (Erschöpfungsuhr), auf beiden Seiten. Mehr als voll geht nicht; die Anzeige zeigt dieselbe Zahl. */
+export const RUECKHALT_MAX = 100;
+
 /** Civ6-Preisschild: Die Rahmung legt die Preise der Folgehandlungen fest (Parlament, Welt, Wähler). */
 export const RAHMUNG: Record<KriegsRahmung, { name: string; text: string; stimmen: number; ansehen: number; uhrStart: number; nationalisten: number }> = {
   verteidigung: {
@@ -681,8 +684,11 @@ export function kriegsVorschau(w: World, k: KriegVorgang): KriegsVorschau {
     const zeugen = (BEOBACHTER[k.land] ?? []).filter((b) => b !== k.land && w.spiel?.welt?.[b]);
     if (zeugen.length) ausland.push(t("nacht_n7.vorschau.zeugen", { namen: liste(zeugen.map(landNameVon)), land: l.name, z: zm(-KRAENKUNG.staerke.angriff * KRAENKUNG.vertrauen) }));
   }
-  const mit = koalitionenIn(w, k.id).gegner.filter((x) => x.rolle === "partner").map((x) => x.name);
+  const koSicht = koalitionenIn(w, k.id);
+  const mit = koSicht.gegner.filter((x) => x.rolle === "partner").map((x) => x.name);
   if (mit.length) ausland.push(t("nacht_n7.vorschau.koalition", { namen: liste(mit), n: mit.length, land: lf(l, "dat") }));
+  const stopp = koSicht.gegner.filter((x) => x.rolle === "exportstopp").map((x) => x.name);
+  if (stopp.length) ausland.push(t("welle_e5.vorschau.exportstopp", { namen: liste(stopp), n: stopp.length }));
   return { angreifer, daheim, ausland };
 }
 
@@ -843,7 +849,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       if (voll) {
         wirke(w, "staedtische_saekulare", -2);
         wirke(w, "konservative", 1);
-        k.uhr = clamp(k.uhr - 5, 0, 110);
+        k.uhr = clamp(k.uhr - 5, 0, RUECKHALT_MAX);
       }
       belastungEreignis(w, VERFASSUNG.eskalation, t(voll ? "krieg.k.x.voll" : "krieg.k.x.teil"));
       text = t(voll ? "krieg.k.x.voll.text" : "krieg.k.x.teil.text");
@@ -892,7 +898,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
         waffenruheEintreten(w, k);
         return { ok: true, text, why };
       }
-      k.uhr = clamp(k.uhr - 3, 0, 110);
+      k.uhr = clamp(k.uhr - 3, 0, RUECKHALT_MAX);
       k.eskalation = clamp(k.eskalation + 2, 0, 100);
       text = t("krieg.k.x.waffenruhe.nein", { land: l.name });
       why += " " + t("krieg.k.x.waffenruhe.nein.warum");
@@ -911,7 +917,7 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       break;
     }
     case "weiterkaempfen": {
-      k.uhr = clamp(k.uhr - 5, 0, 110);
+      k.uhr = clamp(k.uhr - 5, 0, RUECKHALT_MAX);
       k.gegnerAngebot = false;
       delete k.angebotPaket;
       phaseSetzen(w, k, "krieg");
@@ -1028,7 +1034,7 @@ function kriegsbeginn(w: World, k: KriegVorgang, weg: "parlament" | "erlass" | "
   k.frontVorher = k.front;
   // Wer angegriffen wird, verteidigt sich glaubhaft, gleich was vorher erklärt war
   if (weg === "angriff") delete k.rahmungDuenn;
-  k.uhr = clamp(100 + rahmungWerte(k).uhrStart, 0, 110);
+  k.uhr = clamp(100 + rahmungWerte(k).uhrStart, 0, RUECKHALT_MAX);
   k.uhrGegner = 100;
   regionenSetzen(w, k);
   // Märkte (Suzerain-Anker: CDS-/Öl-Sprung)
@@ -1293,6 +1299,10 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   const last = lastTeilung(w, k);
   k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) * (1 - last.eigen) * sf.uhr + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
   k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust + sf.druck) * (1 - last.gegner) + verlustWoche * KRIEG.uhrGewinn;
+  // Siege füllen den Rückhalt nur bis zum Vollstand auf (Welle 1, E5): Im Spielstand des Inhabers stand er nach dem Israel-Krieg bei 109,7,
+  // und der Überschuss schluckte unsichtbar die Abzüge für „Weiterkämpfen“. Real ist der Sammeleffekt klein (krieg.md, Befund B4).
+  k.uhr = Math.min(RUECKHALT_MAX, k.uhr);
+  k.uhrGegner = Math.min(RUECKHALT_MAX, k.uhrGegner);
   // Verluste beider Bestände, Regionen, bedrohte Grenzprovinzen, Kriegslast im Gegnerland
   schauplatzWoche(w, k, delta);
   // Der Preis der Woche: Müdigkeit, Gefallene, Dritte, Märkte (sim/kriegspreis.ts)

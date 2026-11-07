@@ -432,7 +432,9 @@ describe("Niederlage und Putsch-Risiko", () => {
     // Offiziersvertrauen zerbrechen und die Front zusammenbrechen lassen
     wirke(w, "offiziersvertrauen", -35);
     k.front = 20; // feindliche Zielkontrolle: der Uhr-Floor entfällt
-    k.uhr = -99;
+    // Weit unter der Kapitulationsschwelle: Seit Welle 1 (E5) kämpfen Griechenlands EU-Partner nicht mehr mit, die Front kann sich
+    // in der Woche erholen und −99 allein reichte nicht mehr bis −100
+    k.uhr = -120;
     k.seit = w.day - 6;
     advance(w, 1);
     expect(k.phase).toBe("beendet");
@@ -450,7 +452,7 @@ describe("Niederlage und Putsch-Risiko", () => {
     advance(w, KRIEG.beschlussTage);
     wirke(w, "offiziersvertrauen", 40); // Vertrauen weit über der Schwelle
     k.front = 20;
-    k.uhr = -99;
+    k.uhr = -120; // wie oben: weit unter der Kapitulationsschwelle
     k.seit = w.day - 6;
     advance(w, 1);
     expect(k.ausgang).toBe("niederlage");

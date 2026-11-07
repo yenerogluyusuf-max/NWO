@@ -29,6 +29,7 @@ import {
   AKTEUR_IDS,
   akteurDat,
   akteurName,
+  EU_KENNUNGEN,
   beziehungAendern,
   beziehungZurTuerkei,
   eigenVon,
@@ -53,6 +54,7 @@ import type {
 } from "./pakte-typen";
 import { aktuelleLocale, t as tx } from "../i18n";
 import { rufParams } from "./ereignisse-krieg";
+import { BEOBACHTER } from "./kraenkung";
 
 export type { DrittKrieg, KoalitionenSicht, KoalitionsSicht, PaktDef, PaktKlausel, PaktSicht } from "./pakte-typen";
 
@@ -244,6 +246,58 @@ interface Bewertung {
   pflicht: number;
   pakt?: string;
   grund: string;
+  /** Der Staat kämpft auf dieser Seite nicht (kampfSperre); der Satz nennt den Grund */
+  sperre?: string;
+  /** Statt des Kriegseintritts stoppt er seine Rüstungsausfuhr in die Türkei (Angriff auf ein EU-Mitglied) */
+  exportstopp?: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Wer gegen wen nicht kämpft (Welle 1, E5; krieg.md Befund B2)
+//
+// Im Spielstand des Inhabers kämpften die USA an der Seite der Türkei gegen Israel, in einem Zypern-Lauf Ungarn und Rumänien für die
+// Türkei gegen ein EU-Mitglied und zehn EU-Staaten gegen sie. Die Pakt-Pflicht überstimmte jede Nähe. Drei Regeln schließen das aus:
+//   1. Wer mit dem Gegner befreundet oder seine Schutzmacht ist, zieht für die Türkei nicht gegen ihn in den Krieg (USA und Israel; im
+//      Weltmodell schon als Paar `dk-IRN-ISR` mit den USA an Israels Seite und in kraenkung.ts als Schutzmacht geführt; ebenso die
+//      europäischen NATO-Staaten und Israel). Auch die Beistandspflicht aus Art. 5 verlangt nur die Maßnahmen, „die sie für erforderlich
+//      erachtet“ (Nordatlantikvertrag, Art. 5); auf den Antrag der Türkei nach Art. 4 im Syrienkonflikt sagte die NATO Patriot-Luftabwehr
+//      zu, keine Kampftruppen (04.12.2012, https://www.nato.int/cps/en/natohq/news_88599.htm).
+//   2. Ist der Gegner ein EU-Mitglied, kämpft kein anderer EU-Staat mit, auf keiner Seite. Greift die Türkei an, antworten die
+//      Mitglieder einzeln mit Sanktionen statt mit Truppen. Beleg: Zypern 1974 trat kein Staat in den Krieg ein, der US-Kongress
+//      verhängte ein Waffenembargo (wirksam 05.02.1975 bis 1978; FRUS 1977–80 Bd. 21 Nr. 121); 2019 stoppten neun EU-Staaten ihre
+//      Rüstungsausfuhr, ein EU-Embargo gab es nicht (Ratsschlussfolgerungen ST 13090/19; recherche_operationen.md A3 und B).
+//   3. Russland und China kämpfen nicht für die Türkei gegen ein Mitglied der EU oder der NATO: Das wäre ein Krieg mit dem ganzen Bündnis.
+// Die Schwelle der Freundschaft ist ein Spielparameter.
+
+export const KAMPF_SPERRE = {
+  /** Bündniswert des Paares (−100 bis 100), ab dem ein Staat nicht gegen den anderen kämpft. Spielparameter: knapp unter dem
+   * Grundwert 35 innerhalb des westlichen Lagers (Israel eingeschlossen); die EU-Staaten untereinander starten bei 70, die USA und Israel bei 80 */
+  befreundet: 30,
+  /** Folge eines Rüstungsexportstopps für die Beziehung zur Türkei (milder als ein Kriegseintritt gegen sie: −6 / +8) */
+  exportstoppVertrauen: -3,
+  exportstoppKonflikt: 4,
+} as const;
+
+const EU_STAATEN: ReadonlySet<string> = new Set(EU_KENNUNGEN.filter((id) => id !== "EU"));
+/** Großmächte außerhalb von EU und NATO, die keinen Krieg mit einem der beiden Bündnisse führen */
+const BLOCKFREMDE_GROSSMAECHTE: ReadonlySet<string> = new Set(["RUS", "CHN"]);
+
+/** Ist das Land Mitglied der EU (als Staat, nicht die Union selbst)? */
+export function istEuStaat(id: string): boolean {
+  return EU_STAATEN.has(id);
+}
+
+/** Kämpft `c` auf der Seite `seite` im Krieg der Türkei gegen `gegner`? Liefert den Grund, wenn nicht, sonst null. */
+export function kampfSperre(w: World, c: string, seite: "eigen" | "gegner", gegner: string): string | null {
+  if (EU_STAATEN.has(gegner) && EU_STAATEN.has(c)) return tx("welle_e5.koalition.sperre.eu", { land: akteurName(gegner) });
+  if (seite !== "eigen") return null;
+  if ((BEOBACHTER[gegner] ?? []).includes(c) || paarVon(w, c, gegner).buendnis >= KAMPF_SPERRE.befreundet) {
+    return tx("welle_e5.koalition.sperre.verbuendet", { land: akteurName(gegner) });
+  }
+  if (BLOCKFREMDE_GROSSMAECHTE.has(c) && (EU_STAATEN.has(gegner) || paktDefs().some((p) => p.id === "nato" && p.mitglieder.includes(gegner)))) {
+    return tx("welle_e5.koalition.sperre.grossmacht", { land: akteurName(gegner) });
+  }
+  return null;
 }
 
 function rauschenVon(w: World, k: KriegVorgang, id: string): number {
@@ -338,7 +392,20 @@ function bewerteAlle(w: World, k: KriegVorgang, aggressor: "tuerkei" | "gegner",
     const e = bewerteFuer(w, pakte, k, c, "eigen", aggressor, bonus, spaltung);
     const g = bewerteFuer(w, pakte, k, c, "gegner", aggressor, 0, spaltung);
     // Der Ruf der Türkei (bonus) gilt nur der eigenen Seite
-    liste.push(e.punkte >= g.punkte ? e : g);
+    const wahl = e.punkte >= g.punkte ? e : g;
+    const sperre = kampfSperre(w, c, wahl.seite, k.land);
+    if (!sperre) {
+      liste.push(wahl);
+      continue;
+    }
+    // Gesperrt: Die andere Seite zählt, wenn sie frei ist und der Staat dort wenigstens zögern würde; sonst bleibt er mit Grund draußen
+    const andere = wahl === e ? g : e;
+    if (!kampfSperre(w, c, andere.seite, k.land) && andere.punkte >= KOALITION.zoegernAb) {
+      liste.push(andere);
+      continue;
+    }
+    const exportstopp = wahl.seite === "gegner" && aggressor === "tuerkei" && EU_STAATEN.has(k.land) && EU_STAATEN.has(c) && wahl.punkte >= KOALITION.beitrittAb;
+    liste.push({ ...wahl, sperre, ...(exportstopp ? { exportstopp } : {}) });
   }
   liste.sort((a, b) => b.punkte - a.punkte);
   return { liste, spaltung };
@@ -373,6 +440,14 @@ export function koalitionAufbauen(w: World, k: KriegVorgang, aggressor: "tuerkei
   const abwesend: KoalitionsAbwesender[] = [];
   for (const b of liste) {
     if (ko.partner.some((p) => p.id === b.id)) continue;
+    if (b.sperre) {
+      if (b.exportstopp && !(ko.exportstopp ?? []).includes(b.id)) {
+        (ko.exportstopp ??= []).push(b.id);
+        beziehungAendern(w, b.id, { vertrauen: KAMPF_SPERRE.exportstoppVertrauen, konflikt: KAMPF_SPERRE.exportstoppKonflikt }, tx("welle_e5.koalition.exportstopp.notiz"));
+      }
+      abwesend.push({ id: b.id, seite: b.seite, pflicht: false, grund: b.sperre, punkte: Math.round(b.punkte), zoegert: false, gesperrt: true });
+      continue;
+    }
     // Auch hineingezogene Staaten einer Seite sind Teil der Rechnung des Gegners (Hauptgegner steht in k.land)
     if (b.punkte >= KOALITION.beitrittAb && zaehle(ko, b.seite) < KOALITION.maxJeSeite) {
       const partner: KoalitionsPartner = {
@@ -423,6 +498,11 @@ function vorschauBerechnen(w: World, k: KriegVorgang): KriegKoalition {
   const ko: KriegKoalition = { aggressor, partner: [], abwesend: [], bewertet: w.day };
   if (spaltung.size > 0) ko.spaltung = [...spaltung][0];
   for (const b of liste) {
+    if (b.sperre) {
+      if (b.exportstopp) (ko.exportstopp ??= []).push(b.id);
+      ko.abwesend.push({ id: b.id, seite: b.seite, pflicht: false, grund: b.sperre, punkte: Math.round(b.punkte), zoegert: false, gesperrt: true });
+      continue;
+    }
     if (b.punkte >= KOALITION.beitrittAb && zaehle(ko, b.seite) < KOALITION.maxJeSeite) {
       ko.partner.push({ id: b.id, seite: b.seite, seit: w.day, grund: b.grund, ...(b.pakt ? { pakt: b.pakt } : {}), pflicht: b.pflicht > 0.3, rest: 1, einsatz: einsatzVon(b.punkte) });
     } else if (b.pflicht > 0.3 || b.punkte >= KOALITION.zoegernAb) {
@@ -486,6 +566,9 @@ export function koalitionenBeiKriegsbeginn(w: World, k: KriegVorgang, weg: "parl
   if (verweigert.length) zeilen.push(tx("sim2.sim.pakte.0d33b02", { p0: verweigert.map((a) => akteurName(a.id)).join(", ") }));
   const zoegernde = ko.abwesend.filter((a) => a.zoegert);
   if (zoegernde.length) zeilen.push(tx("sim2.sim.pakte.ac28270", { p0: zoegernde.slice(0, 5).map((a) => akteurName(a.id)).join(", ") }));
+  const draussen = ko.abwesend.filter((a) => a.gesperrt && !(ko.exportstopp ?? []).includes(a.id) && a.punkte >= KOALITION.zoegernAb);
+  if (draussen.length) zeilen.push(tx("welle_e5.koalition.draussen", { namen: draussen.map((a) => `${akteurName(a.id)} (${a.grund})`).join("; ") }));
+  if (ko.exportstopp?.length) zeilen.push(tx("welle_e5.koalition.exportstopp", { namen: ko.exportstopp.map(akteurName).join(", "), n: ko.exportstopp.length }));
   w.spiel?.hinweise.push({ id: `krieg-koalition-${k.id}-${w.day}`, titel: tx("sim2.sim.pakte.b584ee0", { p0: akteurName(k.land) }), szene: "istanbul", text: zeilen });
   addLog(w, "ereignis", tx("sim2.sim.pakte.3dae73e", { p0: akteurName(k.land), p1: eigen.length, p2: gegner.length }), zeilen[0] ?? "");
 }
@@ -516,7 +599,7 @@ export function koalitionWoche(w: World, k: KriegVorgang): void {
     const { liste } = bewerteAlle(w, k, ko.aggressor, 0);
     for (const b of liste) {
       const a = ko.abwesend.find((x) => x.id === b.id && x.zoegert);
-      if (!a || zaehle(ko, b.seite) >= KOALITION.maxJeSeite) continue;
+      if (!a || b.sperre || zaehle(ko, b.seite) >= KOALITION.maxJeSeite) continue;
       const schub = b.pflicht > 0.3 ? druck : druck * 0.3;
       if (b.punkte + schub >= KOALITION.beitrittAb && b.seite === a.seite) {
         const partner: KoalitionsPartner = { id: b.id, seite: b.seite, seit: w.day, grund: b.grund, ...(b.pakt ? { pakt: b.pakt } : {}), pflicht: b.pflicht > 0.3, rest: 1, einsatz: einsatzVon(b.punkte + schub) };
@@ -567,6 +650,10 @@ export function koalitionRufen(w: World, k: KriegVorgang): { neu: KoalitionsPart
 /** Der Krieg ist zu Ende (Frieden, Niederlage, Rückzug): Die Koalitionen lösen sich auf; die Partner merken sich, wie es ausging. */
 export function koalitionAufloesen(w: World, k: KriegVorgang, wie: "sieg" | "frieden" | "zugestaendnis" | "niederlage" | "rueckzug"): void {
   const ko = k.koalition;
+  if (ko?.exportstopp?.length) {
+    addLog(w, "ereignis", tx("welle_e5.koalition.exportstopp.ende", { namen: ko.exportstopp.map(akteurName).join(", "), n: ko.exportstopp.length }), "");
+    ko.exportstopp = [];
+  }
   if (!ko || ko.partner.length === 0) return;
   for (const p of ko.partner) {
     if (p.seite !== "eigen") continue;
@@ -593,8 +680,9 @@ export function koalitionenIn(w: World, kriegId: string): KoalitionenSicht {
     for (const p of ko.partner.filter((x) => x.seite === seite)) {
       out.push({ id: p.id, name: akteurName(p.id), seite, rolle: "partner", grund: p.grund, pflicht: p.pflicht, ...(p.pakt ? { pakt: p.pakt } : {}), rest: p.rest, einsatz: p.einsatz });
     }
-    for (const a of ko.abwesend.filter((x) => x.seite === seite && (x.zoegert || x.pflicht))) {
-      out.push({ id: a.id, name: akteurName(a.id), seite, rolle: a.zoegert ? "zoegert" : "abseits", grund: a.grund, pflicht: a.pflicht });
+    for (const a of ko.abwesend.filter((x) => x.seite === seite && (x.zoegert || x.pflicht || (x.gesperrt && x.punkte >= KOALITION.zoegernAb)))) {
+      const stopp = (ko.exportstopp ?? []).includes(a.id);
+      out.push({ id: a.id, name: akteurName(a.id), seite, rolle: stopp ? "exportstopp" : a.zoegert ? "zoegert" : "abseits", grund: stopp ? tx("welle_e5.koalition.exportstopp.grund") : a.grund, pflicht: a.pflicht });
     }
     return out;
   };

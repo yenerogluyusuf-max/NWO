@@ -125,6 +125,15 @@ interface RisikoEintrag {
 
 const RISIKO = (RISIKO_RAW as { provinzen: Record<string, RisikoEintrag> }).provinzen;
 
+/**
+ * Wie stark die Gebäude bei einem Beben nachgeben: aus Erdbebenvorsorge und Bauqualität im Spiel (0,3 bis 1,35, Spielparameter).
+ * Dieselbe Zahl rechnet der Schaden eines Bebens (schadenBerechnen) und die Linse „Katastrophenrisiko“.
+ */
+export function gebaeudeFaktor(w: World, provinzen: number[]): number {
+  const vorsorge = (wertIn(w, "erdbebenvorsorge", provinzen) + wertIn(w, "bauqualitaet", provinzen)) / 200;
+  return clamp(1.35 - 0.7 * vorsorge, 0.3, 1.35);
+}
+
 /** Erdbeben-Risiko einer Provinz, 1–5 (provinz_profile.csv, Spalte deprem_risiko_1_5). */
 export function depremRisiko(plaka: number): number {
   return RISIKO[String(plaka)]?.deprem ?? 1;
@@ -283,8 +292,7 @@ export function schadenBerechnen(w: World, art: KatastrophenArt, provinzen: numb
   let tote = 0;
   let wohnungen = 0;
   if (art === "erdbeben") {
-    const vorsorge = (wertIn(w, "erdbebenvorsorge", provinzen) + wertIn(w, "bauqualitaet", provinzen)) / 200;
-    const gebaeude = clamp(1.35 - 0.7 * vorsorge, 0.3, 1.35);
+    const gebaeude = gebaeudeFaktor(w, provinzen);
     tote = bev * s * s * KATASTROPHE.toteBasis * gebaeude * bf;
     const toteRef = bev * s * s * KATASTROPHE.toteBasis * gebaeude * bfRef;
     const obdachlos = tote * KATASTROPHE.obdachlosFaktor;

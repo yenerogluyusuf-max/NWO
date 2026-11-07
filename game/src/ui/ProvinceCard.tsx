@@ -1,4 +1,7 @@
 // Provinzblatt: Zahlen, Infrastruktur, Probleme, Bauvorhaben und der Weg, hier etwas zu tun.
+// Welle 1, E5 (karte.md K7): Rathaus, Wirtschaftskraft, Arbeitslosigkeit und Infrastruktur kommen aus dem Spielstand. Die festen
+// Ausgangsdaten (Wirtschaftsleistung und Straßen von 2024) stehen im aufklappbaren Steckbrief. Der Knopf öffnet, was hier fehlt
+// (ui/provinz-handlungen.ts), nicht mehr immer den Autobahnbau.
 
 import { NET } from "../sim/world";
 import { offenerKonflikt, vorgaengeIn } from "../sim/vorgaenge";
@@ -9,6 +12,8 @@ import { archetypName } from "../data/provinz_archetypen";
 import { Corners } from "./art/Ornament";
 import { PARTY_COLORS } from "./Parliament";
 import INFRA from "../data/provinz_infra.json";
+import { bedarfIn, type ProvinzBedarf } from "./provinz-handlungen";
+import "./provinzkarte.css";
 import type { World } from "../sim/types";
 
 type Infra = { strasse_dichte: number; strasse_km: number; piste_km: number; schiene_km: number; flaeche_km2: number; krankenhaeuser: number; flughaefen: number; kraftwerke: number; bezirke: number };
@@ -31,8 +36,31 @@ const WERTE: { id: string; label: string }[] = [
   { id: "internet", label: "Breitband" },
 ];
 
-export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { world: World; plaka: number; onClose: () => void; onBauen: (plaka: number) => void; onVorgang?: (id: string) => void }) {
+const wert = (w: World, id: string, plaka: number): number => w.net.values[NET.index.get(id)! * PROVINCES + plaka - 1]!;
+
+/** Rathaus aus dem Spielstand (Kommunalwahlen im Spiel); vor der ersten Wahl im Spiel gilt das Ergebnis von 2024. */
+export function rathausVon(w: World, plaka: number): { partei: string; jahr: string; verwalter: boolean } {
+  const k = w.spiel?.gesellschaft?.kommunen;
+  const r = k?.rathaus?.[String(plaka)];
+  const letzte = k?.wahlen?.[k.wahlen.length - 1];
+  return { partei: r?.partei ?? PROVINZEN[plaka - 1]!.buergermeister2024, jahr: letzte ? letzte.datum.slice(0, 4) : "2024", verwalter: !!r?.verwalter };
+}
+
+/** Die Aufschrift des Knopfs: was hier fehlt, mit der Zahl, die es zeigt. */
+export function bedarfKnopf(b: ProvinzBedarf | null): string {
+  if (!b) return t("ui.ProvinceCard.ed845b0");
+  if (b.art === "netz") return t("welle_e5.provinz.knopf.netz", { netz: t(`infra.netz.${b.netz}`), a: Math.round(b.a * 100) });
+  const m = NET.nodes[NET.index.get(b.massnahme)!]!.name;
+  if (b.art === "problem") return t("welle_e5.provinz.knopf.problem", { problem: NET.nodes[NET.index.get(b.problem)!]!.name, massnahme: m });
+  return t("welle_e5.provinz.knopf.lage", { wert: t(`netz.knoten.${b.knoten}.name`), massnahme: m, hier: Math.round(b.wert), land: Math.round(b.land) });
+}
+
+export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { world: World; plaka: number; onClose: () => void; onBauen: (plaka: number, bedarf: ProvinzBedarf | null) => void; onVorgang?: (id: string) => void }) {
   const d = PROVINZEN[plaka - 1]!;
+  const rathaus = rathausVon(world, plaka);
+  const bedarf = bedarfIn(world, plaka);
+  const regional = wert(world, "wachstum_regional", plaka);
+  const regionalLand = nationalAverage(NET, world.net, "wachstum_regional");
   const seats = world.parliament?.byProvince?.[plaka];
   const problems = NET.nodes
     .filter((n) => n.kind === "problem")
@@ -67,24 +95,25 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
           <dt>{t("ui2.ui.ProvinceCard.0102262")}</dt>
           <dd>{zahl(d.bevoelkerung)}</dd>
           <dt>{t("ui2.ui.ProvinceCard.2ef1990")}</dt>
-          <dd>{t("ui2.ui.ProvinceCard.62c34c2", { p0: zahl(d.bipProKopf) })}</dd>
+          <dd className={regional < regionalLand - 4 ? "schwach" : ""}>{t("welle_e5.provinz.regional", { hier: nf(regional, 0), land: nf(regionalLand, 0) })}</dd>
           <dt>{t("ui2.ui.ProvinceCard.1cd606b")}</dt>
+          <dd>{t("welle_e5.provinz.prozent", { p: nf(wert(world, "arbeitslosigkeit", plaka), 1) })}</dd>
+          <dt>{t("welle_e5.provinz.rathaus")}</dt>
           <dd>
-            {zahl(d.arbeitslosigkeit)} %{d.arbeitslosigkeitHerkunft === "geschaetzt" ? t("ui2.ui.ProvinceCard.c31e5e0") : ""}
-          </dd>
-          <dt>{t("ui2.ui.ProvinceCard.336160c")}</dt>
-          <dd>
-            {d.buergermeister2024}
-            {d.grossstadt ? t("ui2.ui.ProvinceCard.290242d") : ""}
+            {rathaus.partei === own?.kurz ? own.name : rathaus.partei}
+            {rathaus.verwalter ? t("welle_e5.provinz.verwalter") : ""}
+            <small className="province-wahl">{t("welle_e5.provinz.wahl", { jahr: rathaus.jahr })}</small>
           </dd>
           <dt>{t("ui2.ui.ProvinceCard.dc59932")}</dt>
           <dd>{d.sitze}</dd>
         </dl>
 
         {inf && (
-          <>
-            <h3 className="province-sub">{t("ui2.ui.ProvinceCard.9d40c07")}</h3>
+          <details className="province-steckbrief">
+            <summary className="province-sub">{t("welle_e5.provinz.steckbrief")}</summary>
             <dl>
+              <dt>{t("welle_e5.provinz.bip2024")}</dt>
+              <dd>{t("ui2.ui.ProvinceCard.62c34c2", { p0: zahl(d.bipProKopf) })}</dd>
               <dt>{t("ui.ProvinceCard.e1ddaa6")}</dt>
               <dd>
                 {zahl(inf.strasse_km, 0)} km · {nf(inf.strasse_dichte, 2)} je km²
@@ -102,7 +131,7 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
               </dd>
             </dl>
             <p className="footnote">{t("ui.ProvinceCard.5533cde")}</p>
-          </>
+          </details>
         )}
 
         <h3 className="province-sub">{t("ui.ProvinceCard.ec52eb3")}</h3>
@@ -176,8 +205,8 @@ export function ProvinceCard({ world, plaka, onClose, onBauen, onVorgang }: { wo
           </>
         )}
 
-        <button className="brass-button province-bauen" onClick={() => onBauen(plaka)}>
-          {t("ui.ProvinceCard.ed845b0")}
+        <button className="brass-button province-bauen" onClick={() => onBauen(plaka, bedarf)}>
+          {bedarfKnopf(bedarf)}
         </button>
         <p className="footnote">{t("ui.ProvinceCard.3ac9e40")}</p>
       </div>

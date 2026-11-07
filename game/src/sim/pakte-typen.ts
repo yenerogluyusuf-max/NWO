@@ -70,7 +70,7 @@ export interface KoalitionsSicht {
   id: string;
   name: string;
   seite: "eigen" | "gegner";
-  rolle: "hauptgegner" | "partner" | "zoegert" | "abseits";
+  rolle: "hauptgegner" | "partner" | "zoegert" | "abseits" | "exportstopp";
   grund: string;
   pflicht: boolean;
   pakt?: string;

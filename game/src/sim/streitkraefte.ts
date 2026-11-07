@@ -345,7 +345,14 @@ const sanktionenVon = (w: World, land: string): { id: string; von: string }[] =>
   const a = w.spiel?.weltmodell as unknown as { aussen?: { sanktionen?: { id: string; von: string }[] } } | undefined;
   return (a?.aussen?.sanktionen ?? []).filter((s) => s.von === land);
 };
-const sanktioniert = (w: World, land: string | null): boolean => !!land && sanktionenVon(w, land).length > 0;
+/**
+ * Rüstungsexportstopp von EU-Staaten, solange die Türkei ein EU-Mitglied angreift (sim/pakte.ts kampfSperre; Welle 1, E5). Lieferland
+ * „EU“ steht für Zulieferungen aus mehreren Mitgliedern; schon ein Stopp hält sie auf (real: der Altay-Antrieb von MTU/Renk scheiterte am
+ * deutschen Embargo, Defense News 08.03.2021). Der Stopp trifft auch Einzelgenehmigungen.
+ */
+const exportStopp = (w: World, land: string): boolean =>
+  !!w.spiel?.kriege?.some((k) => (k.phase === "krieg" || k.phase === "waffenruhe") && !!k.koalition?.exportstopp?.some((x) => x === land || land === "EU"));
+const sanktioniert = (w: World, land: string | null): boolean => !!land && (sanktionenVon(w, land).length > 0 || exportStopp(w, land));
 
 /**
  * Hält das Lieferland diese Lieferung an? Eine gezielte Sanktion (CAATSA, ENTSCHEIDUNGEN R) sperrt die allgemeine Lizenz an die SSB,
@@ -354,6 +361,7 @@ const sanktioniert = (w: World, land: string | null): boolean => !!land && sankt
  */
 export function lieferungGesperrt(w: World, b: Pick<Beschaffung, "lieferland" | "lizenz">): boolean {
   if (!b.lieferland) return false;
+  if (exportStopp(w, b.lieferland)) return true;
   const sanktionen = sanktionenVon(w, b.lieferland);
   if (!sanktionen.length) return false;
   if (b.lizenz !== "einzelgenehmigung") return true;

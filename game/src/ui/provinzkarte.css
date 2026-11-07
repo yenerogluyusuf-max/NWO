@@ -1,0 +1,8 @@
+/* Provinzkarte (Welle 1, E5): Steckbrief mit den festen Ausgangsdaten zum Aufklappen, schwacher Wert in Siegelrot. */
+.province-card-float .province-steckbrief > summary { cursor: pointer; list-style: none; display: flex; align-items: baseline; gap: 6px; }
+.province-card-float .province-steckbrief > summary::-webkit-details-marker { display: none; }
+.province-card-float .province-steckbrief > summary::before { content: "▸"; color: var(--ink-soft); font-size: var(--schrift-2); }
+.province-card-float .province-steckbrief[open] > summary::before { content: "▾"; }
+.province-card-float dd.schwach { color: var(--seal); font-weight: 600; }
+.province-card-float .province-bauen { white-space: normal; line-height: 1.3; text-align: center; }
+.province-card-float .province-wahl { display: block; color: var(--ink-soft); font-size: var(--schrift-2); font-style: italic; }

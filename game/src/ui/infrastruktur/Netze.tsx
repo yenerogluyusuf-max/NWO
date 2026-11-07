@@ -69,14 +69,14 @@ function NetzKarte({ werte, gewaehlt, onWaehle }: { werte: Map<number, number | 
 /** Vorzeichen und Prozent („−10 %“, „+5 %“) für die Plaketten des Etats. */
 const vzProzent = (n: number): string => `${n > 0 ? "+" : n < 0 ? "−" : ""}${Math.abs(n)} %`;
 
-export function Netze({ world: w, onGeaendert }: { world: World; onGeaendert?: () => void }) {
+export function Netze({ world: w, onGeaendert, startNetz, startOrt }: { world: World; onGeaendert?: () => void; /** Vorwahl aus der Provinzkarte (Welle 1, E5) */ startNetz?: NetzId; startOrt?: number }) {
   const [vergabe, setVergabe] = useState<Vergabe>("ausschreibung");
   const [meldung, setMeldung] = useState<{ ok: boolean; text: string } | null>(null);
   const [stand, setStand] = useState(0);
   const sichten = useMemo(() => (w.spiel ? netzSichten(w) : []), [w, w.day, stand]);
   // Vorgabe: das Netz mit dem schlimmsten Engpass
-  const [netzWahl, setNetzWahl] = useState<string | null>(null);
-  const [ortWahl, setOrtWahl] = useState<number | null>(null);
+  const [netzWahl, setNetzWahl] = useState<string | null>(startNetz ?? null);
+  const [ortWahl, setOrtWahl] = useState<number | null>(startOrt ?? null);
   const schlimmstes = [...sichten].sort((a, b) => (b.engpaesse[0]?.a ?? b.mittel) - (a.engpaesse[0]?.a ?? a.mittel))[0];
   const netzId = netzWahl ?? schlimmstes?.id ?? null;
   const x = sichten.find((n) => n.id === netzId);

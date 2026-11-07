@@ -1,4 +1,4 @@
-// Lage der Regionen (Befund F-12, Nacht N6): Die Seite zeigt jetzt Regionen. Oben eine Karte der Provinzen, gefärbt nach der gewählten Ebene
+// Lage der Regionen (Befund F-12, Nacht N6; Netze-Färbung Welle 1, E5): Die Seite zeigt jetzt Regionen. Oben eine Karte der Provinzen, gefärbt nach der gewählten Ebene
 // (Netze, Erbe, Erdbebenrisiko, Baustellen), daneben die fünf Provinzen mit dem größten Handlungsbedarf mit Sprung zur zuständigen Stelle,
 // darunter die sieben Regionen in einer Zeile je Region. Nur Werte, die wirklich je Provinz verschieden sind: Auslastung der Netze
 // (sim/infrastruktur.ts), Zustand der Stätten (data/erbe.ts), Erdbebenrisiko 1–5 (data/katastrophe_risiko.json, AFAD-basiert, Recherche
@@ -6,8 +6,7 @@
 
 import { useMemo, useState } from "react";
 import type { World } from "../../sim/types";
-import { netzSichten, auslastung } from "../../sim/infrastruktur";
-import { SCHWELLE } from "../../data/infrastruktur-netze";
+import { ueberlastJeProvinz } from "../infrastruktur/ueberlast";
 import { ERBE } from "../../data/erbe";
 import { PROVINZEN, REGION_DE } from "../../sim/regional";
 import { reichZustand, vorhabenDef } from "../../sim/reich";
@@ -27,6 +26,8 @@ interface ProvinzWert {
   /** 0 (gut) bis 1 (schlecht), für die Farbe */
   not: number;
   text: string;
+  /** Nur Netze: mindestens ein Netz überlastet */
+  ueber?: boolean;
 }
 
 const risikoVon = (plaka: number): number => (RISIKO as { provinzen: Record<string, { deprem?: number }> }).provinzen[String(plaka)]?.deprem ?? 0;
@@ -34,14 +35,13 @@ const risikoVon = (plaka: number): number => (RISIKO as { provinzen: Record<stri
 function werte(w: World, ebene: Ebene): Map<number, ProvinzWert> {
   const out = new Map<number, ProvinzWert>();
   if (ebene === "netze") {
-    const netze = netzSichten(w).filter((n) => !n.land);
-    for (let p = 1; p <= PROVINZEN.length; p++) {
-      let schlimm: { a: number; name: string } | null = null;
-      for (const n of netze) {
-        const a = auslastung(w, n.id, p);
-        if (a !== null && (!schlimm || a > schlimm.a)) schlimm = { a, name: n.name };
-      }
-      if (schlimm) out.set(p, { plaka: p, not: Math.max(0, Math.min(1, (schlimm.a - 0.6) / (SCHWELLE.ueberlast + 0.15 - 0.6))), text: t("n6.rl.netz", { netz: schlimm.name, a: Math.round(schlimm.a * 100) }) });
+    // Welle 1, E5: die Überlast aller Netze zusammen statt nur des schlimmsten (ui/infrastruktur/ueberlast.ts); vorher war die Karte im
+    // Spielstand des Inhabers überall gleich rot, weil das Stromnetz in jeder Provinz an der Obergrenze steht
+    for (const x of ueberlastJeProvinz(w).provinzen) {
+      const netz = t(`infra.netz.${x.netz}`);
+      const a = Math.round(x.a * 100);
+      // „Netze über 100 %“ in der Regionstabelle zählt nur Überlast, die nicht im ganzen Land gilt (sonst 81 von 81)
+      out.set(x.plaka, { plaka: x.plaka, not: x.not, ueber: x.eigene > 0, text: x.anzahl > 0 ? t("welle_e5.rl.netz", { n: x.anzahl, netz, a }) : t("n6.rl.netz", { netz, a }) });
     }
   } else if (ebene === "erbe") {
     const z = reichZustand(w);
@@ -95,13 +95,17 @@ export function RegionenLage({ w, springe }: { w: World; springe?: ((tab: string
       const prov = PROVINZEN.filter((p) => p.region === r);
       const bev = prov.reduce((s, p) => s + p.bevoelkerung, 0);
       const ges = PROVINZEN.reduce((s, p) => s + p.bevoelkerung, 0);
-      const ueber = prov.filter((p) => (netze.get(p.plaka)?.not ?? 0) >= 0.73).length;
+      const ueber = prov.filter((p) => netze.get(p.plaka)?.ueber).length;
       const gefaehrdet = prov.filter((p) => (erbe.get(p.plaka)?.not ?? 0) >= 0.45).length;
       const risiko = prov.reduce((s, p) => s + risikoVon(p.plaka) * p.bevoelkerung, 0) / Math.max(1, bev);
       return { id: r, name: datenText("region", r, REGION_DE[r]!), anteil: bev / ges, ueber, gefaehrdet, risiko, bau: prov.filter((p) => bau.has(p.plaka)).length, n: prov.length };
     });
   }, [w, w.day]);
   const gewaehlt = plaka !== null ? daten.get(plaka) : undefined;
+  const ueberall = useMemo(() => (ebene === "netze" ? ueberlastJeProvinz(w).ueberall : []), [w, ebene, w.day]);
+  const legende = ebene === "netze"
+    ? `${t("welle_e5.rl.legende.netze")}${ueberall.length ? ` ${t("welle_e5.rl.ueberall", { netze: ueberall.map((n) => t(`infra.netz.${n}`)) })}` : ""}`
+    : t(`n6.rl.legende.${ebene}`);
   return (
     <section className="rl" aria-label={t("n6.rl.titel")}>
       <div className="rl-oben">
@@ -123,7 +127,7 @@ export function RegionenLage({ w, springe }: { w: World; springe?: ((tab: string
               );
             })}
           </svg>
-          <p className="rl-legende">{gewaehlt ? `${PROVINZEN[gewaehlt.plaka - 1]?.name}: ${gewaehlt.text}` : t(`n6.rl.legende.${ebene}`)}</p>
+          <p className="rl-legende">{gewaehlt ? `${PROVINZEN[gewaehlt.plaka - 1]?.name}: ${gewaehlt.text}` : legende}</p>
         </div>
         <aside className="rl-bedarf">
           <h4>{t("n6.rl.bedarf")}</h4>
