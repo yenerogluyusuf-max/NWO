@@ -59,15 +59,25 @@ export const GATTUNGEN: GattungDef[] = [
 export const GATTUNG_NACH_ID = Object.fromEntries(GATTUNGEN.map((g) => [g.id, g])) as Record<GattungId, GattungDef>;
 
 /**
+ * Ausfuhrgenehmigung des Lieferlands. CAATSA (14.12.2020) sperrt US-Exportlizenzen an die Rüstungsbehörde SSB, nicht jede Lieferung:
+ * Washington genehmigte einzelne Geschäfte trotzdem (ENTSCHEIDUNGEN R, gezielte Sanktion). „einzelgenehmigung“ heißt: Das Geschäft
+ * ist einzeln freigegeben und läuft unter der gezielten Sanktion weiter. Ohne Angabe gilt die allgemeine Sperre.
+ */
+export type Lizenz = "einzelgenehmigung";
+
+/**
  * Belegte, bereits laufende Beschaffungen zum Spielstart. Ein Modell, ein Fertigdatum (Befund G-4, 5. November): Jede ist an ihr
  * Rüstungsvorhaben in der Bauliste gebunden (`vorhaben`, data/reich/militaer.ts, dort `start: im_bau`). Geliefert wird, wenn das Vorhaben
  * fertig ist; das Datum kommt aus der Bauliste (Reihenfolge, Kapazität, Verwaltung). `monate` gilt nur noch für ältere Spielstände,
  * in denen das Vorhaben nicht läuft (Spielparameter).
  */
-export const START_BESCHAFFUNGEN: { gattung: GattungId; art: "kauf" | "produktion"; menge: number; generation: number; monate: number; lieferland: string | null; name: string; vorhaben: string }[] = [
-  { gattung: "kampfflugzeuge", art: "produktion", menge: 20, generation: 5, monate: 72, lieferland: "USA", name: "KAAN Block 10 (Triebwerk GE F110)", vorhaben: "mil_kaan" },
+export const START_BESCHAFFUNGEN: { gattung: GattungId; art: "kauf" | "produktion"; menge: number; generation: number; monate: number; lieferland: string | null; name: string; vorhaben: string; lizenz?: Lizenz }[] = [
+  // F110: Die Exportlizenz passierte den Kongress am 09.07.2026, Lieferung ab 2027 (Breaking Defense, 22.07.2026,
+  // https://breakingdefense.com/2026/07/turkish-aerospace-ceo-us-cleared-kaan-fighter-engines-for-export/)
+  { gattung: "kampfflugzeuge", art: "produktion", menge: 20, generation: 5, monate: 72, lieferland: "USA", name: "KAAN Block 10 (Triebwerk GE F110)", vorhaben: "mil_kaan", lizenz: "einzelgenehmigung" },
   { gattung: "kampfflugzeuge", art: "kauf", menge: 20, generation: 4, monate: 36, lieferland: "EU", name: "Eurofighter", vorhaben: "mil_eurofighter" },
-  { gattung: "kampfflugzeuge", art: "kauf", menge: 40, generation: 4, monate: 48, lieferland: "USA", name: "F-16 Block 70", vorhaben: "mil_f16" },
+  // F-16 Block 70: Mitteilung der DSCA an den Kongress am 26.01.2024 über 40 Maschinen, trotz CAATSA (Euro-SD, 01/2024)
+  { gattung: "kampfflugzeuge", art: "kauf", menge: 40, generation: 4, monate: 48, lieferland: "USA", name: "F-16 Block 70", vorhaben: "mil_f16", lizenz: "einzelgenehmigung" },
   { gattung: "luftabwehr", art: "produktion", menge: 25, generation: 4, monate: 36, lieferland: null, name: "Stahlkuppel", vorhaben: "mil_stahlkuppel" },
   { gattung: "panzer", art: "produktion", menge: 10, generation: 4, monate: 30, lieferland: "EU", name: "Altay T1", vorhaben: "mil_altay" },
 ];

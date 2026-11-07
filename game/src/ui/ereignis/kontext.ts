@@ -227,6 +227,12 @@ const VORLAGE_ZAHLEN: Record<string, string[]> = {
   forschungsrat: ["hochschule", "ansehen", "zustimmung"],
   forschung_verwaltung: ["hochschule", "vertrauen", "zustimmung"],
   grossziel_gelegenheit: ["ansehen", "zustimmung"],
+  // Welle E4
+  ruestung_bedingung: ["ansehen", "zustimmung", "eu"],
+  ruestung_export: ["ansehen", "zustimmung", "wachstum"],
+  medien_plattform: ["pressefreiheit", "zustimmung", "vertrauen"],
+  medien_enthuellung: ["pressefreiheit", "zustimmung", "vertrauen"],
+  medien_sendezeit: ["pressefreiheit", "zustimmung", "ansehen"],
 };
 
 /** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */
@@ -246,6 +252,8 @@ export function stelleLabel(s: Stelle): string {
       return t("welle_e2.stelle.grossziel");
     case "baustelle":
       return t("welle_e2.stelle.baustelle");
+    case "ruestung":
+      return t("welle_e4.stelle.ruestung");
   }
 }
 

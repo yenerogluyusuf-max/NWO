@@ -27,7 +27,9 @@ export type Stelle =
   // Welle E2: Wissensbaum (mit Knoten), Große Ziele (mit Ziel), Baustelle des Landes (Verwaltungskraft)
   | { art: "wissen"; knoten?: string }
   | { art: "grossziel"; ziel?: string }
-  | { art: "baustelle" };
+  | { art: "baustelle" }
+  // Welle E4: Rüstung und Beschaffung (Bauliste der Rüstung unter Sicherheit)
+  | { art: "ruestung" };
 
 export interface Option {
   id: string;

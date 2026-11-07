@@ -384,6 +384,12 @@
 .md-aktion-kopf > div { display: grid; min-width: 0; }
 .md-aktion-kopf strong { font: 600 var(--schrift-3)/1.25 var(--display); }
 .md-aktion-kopf .knopf { flex: none; }
+/* Welle E4: Nutzen und Preis eines Eingriffs gleich groß, je eine Zeile mit den gebuchten Zahlen */
+.md-bilanz { display: grid; grid-template-columns: auto 1fr; gap: var(--abstand-1) var(--abstand-2); margin: 0; font-size: var(--schrift-2); line-height: 1.35; }
+.md-bilanz dt { font-variant: small-caps; letter-spacing: 0.04em; font-weight: 600; }
+.md-bilanz dt.bringt { color: var(--gut); }
+.md-bilanz dt.kostet { color: var(--schlecht); }
+.md-bilanz dd { margin: 0; color: var(--tinte-1); font-variant-numeric: tabular-nums; }
 .md-folgen { min-width: 0; color: var(--tinte-2); }
 .md-folgen summary { cursor: pointer; }
 .md-folgen > p { margin: var(--abstand-1) 0 0; color: var(--tinte-1); }

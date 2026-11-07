@@ -10,6 +10,7 @@ import { beschr, kosten, monatVon, netz, opt, zusageAnlegen } from "./ereignis-h
 import { aktuelleSprache, katalogVon, msg, t } from "../i18n";
 import type { Formen } from "../i18n";
 import type { Option, Vorlage } from "./ereignis-hilfen";
+import { verzugsGrund } from "./ereignisse-ruestung";
 import { VORZIEHEN_VERWALTUNG, bauPool, beginne, reichZustand, vergabeAngebot, verschiebe, vorhabenDef, vorhabenSicht } from "./reich";
 import { ERBE, ERBE_NACH_ID } from "../data/erbe";
 import { STAETTEN_START } from "../data/reich";
@@ -698,10 +699,14 @@ const LIEFERVERZUG: Vorlage = {
   erzeuge: (w) => {
     const laeuft = (w.spiel?.reich?.laufend ?? []).map((l) => vorhabenDef(l.id)).filter((v) => v?.bereich === "militaer" && !v.id.startsWith("doktrin"));
     const v = laeuft[0];
-    return v ? { provinzen: [], staerke: 1, daten: { vorhaben: v.id } } : null;
+    // Welle E4: Der Verzug nennt seinen Grund (sim/ereignisse-ruestung.ts, `verzugsGrund`), ohne Zug aus dem Zufallsstrom
+    return v ? { provinzen: [], staerke: 1, daten: { vorhaben: v.id, grund: verzugsGrund(w, v.id) } } : null;
   },
   titel: (_, ev) => t("ev.mil_lieferverzug.titel", { name: vorhabenName(ev, "ev.mil_lieferverzug.unbekannt") }),
-  text: (_, ev) => [t("ev.mil_lieferverzug.text1", { name: vorhabenName(ev, "ev.mil_lieferverzug.unbekannt") }), t("ev.mil_lieferverzug.text2")],
+  text: (_, ev) => [
+    ev.daten?.grund ? t(`welle_e4.verzug.grund.${String(ev.daten.grund)}`, { name: vorhabenName(ev, "ev.mil_lieferverzug.unbekannt") }) : t("ev.mil_lieferverzug.text1", { name: vorhabenName(ev, "ev.mil_lieferverzug.unbekannt") }),
+    t("ev.mil_lieferverzug.text2"),
+  ],
   warum: () => t("ev.mil_lieferverzug.warum"),
   massnahmen: ["m_ruestungsindustrie"],
   optionen: (_, ev) => [

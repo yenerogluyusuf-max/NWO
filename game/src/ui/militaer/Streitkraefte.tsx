@@ -148,6 +148,8 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
   const onText = (text: string) => onTat({ ok: true, text });
   const kriege = aktiveKriege(world).filter((k) => k.phase !== "frieden" && k.phase !== "beendet");
   const besetzt = besatzungsSicht(world).length;
+  // Gilt eine gezielte US-Sanktion (CAATSA), zeigt der Zeitstrahl, welche Lieferung einzeln genehmigt ist und trotzdem kommt
+  const caatsa = (world.spiel?.weltmodell as unknown as { aussen?: { sanktionen?: { id: string }[] } } | undefined)?.aussen?.sanktionen?.some((x) => x.id === "caatsa") ?? false;
   const laufendFuer = (id: string) => s.laufend.filter((b) => b.gattung === id).sort((x, y) => Number(!!y.name) - Number(!!x.name))[0];
   const kacheln: UbKachel[] = s.gattungen.map((g) => {
     const lauf = laufendFuer(g.id);
@@ -241,6 +243,7 @@ export function Streitkraefte({ world, refresh }: { world: World; refresh: () =>
                     <strong>{b.name ?? t(`militaer.gattung.${b.gattung as GattungId}`)}</strong>
                     <span className="sk-klein">
                       {t(`militaer.art.${b.art}`)} · {b.gestoppt ? t("militaer.ui.gestoppt") : t("militaer.ui.in_monaten", { n: rest })}
+                      {b.lizenz === "einzelgenehmigung" && !b.gestoppt && caatsa ? ` · ${t("welle_e4.militaer.einzelgenehmigung")}` : ""}
                     </span>
                   </div>
                   <div className="sk-fortschritt">

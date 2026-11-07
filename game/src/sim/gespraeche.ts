@@ -124,6 +124,12 @@ export const EREIGNIS_BEZUG: Record<string, { amt: Figur["amt"][]; titel: string
   forschungsrat: { amt: ["wirtschaft"], titel: t("welle_e2.gs.forschungsrat"), groessen: ["hochschule", "modernisierung"] },
   forschung_verwaltung: { amt: ["wirtschaft", "stab"], titel: t("welle_e2.gs.forschung_verwaltung"), groessen: ["hochschule"] },
   grossziel_gelegenheit: { amt: ["stab", "aussen"], titel: t("welle_e2.gs.grossziel_gelegenheit"), groessen: ["ansehen"] },
+  // Welle E4: Rüstung und Medien (sim/ereignisse-ruestung.ts, sim/ereignisse-medien.ts)
+  ruestung_bedingung: { amt: ["verteidigung", "aussen"], titel: t("welle_e4.gs.ruestung_bedingung"), groessen: ["ruestungsautarkie", "nationalisten"] },
+  ruestung_export: { amt: ["verteidigung", "wirtschaft"], titel: t("welle_e4.gs.ruestung_export"), groessen: ["export", "arbeitsplaetze_industrie"] },
+  medien_plattform: { amt: ["stab", "verkehr"], titel: t("welle_e4.gs.medien_plattform"), groessen: ["pressefreiheit", "junge"] },
+  medien_enthuellung: { amt: ["stab", "justiz"], titel: t("welle_e4.gs.medien_enthuellung"), groessen: ["korruption", "vertrauen_regierung"] },
+  medien_sendezeit: { amt: ["stab"], titel: t("welle_e4.gs.medien_sendezeit"), groessen: ["pressefreiheit", "konservative"] },
 };
 
 // ---------------------------------------------------------------------------

@@ -1416,6 +1416,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             } else if (st.art === "baustelle") {
               setReichStart("lage");
               oeffneDossier("reich_infra");
+            } else if (st.art === "ruestung") {
+              oeffneDossier("reich_militaer");
             } else {
               setReichStart("bestand");
               setReichStaette(st.id);

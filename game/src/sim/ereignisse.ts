@@ -42,6 +42,8 @@ import { REICH_VORLAGEN, erbeLageMonat } from "./ereignisse-reich";
 import { BEREICHE_VORLAGEN } from "./ereignisse-bereiche";
 import { DIPLOMATIE_VORLAGEN } from "./ereignisse-diplomatie";
 import { FORSCHUNG_VORLAGEN } from "./ereignisse-forschung";
+import { RUESTUNG_VORLAGEN } from "./ereignisse-ruestung";
+import { MEDIEN_VORLAGEN } from "./ereignisse-medien";
 import type { Stelle } from "./ereignis-hilfen";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
 import { MACHTKREIS_VORLAGEN } from "./ereignisse-machtkreis";
@@ -1039,6 +1041,8 @@ export const VORLAGEN: Vorlage[] = [
   // Welle E1: Gipfel, Einladung nach Istanbul, EU-Fortschrittsbericht (eigener Wurf, kein Zusatzplatz)
   ...DIPLOMATIE_VORLAGEN,
   ...FORSCHUNG_VORLAGEN,
+  ...RUESTUNG_VORLAGEN,
+  ...MEDIEN_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */

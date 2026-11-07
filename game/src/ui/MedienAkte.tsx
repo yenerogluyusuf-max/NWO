@@ -28,10 +28,15 @@ import {
   sperrGrund,
   startSelbstzensur,
   type AktionId,
+  type BilanzPosten,
   type MedienAktionSicht,
   type MedienLager,
 } from "../sim/medien";
-import { aktuelleLocale, t } from "../i18n";
+import { aktuelleLocale, t, zahl } from "../i18n";
+
+/** Name eines Postens der Eingriffsbilanz: Netzknoten aus dem Politiknetz, sonst Pressefreiheitswert oder Selbstzensur des Hauses. */
+const postenName = (id: string): string => (NET.index.has(id) ? NET.nodes[NET.index.get(id)!]!.name : t(`welle_e4.medien.posten.${id}`));
+const vorzeichen = (x: number): string => `${x >= 0 ? "+" : "−"}${zahl(Math.abs(x))}`;
 import { Knopf } from "./bausteine/Knopf";
 import { useSprung } from "./akte/Uebersicht";
 
@@ -168,34 +173,32 @@ export function MedienAkte({ world, onAenderung }: { world: World; onAenderung?:
       : t(`medien.lizenz.${lizenz}`);
   };
 
-  /** Eine Handlung: Name und Preis mit dem Knopf, die erste Folge sichtbar; Beschreibung und übrige Folgen klappen auf. */
+  /** Eine Handlung: Name und Knopf, darunter gleich groß „bringt“ und „kostet“ mit den gebuchten Zahlen; Beschreibung und Folgen klappen auf. */
   const aktion = (a: MedienAktionSicht, ort: string, art?: "zuwendung") => {
-    const [erste, ...rest] = a.vorschau;
+    const rest = a.vorschau;
+    const posten = (x: BilanzPosten) => `${postenName(x.id)} ${vorzeichen(x.wert)}`;
+    const kostet = [t("medien.ui.kosten", { kapital: a.kapital, aufmerksamkeit: a.aufmerksamkeit }), ...a.bilanz.kostet.map(posten), ...(a.bilanz.markt ? [t("welle_e4.medien.maerkte")] : [])];
     return (
       <li key={a.aktion} className={`md-aktion${a.moeglich ? "" : " gesperrt"}`}>
         <div className="md-aktion-kopf">
           <div>
             {art && <span className={`md-art ${art}`}>{t(`medien.ui.gruppe_${art}`)}</span>}
             <strong>{t(`medien.aktion.${a.aktion}.name`)}</strong>
-            <span className="md-kosten">
-              {t("medien.ui.kosten", {
-                kapital: a.kapital,
-                aufmerksamkeit: a.aufmerksamkeit,
-              })}
-            </span>
           </div>
           <Knopf disabled={!a.moeglich} title={a.grund ?? undefined} onClick={() => neu(fuehreMedienAktionAus(world, a.aktion, a.cluster), ort, true)}>
             {t("medien.ui.anordnen")}
           </Knopf>
         </div>
+        <dl className="md-bilanz">
+          <dt className="bringt">{t("welle_e4.medien.bringt")}</dt>
+          <dd>{a.bilanz.bringt.length ? a.bilanz.bringt.map(posten).join(" · ") : t("welle_e4.medien.nichts")}</dd>
+          <dt className="kostet">{t("welle_e4.medien.kostet")}</dt>
+          <dd>{kostet.join(" · ")}</dd>
+        </dl>
         {/* Höchstens eine Handlung zeigt ihre Einzelheiten zugleich (gleicher Name: der Browser schließt die übrigen) */}
         <details className="md-folgen" name="md-folgen">
           <summary>
-            {erste}
-            <span>
-              {erste ? " · " : ""}
-              {t("tag_t1.medien.einzelheiten")}
-            </span>
+            <span>{t("tag_t1.medien.einzelheiten")}</span>
           </summary>
           <p>{t(`medien.aktion.${a.aktion}.text`)}</p>
           {rest.length > 0 && (
