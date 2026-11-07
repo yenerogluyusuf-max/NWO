@@ -10,6 +10,7 @@ import { nationalAverage, startAverage } from "../src/sim/netz";
 import { GRUPPEN } from "../src/sim/gruppen";
 import { abwanderung, absichtWort, gleichgewicht, hilfen, schritteFuerZustimmung, wirkungNach, koalition, kette, praeferenzen, regionen, rolleVon, sorgen, tendenz, treiber, wanderung, gruppenDetail } from "../src/sim/waehler-detail";
 import { entscheidungsMarken, verlaufSichern, verlaufVon, zustimmungsVerlauf } from "../src/sim/waehler-verlauf";
+import { ohneZufallsereignisse } from "./_ohne-zufall";
 
 function neu(seed = 6) {
   const w = createWorld(turkey2026, seed);
@@ -91,17 +92,23 @@ describe("Vorwegnahme (Gleichgewicht)", () => {
   });
 
   test("Das lineare Vorschaumodell trifft die echte Rechnung nach 12 und 36 Monaten (gegen eine Partie ohne Maßnahme)", () => {
+    // Gemessen wird das Modell, nicht der Verlauf: Zufallsereignisse würfeln nicht (test/_ohne-zufall.ts), die festen Termine kommen in
+    // beiden Partien. Mit Zufallsereignissen erlebten die zwei Partien verschiedene Vorgänge, sobald die Maßnahme eine Lage verschob: Nach den
+    // neuen Vorgängen der Welle E1 (Gipfel, EU-Bericht, Einladung) maß die echte Rechnung nach 36 Monaten 6,9 statt 9,3 (Vorschau 9,7).
+    // Ohne Zufallsereignisse sind es vor und nach Welle E 8,50 (12 Monate: 3,76 zu 4,24). Schwellen unverändert.
     const a = neu();
     const b = neu();
     const von = nationalAverage(NET, a.net, "m_kmu");
     const soll = wirkungNach("m_kmu", 70 - von, [12, 36], NET.nodes[NET.index.get("m_kmu")!]!.months ?? 1);
     setPolicy(b, "m_kmu", 70);
-    advance(a, 30 * 12);
-    advance(b, 30 * 12);
-    const echt12 = nationalAverage(NET, b.net, "unternehmer") - nationalAverage(NET, a.net, "unternehmer");
-    advance(a, 30 * 24);
-    advance(b, 30 * 24);
-    const echt36 = nationalAverage(NET, b.net, "unternehmer") - nationalAverage(NET, a.net, "unternehmer");
+    const { echt12, echt36 } = ohneZufallsereignisse(() => {
+      advance(a, 30 * 12);
+      advance(b, 30 * 12);
+      const echt12 = nationalAverage(NET, b.net, "unternehmer") - nationalAverage(NET, a.net, "unternehmer");
+      advance(a, 30 * 24);
+      advance(b, 30 * 24);
+      return { echt12, echt36: nationalAverage(NET, b.net, "unternehmer") - nationalAverage(NET, a.net, "unternehmer") };
+    });
     expect(soll.get(12)!.get("unternehmer")!).toBeGreaterThan(echt12 * 0.75);
     expect(soll.get(12)!.get("unternehmer")!).toBeLessThan(echt12 * 1.25);
     expect(soll.get(36)!.get("unternehmer")!).toBeGreaterThan(echt36 * 0.85);

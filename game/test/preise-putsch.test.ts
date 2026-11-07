@@ -12,6 +12,7 @@ import { putschRisiko } from "../src/sim/enden";
 import { machtkreis } from "../src/sim/machtkreis";
 import { figur } from "../src/sim/figuren";
 import type { World } from "../src/sim/types";
+import { ohneZufallsereignisse } from "./_ohne-zufall";
 
 function welt(seed = 6): World {
   const w = createWorld(turkey2026, seed);
@@ -67,10 +68,23 @@ describe("Putsch erreichbar", () => {
     expect(figur(w, "generalstab")?.id).toBe(gs.id);
   });
   test("bei sehr schwacher Zustimmung laufen Abgeordnete über", () => {
-    const w = welt();
-    const partei = w.player!.partei.kurz;
-    const vorher = w.parliament!.seats[partei] ?? 0;
-    for (let m = 0; m < 12; m++) { w.spiel!.umfrage.zustimmung = 15; w.spiel!.tiefstand = 0; advance(w, 30); }
-    expect(w.parliament!.seats[partei] ?? 0).toBeLessThan(vorher);
+    // Der Überläufer-Wurf (sim/spiel.ts, ueberlaeufer) sieht die Zustimmung nach dem Monatsschritt der Umfrage, also rund 26 statt 15:
+    // Aussicht (35 − 26) / 100 = 9 % im Monat, in zwölf Monaten 68 %. Eine einzelne Partie war darum ein Münzwurf: Seed 6 verlor mit
+    // a355523 sechs Sitze, nach Welle E1 (neue Vorgänge, anderer Zufallsstrom) keinen, ohne Zufallsereignisse in beiden Ständen keinen.
+    // Gezählt werden darum zwölf Partien ohne Zufallsereignisse (test/_ohne-zufall.ts). Gemessen 6 von 12 (über 20 Samen 13), erwartet 8;
+    // verlangt sind 5. Jeder Überläufer geht von der Präsidentenpartei weg, keine Partie gewinnt Sitze.
+    let mitUeberlaeufern = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const w = welt(seed);
+      const partei = w.player!.partei.kurz;
+      const vorher = w.parliament!.seats[partei] ?? 0;
+      ohneZufallsereignisse(() => {
+        for (let m = 0; m < 12; m++) { w.spiel!.umfrage.zustimmung = 15; w.spiel!.tiefstand = 0; advance(w, 30); }
+      });
+      const nachher = w.parliament!.seats[partei] ?? 0;
+      expect(nachher).toBeLessThanOrEqual(vorher);
+      if (nachher < vorher) mitUeberlaeufern++;
+    }
+    expect(mitUeberlaeufern).toBeGreaterThanOrEqual(5);
   });
 });

@@ -18,6 +18,7 @@ import { KATALOG_ZIELE, katalogFuerEingabe } from "../src/data/reich/katalog";
 import { FELDER, THEMEN, type Vorhaben } from "../src/sim/reich-typen";
 import { beginne, pausiere, reichZustand, vorhabenDef, vorhabenListe } from "../src/sim/reich";
 import { Neues } from "../src/ui/reich/Neues";
+import { ohneZufallsereignisse } from "./_ohne-zufall";
 
 const NEU: Vorhaben[] = [...ZUKUNFT_ALLE, ...TECH_ALLE];
 const ALLE_NEU = [...NEU, ...REGIONAL_VORLAGEN];
@@ -171,7 +172,10 @@ describe("Katalog: Verhalten im Spiel", () => {
     expect(r.ok, r.text).toBe(true);
     freieBahn(w);
     pausiere(w, "welt_korridor_abkommen", false);
-    advance(w, 30 * 14);
+    // Gemessen wird die Wirkung des Abkommens, nicht der Verlauf: Zufallsereignisse würfeln nicht (test/_ohne-zufall.ts). Mit ihnen lief seit
+    // Welle E1 der ausgesessene Gipfel der Turkstaaten in seine Standardfolge (jedes Mitglied −1 Vertrauen, auch Kasachstan), und das Plus
+    // fiel von 2,3 auf 1,7. Ohne Zufallsereignisse sind es vor und nach Welle E +2,74 (Handel mit China +1,82). Schwellen unverändert.
+    ohneZufallsereignisse(() => advance(w, 30 * 14));
     expect(reichZustand(w).bestand.welt_korridor_abkommen).toBeDefined();
     expect(dimensionZu(w, "KAZ", "vertrauen")).toBeGreaterThan(vorherKaz + 2);
     expect(dimensionZu(w, "CHN", "handel")).toBeGreaterThan(vorherChn + 1);

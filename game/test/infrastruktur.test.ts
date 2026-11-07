@@ -28,6 +28,7 @@ import { reichZustand } from "../src/sim/reich";
 import { entscheideVorlage, ministerVorlagen } from "../src/sim/ministerfluss";
 import { katalogVon, ladeSprache, platzhalter } from "../src/i18n";
 import type { World } from "../src/sim/types";
+import { ohneZufallsereignisse } from "./_ohne-zufall";
 
 function spiel(seed = 21): World {
   const w = createWorld(turkey2026, seed);
@@ -91,16 +92,19 @@ describe("Investieren", () => {
     expect(reichZustand(w).regional?.[r.id!]?.def.instanzVon).toBe("infra_netz");
     // Zweiter Ausbau am selben Ort wird abgelehnt, solange der erste läuft
     expect(investiere(w, "autobahn", 34).ok).toBe(false);
-    const monate = bisFertig(w, r.id!);
+    // Gemessen wird das Netzmodell, nicht der Verlauf: Zufallsereignisse würfeln nicht (test/_ohne-zufall.ts). Mit ihnen endete die Partie nach
+    // dem Zusammenführen der Welle E (Seed 21, untätig) im August 2030 durch Amtsenthebung, 13 Monate vor der Fertigstellung, und der Bau
+    // stand still. Ohne Zufallsereignisse steht die Autobahn vor und nach Welle E nach 40 Monaten fertig im Bestand.
+    const monate = ohneZufallsereignisse(() => bisFertig(w, r.id!));
     expect(monate).toBeGreaterThan(0);
-    advance(w, 30);
+    ohneZufallsereignisse(() => advance(w, 30));
     const z = infraZustand(w);
     expect(z.ausbau[r.id!]!.fertig).toBe(true);
     expect(z.netze.strasse.kap[33]!).toBeGreaterThan(1.1);
     const direkt = auslastung(w, "strasse", 34)!;
     expect(direkt).toBeLessThan(vorher);
     expect(z.netze.strasse.induziert[33]!).toBeGreaterThan(0);
-    advance(w, 30 * 36);
+    ohneZufallsereignisse(() => advance(w, 30 * 36));
     // Induzierte Nachfrage und Wachstum haben einen Teil des Gewinns wieder gefüllt
     expect(auslastung(w, "strasse", 34)!).toBeGreaterThan(direkt);
   });

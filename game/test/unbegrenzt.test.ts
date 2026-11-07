@@ -30,6 +30,7 @@ import { Rng } from "../src/sim/rng";
 import { fuehreAus, infrastrukturBitte, type InfraAktion } from "../src/sim/infrastruktur";
 import { verwaltungBilanz } from "../src/sim/reich";
 import type { World } from "../src/sim/types";
+import { ohneZufallsereignisse } from "./_ohne-zufall";
 
 const AUS = process.env.ENDEN_AUS;
 if (AUS) writeFileSync(AUS, "");
@@ -347,7 +348,11 @@ describe("Langzeitfolgen der Dauerherrschaft", () => {
       const l0 = nationalAverage(NET, w.net, "legitimitaet");
       const p0 = nationalAverage(NET, w.net, "polarisierung");
       const eu0 = vertrauenZu(w, "EU");
-      advance(w, 365);
+      // Gemessen werden die Langzeitfolgen, nicht der Verlauf: Zufallsereignisse würfeln nicht (test/_ohne-zufall.ts), die festen Termine kommen.
+      // Mit ihnen erlebten beide Partien verschiedene Vorgänge: Nach Welle E1 stieg die Polarisierung der Vergleichspartie in der ersten
+      // Amtszeit um 3,1 statt −0,5 Punkte, und der Abstand fiel unter 1. Ohne Zufallsereignisse vor und nach Welle E gleich: Ehrgeiz +6,4
+      // zu +0,3, Legitimität −12,6 zu −5,5, Polarisierung +1,5 zu −0,4, EU −12,0 zu −3,6. Schwellen unverändert.
+      ohneZufallsereignisse(() => advance(w, 365));
       return { e: ehrgeizMittel(w) - e0, l: nationalAverage(NET, w.net, "legitimitaet") - l0, p: nationalAverage(NET, w.net, "polarisierung") - p0, eu: vertrauenZu(w, "EU") - eu0 };
     };
     const ohne = messe(1);
