@@ -495,3 +495,20 @@ Daraus folgt:
 - **Regel:** Zahlen statt Sätze. Höchstens ein kurzer Satz je Block. Rechenwege bei Bedarf als kleine Tabelle hinter einem Aufklapper. Keine Fläche in `--papier-1` über Spaltenbreite.
 - **Erhalten:** Nichts geht verloren. Möglichkeiten, Knöpfe und Zahlen bleiben erreichbar.
 - **Ausnahmen:** Y (Beschreibungen der Klauseln am Verhandlungstisch) sowie Erzähltexte von Ereignissen, Prolog, Zeitung und Mentorin.
+
+## AA. Freigabe 07.11.2026: Gesamtplan für die schwachen Bereiche
+
+Der Inhaber hat den Gesamtplan freigegeben (`dokumentation/analyse_2026-11-05/bereiche/GESAMTPLAN.md`): „los“. Damit gelten die Vorschläge zu den sieben offenen Punkten:
+
+1. **Krieg:** Eine Annexion wird eine dauerhaft türkische Provinz mit Steuer, Sitzen und Wahlen. Sie bringt eine UN-Abstimmung und Sanktionsstufen wie bei der Krim. Annektierte Gebiete greift der Gegner nicht erneut als Erstgewinn an.
+2. **EU:** Sie startet mit dem echten Stand, 16 Kapitel offen und Stillstand seit dem Ratsbeschluss 2018. Die Schwelle der Annäherung ist ein sichtbarer Preis.
+3. **Ansehen:** Ansehen in der Welt wirkt über eine neue, schwache Kante auf das Vertrauen in die Regierung.
+4. **Rüstungsexporte:** Sie wirken auf die Wirtschaft und schwach auf die Zustimmung.
+5. **Seitenfenster:** Land, Außen und Sicherheit öffnen bei einer Ortswahl als Seitenfenster, damit die Karte sichtbar bleibt.
+6. **Forschung:** Schwerpunkt und Trägerwahl entfallen. Die Amtsziele ziehen in den Bereich Regierung.
+7. **Verhandlungstisch:** Es gibt keinen Freundschaftsrabatt, die Mindestmarge bleibt bei 0. Alte Verträge ohne Gegenleistung laufen bis zum Ablauf weiter.
+
+Für alle Bereiche gilt außerdem:
+- Jeder Bereich meldet sich mit echten Vorgängen auf dem Schreibtisch.
+- Die Wirkung kommt in Zeitung und Wirkungsbericht an.
+- Jede Zahl hat eine Quelle oder heißt „Spielparameter“, siehe auch die Rückmeldung „viel zu wenig Recherche“.
