@@ -40,6 +40,7 @@ import { WELT_VORLAGEN } from "./welt-ereignisse";
 import { VERMITTLUNG_VORLAGEN } from "./ereignisse-vermittlung";
 import { REICH_VORLAGEN, erbeLageMonat } from "./ereignisse-reich";
 import { BEREICHE_VORLAGEN } from "./ereignisse-bereiche";
+import { FORSCHUNG_VORLAGEN } from "./ereignisse-forschung";
 import type { Stelle } from "./ereignis-hilfen";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
 import { MACHTKREIS_VORLAGEN } from "./ereignisse-machtkreis";
@@ -1034,6 +1035,7 @@ export const VORLAGEN: Vorlage[] = [
   ...KATASTROPHE_VORLAGEN,
   ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...MACHTKREIS_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
   ...BEREICHE_VORLAGEN,
+  ...FORSCHUNG_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */

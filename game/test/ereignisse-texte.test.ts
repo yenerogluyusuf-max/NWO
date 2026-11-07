@@ -60,6 +60,15 @@ function machtkreisFaelle(w: ReturnType<typeof welt>): void {
   }
 }
 
+/** Welle E2: Forschung und Große Ziele brauchen eine Lage (erschöpfte Verwaltung; verfolgte Ziele mit voller Vorbereitung). */
+function forschungsLage(w: ReturnType<typeof welt>, id: string): void {
+  if (id === "forschung_verwaltung") w.spiel!.reich!.verwaltung = 0;
+  if (id === "grossziel_gelegenheit") {
+    const ziele = ["nahostordnung", "drehscheibe", "turkunion", "weltbuehne", "kornkammer", "seemacht", "technologie"];
+    w.spiel!.grosseZiele = { verfolgt: ziele, stand: Object.fromEntries(ziele.map((z) => [z, { stufe: 0, vorbereitung: 30, versuche: 0 }])), vertretungen: {} };
+  }
+}
+
 describe("Ereignistexte", () => {
   test.each(VORLAGEN.map((v) => v.id))("%s: lesbare Texte, benannte Akteure, fehlerfreie Antworten", (id) => {
     let geoeffnet = 0;
@@ -68,6 +77,7 @@ describe("Ereignistexte", () => {
       if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w);
       if (id === "land_drohkulisse") weltZustand(w).GRC!.konflikt = 90; // Drohkulisse braucht Konflikt über der Schwelle 85
       if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") machtkreisFaelle(w);
+      forschungsLage(w, id);
       if (id === "zusage") w.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
       const ev = oeffne(w, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined);
       if (!ev) continue;
@@ -86,6 +96,7 @@ describe("Ereignistexte", () => {
         if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w2);
         if (id === "land_drohkulisse") weltZustand(w2).GRC!.konflikt = 90;
         if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") machtkreisFaelle(w2);
+        forschungsLage(w2, id);
         if (id === "zusage") w2.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w2.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
         const e2 = oeffne(w2, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined)!;
         const r = entscheide(w2, e2.id, o.id, new Rng(5));

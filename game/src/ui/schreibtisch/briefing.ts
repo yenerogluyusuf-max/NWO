@@ -15,6 +15,8 @@ import { fraktionsUebersicht } from "../../sim/verhandeln";
 import { waehlerLage } from "../../sim/waehler";
 import { anrede, figur } from "../../sim/figuren";
 import { naechsterSchritt, schrittMitProgramm } from "../../sim/programme";
+import { forschungsAnliegen } from "../../sim/ereignisse-forschung";
+import { chanceVon, grosseZiele, zielDef } from "../../sim/grosseziele";
 import { akuteProbleme, vorschlaege as berechneVorschlaege, type Vorschlag } from "../../sim/vorschlaege";
 import { handlungsHebel } from "../../sim/wege";
 import { reichZustand } from "../../sim/reich";
@@ -342,6 +344,24 @@ export function faellig(world: World): Faellig[] {
       dringend: false,
       unter: t("sk.f.schritt.unter", { programm: sp.programm.titel, k: schritt.schritt.kapital }),
       knopf: { art: "gehe", label: t("sk.zumProgramm"), ziel: { art: "akte", akte: "programme" } },
+    });
+  }
+  // Welle E2: Eine verfolgte Stufe eines Großen Ziels, die versuchbar und mindestens aussichtsreich ist, bleibt hier, bis sie versucht oder
+  // losgelassen ist (vorher meldete sich ein Großes Ziel erst nach dem Versuch). Ohne Frist, wie ein bereiter Programmschritt.
+  for (const v of forschungsAnliegen(world).versuche) {
+    // Liegt die Gelegenheit gerade als Vorgang auf dem Tisch, steht sie dort mit Frist (nicht doppelt)
+    if (spiel.ereignisse.some((e) => e.vorlage === "grossziel_gelegenheit" && e.daten?.ziel === v.ziel)) continue;
+    const st = grosseZiele(world).stand[v.ziel];
+    const s = zielDef(v.ziel)?.stufen[st?.stufe ?? 0];
+    const c = chanceVon(world, v.ziel);
+    if (!s || !c) continue;
+    out.push({
+      id: `gz-${v.ziel}`,
+      art: "schritt",
+      titel: t("welle_e2.f.versuch.titel", { stufe: t(`gz2.ziel.${v.ziel}.${s.id}`), ziel: t(`gz2.ziel.${v.ziel}.titel`) }),
+      dringend: false,
+      unter: t("welle_e2.f.versuch.unter", { wort: t(`gz2.wort.${c.wort}`), von: c.von, bis: c.bis, pk: s.pk }),
+      knopf: { art: "gehe", label: t("gz2.ui.tab"), ziel: { art: "akte", akte: "grosseziele" } },
     });
   }
   return out.sort((a, b) => (a.tage ?? 9999) - (b.tage ?? 9999));

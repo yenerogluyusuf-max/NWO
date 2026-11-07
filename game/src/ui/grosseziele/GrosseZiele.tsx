@@ -131,13 +131,13 @@ function ZielKachel({ w, z, on, waehle }: { w: World; z: ZielDef; on: boolean; w
   );
 }
 
-export function GrosseZiele({ world, geaendert }: { world: World; geaendert: () => void }) {
+export function GrosseZiele({ world, geaendert, start }: { world: World; geaendert: () => void; /** Welle E2: dieses Ziel zuerst zeigen */ start?: string }) {
   const [meldung, setMeldung] = useState<string>();
   const [, neu] = useState(0);
   const g = world.spiel ? grosseZiele(world) : null;
   // Verfolgte Ziele zuerst; gewählt ist anfangs das erste
   const liste = ZIELE.slice().sort((a, b) => Number(g?.verfolgt.includes(b.id)) - Number(g?.verfolgt.includes(a.id)));
-  const [gewaehlt, setGewaehlt] = useState<string>(liste[0]?.id ?? "");
+  const [gewaehlt, setGewaehlt] = useState<string>(start && ZIELE.some((x) => x.id === start) ? start : (liste[0]?.id ?? ""));
   if (!world.spiel || !g) return null;
   const fertig = () => { neu((n) => n + 1); geaendert(); };
   const z = ZIELE.find((x) => x.id === gewaehlt) ?? liste[0]!;

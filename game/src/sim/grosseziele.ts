@@ -62,7 +62,13 @@ export interface ZielDef {
 }
 export type WegId = "gipfel" | "fonds" | "kampagne";
 export interface ZielStand { stufe: number; abgeschwaecht?: boolean; vorbereitung: number; versuche: number; sperreBis?: number; weg?: Partial<Record<WegId, number>> }
-export interface GrosseZieleZustand { verfolgt: string[]; stand: Record<string, ZielStand>; vertretungen: Record<string, number> }
+export interface GrosseZieleZustand {
+  verfolgt: string[];
+  stand: Record<string, ZielStand>;
+  vertretungen: Record<string, number>;
+  /** Welle E2: für welche Stufe je Ziel die Gelegenheit schon auf dem Schreibtisch lag (einmal je Stufe, sim/ereignisse-forschung.ts) */
+  gelegenheit?: Record<string, number>;
+}
 
 export const GROSSE_ZIELE = {
   maxVerfolgt: 3,

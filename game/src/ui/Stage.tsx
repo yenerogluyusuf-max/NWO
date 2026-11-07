@@ -50,6 +50,7 @@ import { Netze } from "./infrastruktur/Netze";
 import { Streitkraefte } from "./militaer/Streitkraefte";
 import { WunderFenster } from "./reich/WunderFenster";
 import { Wissensbaum } from "./wissen/Wissensbaum";
+import { forschungsAnliegen } from "../sim/ereignisse-forschung";
 import { Fokusbaum } from "./fokus/Fokusbaum";
 import { AbstimmungsKarte } from "./parlament/AbstimmungsKarte";
 import { Tagesordnung } from "./parlament/Tagesordnung";
@@ -609,6 +610,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       akte: "wissen",
       titel: t("nav.wissenTitel"),
       icon: "buch",
+      // Welle E2: Was hier Handeln verlangt: aussichtsreiche Versuche bei Großen Zielen und eine stehende Forschung
+      badge: (spiel ? forschungsZahl(w) : 0) || undefined,
       tabs: [{ id: "fokusbaum", label: t("fokus.tab") }, { id: "grosseziele", label: t("gz2.ui.tab") }, { id: "wissensbaum", label: t("wissen.tab") }, { id: "programme", label: t("buehne.tab.programme") }],
     },
     {
@@ -634,6 +637,8 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   const [wirtschaftPosten, setWirtschaftPosten] = useState<string | undefined>(undefined);
   const [wissensZurueck, setWissensZurueck] = useState<string | null>(null);
   const [wissensStart, setWissensStart] = useState<string | null>(null);
+  /** Welle E2: Großes Ziel, das die Ansicht zuerst zeigt (Sprung aus einem Vorgang oder dem Alarm) */
+  const [zielStart, setZielStart] = useState<string | undefined>(undefined);
   const [umbSpaeterBis, setUmbSpaeterBis] = useState<number | null>(null);
   const [umbMeldung, setUmbMeldung] = useState<string | undefined>(undefined);
   const offen = spiel?.ereignisse.find((e) => !spaeter.has(e.id));
@@ -914,7 +919,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         }}
       />
 
-      <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} onZins={() => { setErlassStart(undefined); oeffneDossier("entscheidungen"); }} />
+      <Alerts world={w} bloc={bloc} onProblems={() => { setEbene("probleme"); setProblemId(null); oeffneDossier("bereiche"); }} onDesk={() => oeffneDossier("schreibtisch")} onParlament={() => oeffneDossier("parlament")} onEreignis={() => { setSpaeter(new Set()); }} onProgramm={() => oeffneDossier("programme")} onForschung={(ziel) => { if (ziel) { setZielStart(ziel); oeffneDossier("grosseziele"); } else oeffneDossier("wissensbaum"); }} onZins={() => { setErlassStart(undefined); oeffneDossier("entscheidungen"); }} />
 
       <Meldungen items={meldungen} onClose={(id) => setMeldungen((l) => l.filter((x) => x.id !== id))} onOeffne={oeffneBerichtAusMeldung} />
       <Feiermoment />
@@ -1127,7 +1132,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             )}
             {dossier === "netze" && <Netze world={w} onGeaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "fokusbaum" && <Fokusbaum world={w} onGeaendert={() => { refresh(); sichere(true); }} onGehe={gehe} />}
-            {dossier === "grosseziele" && <GrosseZiele world={w} geaendert={() => { refresh(); sichere(true); }} />}
+            {dossier === "grosseziele" && <GrosseZiele key={zielStart ?? "ziele"} world={w} {...(zielStart ? { start: zielStart } : {})} geaendert={() => { refresh(); sichere(true); }} />}
             {dossier === "wissensbaum" && (
               <Wissensbaum
                 key={wissensStart ?? "baum"}
@@ -1149,6 +1154,10 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
                   } else if (s.art === "land") {
                     setDossier("welt");
                   } else if (s.art === "vorhaben") {
+                    setDossier("reich_infra");
+                  } else if (s.art === "verwaltung") {
+                    // Welle E2: zur Baustelle des Landes, wo Vorhaben die Verwaltung binden (Ruhen, Aufgeben, Reihenfolge)
+                    setReichStart("lage");
                     setDossier("reich_infra");
                   }
                 }}
@@ -1392,6 +1401,16 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               setWirtschaftStart("zentralbank");
               setWirtschaftZb(st.abschnitt ?? "sitzung");
               oeffneDossier("wirtschaft");
+            } else if (st.art === "wissen") {
+              // Welle E2: in den Wissensbaum, mit Knoten gleich im Baumfenster
+              setWissensStart(st.knoten ?? null);
+              oeffneDossier("wissensbaum");
+            } else if (st.art === "grossziel") {
+              setZielStart(st.ziel);
+              oeffneDossier("grosseziele");
+            } else if (st.art === "baustelle") {
+              setReichStart("lage");
+              oeffneDossier("reich_infra");
             } else {
               setReichStart("bestand");
               setReichStaette(st.id);
@@ -1454,7 +1473,13 @@ function trend(w: World, key: "inflation" | "usdTry" | "policyRate"): number | u
 }
 
 /** Hinweise unter der Kopfleiste, wie die Warnsymbole in Hearts of Iron. */
-function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onProgramm, onZins }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void; onParlament: () => void; onEreignis: () => void; onProgramm: () => void; onZins: () => void }) {
+/** Welle E2: Zahl am Menüpunkt Forschung & Ziele (aussichtsreiche Versuche, dazu eins, wenn die Forschung steht). */
+function forschungsZahl(w: World): number {
+  const a = forschungsAnliegen(w);
+  return a.versuche.length + (a.startbar > 0 || a.anVerwaltung > 0 ? 1 : 0);
+}
+
+function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onProgramm, onForschung, onZins }: { world: World; bloc: number; onProblems: () => void; onDesk: () => void; onParlament: () => void; onEreignis: () => void; onProgramm: () => void; onForschung: (ziel?: string) => void; onZins: () => void }) {
   const items: { id: string; tone: "rot" | "gelb" | "blau"; icon: IconName; label: string; kurz: string; text: string; count?: number; onClick?: () => void }[] = [];
   const spiel = world.spiel;
 
@@ -1498,6 +1523,17 @@ function Alerts({ world, bloc, onProblems, onDesk, onParlament, onEreignis, onPr
   const schritt = spiel ? naechsterSchritt(world) : null;
   if (schritt && schritt.status === "bereit") {
     items.push({ id: "programm", tone: "gelb", icon: "ziel", label: t("st.al.programm"), kurz: t("st.al.programm"), text: t("st.al.programmText", { titel: schritt.schritt.titel }), onClick: onProgramm });
+  }
+
+  // Welle E2: Forschung & Ziele melden sich (ein aussichtsreicher Versuch, eine stehende Forschung)
+  const fa = spiel ? forschungsAnliegen(world) : null;
+  if (fa && (fa.versuche.length || fa.startbar || fa.anVerwaltung)) {
+    const zeilen = [
+      ...fa.versuche.map((v) => t("welle_e2.al.versuch", { ziel: t(`gz2.ziel.${v.ziel}.titel`), wort: t(`gz2.wort.${v.wort}`) })),
+      ...(fa.startbar ? [t("welle_e2.al.startbar", { n: fa.startbar })] : fa.anVerwaltung ? [t("welle_e2.al.verwaltung", { n: fa.anVerwaltung })] : []),
+    ];
+    const n = fa.versuche.length + (fa.startbar || fa.anVerwaltung ? 1 : 0);
+    items.push({ id: "forschung", tone: "gelb", icon: "buch", label: t("nav.wissen"), kurz: fa.versuche.length ? t("welle_e2.al.kurzVersuch") : t("welle_e2.al.kurzSteht"), count: n, text: zeilen.join(" · "), onClick: () => onForschung(fa.versuche[0]?.ziel) });
   }
 
   const duldungen = Object.entries(spiel?.fraktionen ?? {}).filter(([k, f]) => f.duldungBis !== undefined && f.duldungBis > world.day && !(spiel?.lager ?? []).includes(k));

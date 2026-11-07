@@ -21,7 +21,11 @@ export type SzenenName = "istanbul" | "parlament" | "bank" | "anatolien" | "wahl
 export type Stelle =
   | { art: "medien"; cluster?: string }
   | { art: "zentralbank"; abschnitt?: "sitzung" | "gouverneur" | "stufe" | "devisen" }
-  | { art: "staette"; id: string };
+  | { art: "staette"; id: string }
+  // Welle E2: Wissensbaum (mit Knoten), Große Ziele (mit Ziel), Baustelle des Landes (Verwaltungskraft)
+  | { art: "wissen"; knoten?: string }
+  | { art: "grossziel"; ziel?: string }
+  | { art: "baustelle" };
 
 export interface Option {
   id: string;
