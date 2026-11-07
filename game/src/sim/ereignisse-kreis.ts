@@ -111,7 +111,9 @@ const eigenVon0 = (x: Person): boolean => !!x.figur?.eigen?.kommissarisch;
 const BEFUND: Vorlage = {
   id: "kreis_befund",
   eigenerWurf: true,
-  ohneZusatzplatz: true,
+  // Entscheidung des Koordinators (Welle E3): eigener Platz, an einem festen Tag des Monats (zieht keine Zahl aus dem Takt)
+  eigenerPlatz: true,
+  tag: 2,
   szene: "istanbul",
   frist: KREIS.befund.frist,
   abkuehlung: 20,
@@ -230,7 +232,9 @@ function terminText(w: World, stufe: 1 | 2 | 3): string {
 const STUFE: Vorlage = {
   id: "kreis_nachfolge_stufe",
   eigenerWurf: true,
-  ohneZusatzplatz: true,
+  // Entscheidung des Koordinators (Welle E3): eigener Platz, an einem festen Tag des Monats (zieht keine Zahl aus dem Takt)
+  eigenerPlatz: true,
+  tag: 2,
   szene: "parlament",
   frist: KREIS.stufe.frist,
   abkuehlung: KREIS.stufe.abkuehlung,

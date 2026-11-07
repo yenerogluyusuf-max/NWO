@@ -275,7 +275,9 @@ function kanalLiegen(w: World): string {
 const AUFGEFLOGEN: Vorlage = {
   id: "dienst_aufgeflogen",
   eigenerWurf: true,
-  ohneZusatzplatz: true,
+  // Entscheidung des Koordinators (Welle E3): eigener Platz, an einem festen Tag des Monats (zieht keine Zahl aus dem Takt)
+  eigenerPlatz: true,
+  tag: 2,
   szene: "istanbul",
   frist: DIENST_VORGAENGE.aufgeflogen.frist,
   abkuehlung: 20,

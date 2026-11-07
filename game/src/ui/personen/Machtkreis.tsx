@@ -46,9 +46,10 @@ const LINIE: Record<string, { farbe: string; strich?: string }> = {
   geschaeft: { farbe: "#7c5823", strich: "1.5 3.5" },
 };
 
-export function Machtkreis({ world, refresh }: { world: World; refresh?: () => void }) {
+export function Machtkreis({ world, refresh, startPerson }: { world: World; refresh?: () => void; startPerson?: string }) {
   const sp = world.spiel;
-  const [wahl, setWahl] = useState<string | null>(null);
+  // Welle E3: Ein Sprung aus einem Vorgang wählt die betroffene Person vor
+  const [wahl, setWahl] = useState<string | null>(startPerson ?? null);
   const [rueck, setRueck] = useState<{ ok: boolean; text: string } | null>(null);
   if (!sp) return null;
   const mk = machtkreis(world);

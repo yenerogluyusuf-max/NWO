@@ -99,6 +99,12 @@ export interface Vorlage {
    * schwächsten von ihnen. Ist er allein, gärt er weiter (Haken in der Chronik) und kommt mit höherer Dringlichkeit zurück.
    */
   ohneZusatzplatz?: true;
+  /**
+   * Eigener Platz (Entscheidung des Koordinators, Welle E3): Ein Ergebnis, das der Spieler selbst ausgelöst hat, oder eine neu überschrittene
+   * Schwelle kommt auch in einem ruhigen Monat sofort auf den Tisch, wie ein fester Termin, und gärt nicht. Der Wurf entfällt (keine
+   * Zufallszahl); mit festem `tag` zieht auch der Takt keine Zahl aus dem Strom der Partie. Die Obergrenze offener Vorgänge gilt weiter.
+   */
+  eigenerPlatz?: true;
   erzeuge: (w: World, rng: Rng) => { provinzen: number[]; staerke: number; daten?: Record<string, number | string> } | null;
 }
 

@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { advance, createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { schnellProfil, startAfterElection } from "../src/sim/prolog";
-import { antworten, entscheide, oeffne, vorlage } from "../src/sim/ereignisse";
+import { VORLAGEN, antworten, entscheide, ereignisMonat, oeffne, vorlage } from "../src/sim/ereignisse";
 import {
   NACHFOLGE_STUFEN,
   bereinigeNamensdoppel,
@@ -374,6 +374,35 @@ describe("Dienst: aufgeflogene und fremde Operationen", () => {
     expect(vorlage("dienst_fremd").chance(w)).toBe(0);
     expect(entscheide(w, ev.id, "oeffentlich", new Rng(2)).ok).toBe(true);
     expect(dz.eingehend.some((x) => x.id === 501)).toBe(false);
+  });
+});
+
+describe("Eigener Platz (Entscheidung des Koordinators)", () => {
+  test("Befund und Stufe kommen auch im ruhigen Monat sofort, ohne Zahl aus dem Strom der Partie", () => {
+    for (const id of ["kreis_befund", "kreis_nachfolge_stufe", "dienst_aufgeflogen"]) {
+      expect(vorlage(id).eigenerPlatz).toBe(true);
+      expect(vorlage(id).ohneZusatzplatz).toBeUndefined();
+      expect(vorlage(id).tag).toBeDefined();
+    }
+    for (const id of ["dienst_zugriff", "dienst_kader", "dienst_kanal", "dienst_fremd"]) expect(vorlage(id).ohneZusatzplatz).toBe(true);
+    const w = welt();
+    ruhig(w, 2);
+    machtkreis(w).nachfolge = 85;
+    // Ein wirklich ruhiger Monat: keine andere Vorlage löst aus (Chancen kurz auf null, danach zurück)
+    const gemerkt = VORLAGEN.filter((v) => v.id !== "kreis_nachfolge_stufe").map((v) => [v, v.chance] as const);
+    for (const [v] of gemerkt) v.chance = () => 0;
+    const ohne = load(save(w));
+    machtkreis(ohne).nachfolgeStufe = 3;
+    const r1 = new Rng(77), r2 = new Rng(77);
+    try {
+      ereignisMonat(w, r1);
+      ereignisMonat(ohne, r2);
+    } finally {
+      for (const [v, c] of gemerkt) v.chance = c;
+    }
+    expect(w.spiel!.geplant!.some((g) => g.vorlage === "kreis_nachfolge_stufe")).toBe(true);
+    expect(ohne.spiel!.geplant ?? []).toEqual([]);
+    expect(r1.next()).toBe(r2.next());
   });
 });
 

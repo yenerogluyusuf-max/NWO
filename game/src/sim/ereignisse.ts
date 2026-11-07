@@ -1315,7 +1315,7 @@ export function ereignisMonat(world: World, rng: Rng): void {
     if (world.day - (spiel.zuletzt[v.id] ?? -1e9) < v.abkuehlung) continue;
     const stufe = eskalation[v.id] ?? 0;
     const eskFaktor = stufe > 0 ? 1 + EREIGNIS_WETTBEWERB.chanceSchub * stufe * schub : 1;
-    if (u >= basis * EREIGNIS_RATE * schwierig(world).ereignisse * alterFaktor(world, v.id) * dichteFaktor(world, v.id) * eskFaktor) continue;
+    if (!v.eigenerPlatz && u >= basis * EREIGNIS_RATE * schwierig(world).ereignisse * alterFaktor(world, v.id) * dichteFaktor(world, v.id) * eskFaktor) continue;
     const gen = v.erzeuge(world, rng);
     if (!gen) continue;
     kandidaten.push({ v, gen });
@@ -1334,8 +1334,9 @@ export function ereignisMonat(world: World, rng: Rng): void {
   if (!kandidaten.length) return;
 
   // 2. Der Wettbewerb: feste Termine des Staatsjahres kommen immer; der Rest sortiert nach Dringlichkeit um die Slots
-  const feste = kandidaten.filter((k) => TERMINE.has(k.v.id));
-  const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id));
+  // Welle E3: Vorgänge mit eigenem Platz (Vorlage.eigenerPlatz) kommen wie feste Termine
+  const feste = kandidaten.filter((k) => TERMINE.has(k.v.id) || k.v.eigenerPlatz);
+  const rest = kandidaten.filter((k) => !TERMINE.has(k.v.id) && !k.v.eigenerPlatz);
   rest.sort((a, b) => dringlichkeit(world, b.v, b.gen.staerke ?? 1) - dringlichkeit(world, a.v, a.gen.staerke ?? 1) || VORLAGEN.indexOf(a.v) - VORLAGEN.indexOf(b.v));
   // Vorgänge ohne Zusatzplatz (Bereichsvorgänge, Welle H3) schaffen keinen Platz: Offen sind nur so viele, wie andere Vorgänge beanspruchen
   const slots = Math.min(EREIGNIS_WETTBEWERB.slots[grad], rest.filter((k) => !k.v.ohneZusatzplatz).length);
@@ -1353,7 +1354,8 @@ export function ereignisMonat(world: World, rng: Rng): void {
 
   // Takt: Die Sieger öffnen nicht alle am Monatsersten, sondern verteilt über den Monat (Prüfer 10: 97 % am Ersten); feste
   // Kalendertage der Vorlage (Saison, Gedenktage) gelten, sonst würfelt der Takt mit mindestens sechs Tagen Abstand.
-  let versatz = Math.floor(rng.next() * TAKT.ersterVersatz);
+  // Welle E3: Stehen nur Vorgänge mit eigenem Platz an (fester Tag), zieht der Takt keine Zahl: der Strom bleibt wie ohne sie
+  let versatz = kandidaten.every((k) => k.v.eigenerPlatz) ? 0 : Math.floor(rng.next() * TAKT.ersterVersatz);
   for (const k of gewinner) {
     // Die Obergrenze offener Vorgänge gilt auch für Sieger; wer nicht mehr passt, rutscht in die Verliererbehandlung
     if (offenNormal() + geplantNormal() >= MAX_OFFEN && !TERMINE.has(k.v.id)) {
