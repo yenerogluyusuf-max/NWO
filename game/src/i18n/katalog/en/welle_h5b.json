@@ -1,0 +1,4 @@
+{
+ "welle_h5b.wk.branchenText": "Only growth in the sectors adds demand: index {index, number, 1}, of which {anker, number, 1} is already in capacity use.",
+ "welle_h5b.wk.mangelGapText": "{fehlt, number, 1}% of energy is missing, {ref, number, 1}% has already been absorbed. A new shortage brakes, an old one hardly does."
+}
