@@ -707,7 +707,9 @@ export function kriegsKarte(w: World, kriege: KriegVorgang[], grenzpunkt: (plaka
 export function migriereEingefroreneLinien(w: World): void {
   const sp = w.spiel;
   if (!sp?.kriege?.length) return;
-  const liste = besatzung(w);
+  // Nur lesen, bis wirklich eine Linie zurückkommt: Laden legt sonst ein leeres Feld an, und der geladene Stand gliche dem gespeicherten nicht mehr
+  const liste = sp.besatzung ?? [];
+  const vorher = liste.length;
   for (const k of sp.kriege) {
     if (k.ausgang !== "eingefroren" || !k.regionen) continue;
     if (sp.kriege.some((x) => x !== k && x.land === k.land && x.seit > k.seit)) continue;
@@ -716,4 +718,5 @@ export function migriereEingefroreneLinien(w: World): void {
       liste.push({ region: id, land: k.land, seit: k.seit, form: "pufferzone", widerstand: 30, aufstand: 0, grundlage: "linie" });
     }
   }
+  if (liste.length > vorher) sp.besatzung = liste;
 }

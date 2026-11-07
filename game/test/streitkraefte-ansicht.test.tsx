@@ -30,7 +30,8 @@ describe("Streitkräfte-Ansicht", () => {
     // Übersicht: acht Gattungen plus Wehrdienst, Vorhaben, Kriegsziel; im Krieg ist das Kriegsziel offen
     expect((html.match(/class="ub-kachel/g) ?? []).length).toBeGreaterThanOrEqual(11);
     expect(html).toContain("ub-detail");
-    expect(html).toContain("sk-ziele");
+    // Welle 3 (K1): Den Zielraum wählt der Spieler jetzt in der Kriegsakte, nicht mehr unter Sicherheit (siehe test/krieg-leiter.test.ts)
+    expect(html).not.toContain("sk-ziele");
     expect(html).toContain("KAAN");
   });
 });
