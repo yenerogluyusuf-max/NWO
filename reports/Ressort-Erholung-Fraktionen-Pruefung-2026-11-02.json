@@ -1,0 +1,784 @@
+{
+  "task": "Fraktionen reagieren auf tatsächliche Ressorterholung",
+  "date_utc": "2026-11-02T08:06:44.258167+00:00",
+  "scope": "local only; explicit user request; expired automation remains paused",
+  "tests": {
+    "unique_passed": 135,
+    "new_result_reaction_cases": 35,
+    "runs": [
+      {
+        "run": "focused",
+        "passed": 134,
+        "failed": 0,
+        "report_sha256": "5d89ead9ebed76d2bb8684542c0895dc5c9a625e24115675ee072b3d908f5ddb"
+      },
+      {
+        "run": "final",
+        "passed": 68,
+        "failed": 0,
+        "report_sha256": "d841da6bfc9c75b6cdff38047a396435c79fe82ab421e302e044dbd37904fdd1"
+      }
+    ],
+    "cases": [
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Abkommen halten ihre tatsächlichen Kosten und konkreten Zusagen fest; Vorschau legt keine Belege an",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Annahme speichert reale Posten, Finanzierung und Ministerreaktion ohne erfundene Fraktionsbelohnung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Ablehnung lässt die neue Duldungszusage verbindlich und den bisherigen Etat unverändert",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen ein höherer Forschungsetat erfüllt ein zugesagtes Forschungsgesetz nicht automatisch",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen bestehende andere Zusagen bleiben klar vom Preis der Haushaltsmehrheit getrennt",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Live-Nachsorge liest Erfüllung, Bruch und neue Frist, ohne den Beschlussbeleg umzuschreiben",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen der zusätzliche Reifungsschritt verbessert Verkehr; reine Vergleichsläufe buchen keine Waren oder politischen Folgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Kürzung des Agraransatzes zeigt einen negativen Reifungsbeitrag zur Ernte",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen neu bewilligter Etat ist vor der ersten Monatsabrechnung noch nicht wirksam",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen nachträglich geänderter Posten wird nicht mehr als Reifungsbeitrag des alten Beschlusses ausgegeben",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Monatsbericht verwendet gebuchte Waren und identische Belege in Wirtschafts- und Parlamentsbericht",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Monatsstände bleiben historisch, während heutige Zusagen und Parteien sich ändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen echter Tageslauf über den Monatswechsel hält einen Koalitionsaustritt nach dem Haushaltsvotum fest",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Votum am Monatsersten nach der Etatabrechnung erhält keine vorzeitige Reifungswirkung",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Speichern und Laden erhalten Beschluss, zugeordnete Verträge und Monatsbelege",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Altstand ohne Beleg wird nicht nachträglich mit erfundenen Haushaltsfolgen ergänzt",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf de erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf en erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/haushaltsbericht.test.tsx",
+        "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf tr erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "anderweitiger Eingriff am selben Tag sperrt alte Ministerantwort vor jeder Buchung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "entspannte Lage am selben Tag erzeugt keine unnötigen Ablehnungsfolgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Anliegen entsteht nach 30 Tagen ohne Öffnen der Akte, kein rückwirkender Altstand-Verfall",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "unbeantwortet: Ressort verschlechtert sich und Minister verliert Rückhalt, nur einmal",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "ehrgeiziger fähiger Minister lindert das Problem auf eigene Faust, kostet Geld und Legitimität",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "ehrgeiziger fachlich schwacher Alleingang verschlechtert statt zu heilen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ablehnung hat sofort Beziehungskosten, Fristablauf bestraft nicht ein zweites Mal",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Gespräch führt echte Szene aus und verschiebt Sachfrist; kein kostenloser Ressorteffekt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "einmaliger Aufschub besitzt Preis, keine unendliche Fristverlängerung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ablehnung kann vor Frist durch Gespräch korrigiert werden; alte Antworten buchen nichts",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerwechsel erledigt altes Anliegen ohne den Nachfolger zu bestrafen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "anderweitiger fachlicher Eingriff und Entspannung stoppen den angekündigten Verfall",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "vorhandenes Gespräch außerhalb der Karte zählt, fachliche Zusage bleibt offen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Annahme bringt echten Gesetzentwurf ein und zeigt dieselbe Mehrheit und Kosten",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "tatsächlicher Tageslauf führt fälliges Ressortanliegen ohne UI aus; Speichern/Laden bleibt stabil",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerkarten und belegte Folgen auf de ohne Zustandsänderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerkarten und belegte Folgen auf en ohne Zustandsänderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Ministerkarten und belegte Folgen auf tr ohne Zustandsänderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "laufendes Haushaltsverfahren zählt als Bearbeitung des betroffenen Ressorts",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "laufendes Versorgungsprogramm verhindert neue Vernachlässigungsanfrage im Wirtschaftsressort",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortanliegen.test.tsx",
+        "name": "Wirtschaftsminister schlägt reale Haushaltskorrektur vor; Preis und Legitimität landen im Rückblick",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "stuetzen startet Messreihe mit echtem Entscheidungswert und aktuellem Amtsinhaber",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "zurueckpfeifen startet Messreihe mit echtem Entscheidungswert und aktuellem Amtsinhaber",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "entlassen startet Messreihe mit echtem Entscheidungswert und aktuellem Amtsinhaber",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "erster Bericht erst nach 14 Tagen, Tageshaken und Start wiederholbar ohne Doppelmeldung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Fortschritt bleibt bei hoher Belastung kritisch, Nachhaken erzeugt echten Vorschlag ohne kostenlose Wirkung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "niedrige und hohe gute Werte werden in der richtigen Richtung bewertet",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "exakte Messschwelle 1 ohne Rundungsentscheidung ergibt fortschritt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "exakte Messschwelle 0.99 ohne Rundungsentscheidung ergibt unveraendert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "exakte Messschwelle -1 ohne Rundungsentscheidung ergibt rueckschlag",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "exakte Messschwelle -0.99 ohne Rundungsentscheidung ergibt unveraendert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entwarnung braucht zwei Meldungen; beobachtet anschließend monatlich und erkennt Rückfall",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entwarnungsgrenze für inneres bei kriminalitaet=62 exakt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entwarnungsgrenze für inneres bei kriminalitaet=62.001 exakt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entwarnungsgrenze für wirtschaft bei industrie=38 exakt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entwarnungsgrenze für wirtschaft bei industrie=37.999 exakt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "laufendes Verfahren ist keine Erholung und erzeugt keinen doppelten Gesetzentwurf",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "bestehendes Anliegen wird verwendet, nicht dupliziert oder kostenlos verlängert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "unbeantwortetes Nachhaken folgt den echten Eskalationsregeln ohne zweite Messstrafe",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Gespräch zur Folgemeldung führt reale Szene, Frist und Beziehungspreis; Messreihe bleibt offen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Nachfolger berichtet unter eigenem Namen, ohne Ausgang oder frühere Meldungen umzuschreiben",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "ohne Amtsinhaber keine Meldung im Namen des Vorgängers; nach Besetzung Messung fortsetzen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "erneute Entscheidung startet neue Baseline, alte Messreihe bleibt unverändert erhalten",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entlassung aus der Personenakte startet ebenfalls Nachverfolgung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Speichern/Laden erhält Termin und Berichte; alte Entscheidungen starten heute ohne rückwirkende Messung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "echter Tageslauf erfasst Monatswerte nach Ressortwirkung und speichert unveränderlichen Bericht",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Berichtshistorie bleibt begrenzt, ohne erfundene Zwischenmessungen bei Zeitsprung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Fortschrittskarten, Vorschlagszugang und Monatsrückblick auf de sind zustandsneutral",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Fortschrittskarten, Vorschlagszugang und Monatsrückblick auf en sind zustandsneutral",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Fortschrittskarten, Vorschlagszugang und Monatsrückblick auf tr sind zustandsneutral",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Entspannung einer Größe verdeckt kein anderes Ressortproblem; Vorschlag greift neues Problem auf",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "volle Anliegenliste wird erklärt; keine vierte Anfrage und keine zusätzliche Strafe",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Anzeige einer angenommenen Folgevorlage nennt Bearbeitung und behauptet keine Erholung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortnachsorge.test.tsx",
+        "name": "Annahme einer Folgevorlage und echte weitere Tage berichten gemessenen Stand statt automatischem Erfolg",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Ressortversagen bucht aktive Koalitionsreaktion und Oppositionsanfrage genau einmal",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "hilfreicher Alleingang bleibt wegen fehlender Abstimmung politisch umstritten",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "mehrere aktive Vorsitzende reagieren, inaktiver Vorsitz und gleichnamiger Minister nicht",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "stuetzen: zustandsneutrale Vorschau entspricht sämtlichen tatsächlich gespeicherten Folgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "zurueckpfeifen: zustandsneutrale Vorschau entspricht sämtlichen tatsächlich gespeicherten Folgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "entlassen: zustandsneutrale Vorschau entspricht sämtlichen tatsächlich gespeicherten Folgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Stützen belohnt Minister und Partei, stärkt bei Misserfolg die Opposition und repariert keine Krise",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Zurückpfeifen unterbindet nächsten Alleingang für 60 Tage, lässt Sachprobleme aber bestehen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Entlassung verwendet echte Nachfolge und belastet Partner statt Vorsitz durch Nachfolger zu ersetzen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "tatsächlicher Amtswechsel mit derselben Figurenkennung macht alte Antwort ungültig",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Entlassung aus der Personenakte löst dieselben politischen Folgen einmal aus und zeigt sie vorher",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Umbildung kommissarisch bucht wirklichen Rabatt im Vorfallsbeleg und dieselben Partnerfolgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Umbildung kandidat bucht wirklichen Rabatt im Vorfallsbeleg und dieselben Partnerfolgen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "eine gesperrte Umbildung lässt Rabatt und Vorfall unverändert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "echte Nachbesetzung übernimmt weder unbeantwortete Anfrage noch alte Vernachlässigungsfrist",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "neuer Bündnisstand entwertet Angebot; ehemalige Partner werden nicht wieder zur Koalition gerechnet",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "unbezahlbare oder durch Erholungspause gesperrte Reaktion bucht nichts",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "bekannte weitere Zusagenerinnerung wird in der Reaktionsvorschau weiter berücksichtigt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Werte werden tatsächlich begrenzt und extreme Vorschauen bleiben korrekt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "ohne parlamentarische Opposition wird keine fiktive Fraktion bestraft",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "späterer Vorfall ersetzt alte offene Antwort ohne damaligen Beleg umzuschreiben",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Speichern/Laden erhält Entscheidung und sperrt Wiederholung; alte Stände erhalten keine rückwirkenden Strafen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "verfehlter vorhandener Ressortauftrag löst denselben politischen Vorgang aus, ohne doppelte Fachstrafe",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "echte Monatsprüfung: Entlassung kann Partner kosten, Rückendeckung erhält die Mehrheit; Bericht bleibt historisch",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Karten, offene Handlungsoptionen und historischer Bericht auf de sind zustandsneutral",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Karten, offene Handlungsoptionen und historischer Bericht auf en sind zustandsneutral",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortpolitik.test.tsx",
+        "name": "Karten, offene Handlungsoptionen und historischer Bericht auf tr sind zustandsneutral",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "echte Erholung bucht Rückhalt und schwächt Opposition ohne Fachwert, PK oder Zusagen zu verändern",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "bestätigte Erholung belohnt einmal; gesunde weitere Steigerung und weitere stabile Berichte nicht",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Rückfall und Wiederholung eines früheren Bestwerts erzeugen keinen zweiten Fortschrittsbonus",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "unbeteiligter gesunder Messwert verdeckt die stagnierende Krise nicht",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "neuer Bestwert mit Verbesserung 0.99 verwendet genaue Ein-Punkt-Schwelle",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "neuer Bestwert mit Verbesserung 1 verwendet genaue Ein-Punkt-Schwelle",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "neuer Bestwert mit Verbesserung 1.01 verwendet genaue Ein-Punkt-Schwelle",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "kleine Verbesserungen sammeln sich bis zur Anerkennung von einem Punkt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "anderes kritisches Ressortproblem hat bei Rückschlag Vorrang vor dem verbesserten Ausgangswert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Stillstand erhält einen Bericht Geduld; danach messbare Forderungen mit festen 28 Tagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "laufendes reales Gesetz erhält einen weiteren Bericht Zeit, ersetzt aber kein Ergebnis",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Rückschlag erzeugt sofort Druck, aber niemals erneuten Abzug vor 28 Tagen",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Ziel wird an echter Messung erreicht, alter Forderungsbeleg bleibt dabei unverändert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Entwarnung erfüllt Forderung auch vor der vollen Zwei-Punkte-Verbesserung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "fälliges verfehltes Ziel bleibt als Beleg erhalten und löst neue konkrete Forderung aus",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "neue Personalentscheidung übernimmt Bestwerte und offene Fristen ohne Rückbonus",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "ehemalige Koalition wird aktuell als Opposition bewertet; Forderungsrolle bleibt historisch",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Duldung wird mit heutiger Frist eingeordnet und ist keine Koalitionsloyalität",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Sitzverlust beendet alte parlamentarische Forderung ohne erfundenen Akteur",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "nur aktive Vorsitzende reagieren; mehrere aktive werden gleich behandelt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "andere Koalitionspartner reagieren schwächer auf Verantwortung und auf bestätigte Erholung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "tatsächliche Begrenzung auf 0–100 statt nomineller Reaktion gespeichert",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "ohne parlamentarische Opposition keine fiktive Anfrage oder Oppositionsstärke",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Vorfall am Messtag wird nicht durch zusätzliche politische Messstrafe verdoppelt",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "wiederholte Bewertung und Speichern/Laden buchen keine zweite Reaktion",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Altberichte werden nicht nachträglich belohnt; bekannte Bestwerte bleiben Vergleichsgrundlage",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Gesamthistorie bleibt begrenzt und erreicht/verfehlt wird nur einmal gebucht",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "reale politische Meldung und Monatskarte auf de zustandsneutral und vollständig",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "reale politische Meldung und Monatskarte auf en zustandsneutral und vollständig",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "reale politische Meldung und Monatskarte auf tr zustandsneutral und vollständig",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "echter Monatslauf: Ergebnisrückhalt hält Partner, erneuter Stillstand kostet die Regierungsmehrheit",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "erst später auftretendes Sachproblem kann echte Erholung gewinnen, ohne gesunde Werte zu vergüten",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "nützlicher Ressortwert erzeugt Fortschritt nach oben und feste Mindestforderung",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Monatserster: Rückhaltsänderung nach der Monatsprüfung warnt auf den nächsten Monat",
+        "status": "passed"
+      },
+      {
+        "file": "test/ressortrueckhalt.test.tsx",
+        "name": "Monatsansicht lässt frühere Fortschrittsreaktion neben neuer Druckreaktion nachvollziehen",
+        "status": "passed"
+      }
+    ]
+  },
+  "build": {
+    "command": "npm run build",
+    "exit_code": 0,
+    "typecheck_passed": true,
+    "log_sha256": "4da3a48cf9d73544fb71bb2ac5acbc5304b531f49558f5eaa1cbc42b811b641a",
+    "existing_warnings": [
+      "Optionaler infrastrukturEtat-Import ohne passenden Export",
+      "Pakete über 500 kB"
+    ]
+  },
+  "scenario": {
+    "fixture": "controlled ministry metrics; same world copied before second report",
+    "start": "2028-06-02",
+    "first_report": "2028-06-16",
+    "real_followup_conversation": true,
+    "second_report": "2028-06-30",
+    "chair_before": 21,
+    "recovery": {
+      "crime_baseline": 91.5,
+      "crime_measured": 80,
+      "chair_after": 22,
+      "seats_after_actual_monthly_processing": 320
+    },
+    "stagnation": {
+      "chair_after": 19,
+      "forecast_review": "2028-07-01",
+      "forecast_seats": 200,
+      "seats_after_actual_monthly_processing": 200
+    },
+    "actual_world_advance_days_after_controlled_report": 1,
+    "historical_monthly_snapshot_unchanged": true,
+    "conversation_does_not_automatically_improve_crime": true
+  },
+  "verified_behaviors": [
+    "One-time reward for new best critical metrics and confirmed recovery",
+    "Previously healthy metrics do not hide stagnation",
+    "New problems and previously recorded relapses distinguished",
+    "One grace report; real ongoing work allows a third report before stagnation pressure",
+    "Pressure interval of at least 28 days; same-day ministry incident not double-charged",
+    "Fixed 2-point result demands with 28-day deadline, all-clear also qualifies",
+    "Political demands are not automatically accepted promises",
+    "Minister changes preserve deadlines and credited best values",
+    "Actual party roles, active chairs, upper/lower bounds and absent opposition",
+    "Saved old reports receive no retrospective reactions",
+    "Readonly live, history and monthly views in DE/EN/TR",
+    "Earlier response within monthly snapshot remains available",
+    "Risk from first-of-month report refers to next coalition review"
+  ],
+  "ui": {
+    "languages": [
+      "de",
+      "en",
+      "tr"
+    ],
+    "narrow_container_css": true,
+    "browser_verified": false,
+    "screenshots": [],
+    "restriction_retried": false
+  },
+  "limitations": [
+    "Observed outcomes, no isolated causal attribution",
+    "Visual browser confirmation pending",
+    "Long-term balance not exhaustively tested",
+    "Result demands evaluated at actual ministry reports"
+  ],
+  "source_sha256": {
+    "src/sim/ressortrueckhalt.ts": "4ed136a0268ec5ea30a3ed6a0c121f5ad3dbc1f7fa1b10012988a31ebed71c42",
+    "src/sim/ressortnachsorge.ts": "d9319774dd3dbb6cd928c3c5737e4cad7368e8041f3178d77c05f0a353cbc3c9",
+    "src/ui/minister/RessortRueckhalt.tsx": "031395fd374b0eea57cff5542fd18e219cbad491ac8dbdfc8d8a3b9cec1176a7",
+    "src/ui/minister/RessortErholung.tsx": "36605f00217e4fe37e2303fdef192c1e4620e65dbc0a3699b912fcd7152bb137",
+    "src/ui/minister/ressorterholung.css": "5137d3dc9cf0306a600496b0b50cbd17a83567e422d9af4b05e85c1dc0a48c03",
+    "test/ressortrueckhalt.test.tsx": "295fbd1c418a947578104bf722df1e0d83c3adfe0470bb11874ea1041d941f6a",
+    "test/ressortnachsorge.test.tsx": "05f2bbd91bf3c1bdda93226836168aba9514d6f0fa4ed47f4c547bfe71a0d8e5",
+    "src/i18n/katalog/de/ressortrueckhalt.json": "ee00a4c61de04c8f14710fc80a5adf31241a9e1fd6b1065374bda8d59f2ee802",
+    "src/i18n/katalog/de/ressortnachsorge.json": "c94db61f7b63608e1ee35a1b46d5be5463b2c5c02a66cf84b28941076ace8f5a",
+    "src/i18n/katalog/en/ressortrueckhalt.json": "2a70c24a7104b81e000d7c92e1c3bb8030b560d5630f863d224123607276424b",
+    "src/i18n/katalog/en/ressortnachsorge.json": "b4fa4ca183ce19eb71db258c3df38cb165fa925b72d19a45a0da8a837d451278",
+    "src/i18n/katalog/tr/ressortrueckhalt.json": "aaf26b286b377bb403c09f7f2c5b1ae694e7e4675e900a27d5297dc510c83bcc",
+    "src/i18n/katalog/tr/ressortnachsorge.json": "02c78cce116ef5795b46e7227f6611b321880393442252c3acc0b6329d9ce2e7"
+  },
+  "project_report": {
+    "path": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/VERSORGUNG_PARLAMENT_2026-10-30.md",
+    "sha256": "bf8f13e59996b0ef8a25d912b8d285199171ac00d9a5baac53256e11c2523a8b"
+  }
+}

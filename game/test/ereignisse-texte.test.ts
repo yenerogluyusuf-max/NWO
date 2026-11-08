@@ -1,0 +1,111 @@
+// Jedes Ereignis lässt sich öffnen, hat lesbare Texte, benennt seine Akteure und rechnet seine Antworten fehlerfrei durch.
+
+import { besatzungAnlegen } from "../src/sim/besatzung";
+import { laufende as laufendeVertraege, verhandle as verhandleVertrag } from "../src/sim/abkommen";
+import { describe, expect, test } from "vitest";
+import { createWorld } from "../src/sim/world";
+import { turkey2026 } from "../src/sim/scenario";
+import { startAfterElection, schnellProfil } from "../src/sim/prolog";
+import { VORLAGEN, ansicht, oeffne, entscheide } from "../src/sim/ereignisse";
+import { Rng } from "../src/sim/rng";
+import { advance } from "../src/sim/world";
+import { weltZustand } from "../src/sim/laender";
+import { machtkreis, personen } from "../src/sim/machtkreis";
+import { eigenVon } from "../src/sim/personen";
+
+const KAPUTT = /undefined|NaN|\[object|\bnull\b|\$\{|Infinity/;
+
+/** Für „Vertrag läuft aus“ braucht es einen Vertrag kurz vor dem Ende. */
+function mitAblaufendemVertrag(w: ReturnType<typeof welt>) {
+  verhandleVertrag(w, { land: "SYR", gibt: ["bauauftraege", "energie_lieferung"], will: ["w_rueckkehr"], jahre: 2 });
+  const v = laufendeVertraege(w, "SYR")[0];
+  if (v) v.ablauf = w.day + 100;
+}
+
+function welt(seed: number) {
+  const w = createWorld(turkey2026, seed);
+  startAfterElection(w, schnellProfil());
+  w.spiel!.ereignisse = [];
+  w.spiel!.kapital = 100;
+  // Länder-Ereignisse setzen eine schon erlebte Lage voraus: hohes Vertrauen zur EU, Streit mit Griechenland
+  advance(w, 210);
+  w.spiel!.ereignisse = [];
+  w.spiel!.hinweise = [];
+  // Die erlebte Zeit bringt Abkühlungen mit (Eigeninitiative, Auslöse-Sperren): Der Texttest will jede
+  // Vorlage auf Zuruf öffnen, also startet er ihre Sperren frisch — so wie oben Ereignisse und Hinweise.
+  w.spiel!.zuletzt = {};
+  for (const z of Object.values(weltZustand(w))) delete z.initiativeZuletzt;
+  weltZustand(w).EU!.versatz += 30;
+  weltZustand(w).GRC!.konflikt = 80;
+  return w;
+}
+
+/**
+ * Die zwei Spätspiel-Fälle des Machtkreises brauchen eine erlebte Vorgeschichte, die der Texttest auf Zuruf herstellt:
+ * Für den Seitenwechsel ein Regierungsmitglied kurz vor dem Abfall (kaum Loyalität, Groll, Ehrgeiz),
+ * für den Putschzirkel ein vom Präsidenten aufgedecktes Geheimnis beim Generalstab.
+ */
+function machtkreisFaelle(w: ReturnType<typeof welt>): void {
+  const mk = machtkreis(w);
+  const kandidat = personen(w).find((p) => p.rolle === "finanzen" && p.figur) ?? personen(w).find((p) => p.figur && p.rolle !== "opposition");
+  if (kandidat?.figur) {
+    // personen(w) leitet die Objekte je Aufruf neu ab: Die Werte gehören in die Figur und ihr Eigenleben.
+    kandidat.figur.loyalitaet = 10;
+    const eigen = eigenVon(w, kandidat.figur);
+    eigen.groll = 60;
+    eigen.ehrgeiz = 70;
+  }
+  const stab = personen(w).find((p) => p.rolle === "generalstab" && p.figur) ?? kandidat;
+  if (stab) {
+    mk.geheimnisse.push({ id: "g-test-putsch", person: stab.schluessel, art: "putschzirkel", schwere: 2, aufgedeckt: true, oeffentlich: false, seit: w.day });
+  }
+}
+
+/** Welle E2: Forschung und Große Ziele brauchen eine Lage (erschöpfte Verwaltung; verfolgte Ziele mit voller Vorbereitung). */
+function forschungsLage(w: ReturnType<typeof welt>, id: string): void {
+  if (id === "forschung_verwaltung") w.spiel!.reich!.verwaltung = 0;
+  // Welle 3, K5: Der Skandal der Stellvertreter braucht eine Sicherheitszone mit Verbündeten, die seit über 90 Tagen besteht
+  if (id === "besatzung_skandal") besatzungAnlegen(w, { region: "syr_asas", land: "SYR", seit: w.day - 100 });
+  if (id === "grossziel_gelegenheit") {
+    const ziele = ["nahostordnung", "drehscheibe", "turkunion", "weltbuehne", "kornkammer", "seemacht", "technologie"];
+    w.spiel!.grosseZiele = { verfolgt: ziele, stand: Object.fromEntries(ziele.map((z) => [z, { stufe: 0, vorbereitung: 30, versuche: 0 }])), vertretungen: {} };
+  }
+}
+
+describe("Ereignistexte", () => {
+  test.each(VORLAGEN.map((v) => v.id))("%s: lesbare Texte, benannte Akteure, fehlerfreie Antworten", (id) => {
+    let geoeffnet = 0;
+    for (let seed = 1; seed <= 12; seed++) {
+      const w = welt(seed);
+      if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w);
+      if (id === "land_drohkulisse") weltZustand(w).GRC!.konflikt = 90; // Drohkulisse braucht Konflikt über der Schwelle 85
+      if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") machtkreisFaelle(w);
+      forschungsLage(w, id);
+      if (id === "zusage") w.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
+      const ev = oeffne(w, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined);
+      if (!ev) continue;
+      geoeffnet++;
+      const a = ansicht(w, ev);
+      const alles = [a.titel, ...a.text, a.warum, ...a.optionen.flatMap((o) => [o.label, o.beschreibung, ...o.vorschau]), ...a.massnahmen.map((m) => m.name), ...(a.standardFolge ? [a.standardFolge.text, ...a.standardFolge.zeilen] : [])].join(" ¦ ");
+      expect(alles, `${id} Seed ${seed}`).not.toMatch(KAPUTT);
+      expect(a.titel.length).toBeGreaterThan(3);
+      expect(a.optionen.length).toBeGreaterThanOrEqual(2);
+      // Immer gibt es mindestens eine kostenlose Antwort, auch wenn das Kapital leer ist
+      expect(a.optionen.some((o) => (o.anzeigePk ?? o.pk) === 0), `${id} ohne kostenlose Antwort`).toBe(true);
+      expect(alles).not.toMatch(/eines europäischen Staates|ein Nachbarland|einem Nachbarn/);
+      // Jede Antwort lässt sich ausführen, ohne dass etwas abstürzt
+      for (const o of a.optionen) {
+        const w2 = welt(seed);
+        if (id === "vertrag_verlaengerung") mitAblaufendemVertrag(w2);
+        if (id === "land_drohkulisse") weltZustand(w2).GRC!.konflikt = 90;
+        if (id === "kreis_seitenwechsel" || id === "kreis_putschzirkel") machtkreisFaelle(w2);
+        forschungsLage(w2, id);
+        if (id === "zusage") w2.spiel!.zusagen.push({ id: "z-t", von: Object.keys(w2.parliament!.seats)[1]!, text: "Die Partei erwartet mehr Wissenschaftsfreiheit", faellig: 0, massnahme: "m_wissenschaftsfreiheit", richtung: 1, erfuellt: false, gebrochen: false });
+        const e2 = oeffne(w2, id, new Rng(seed * 13), id === "zusage" ? { provinzen: [], staerke: 1, daten: { zusage: "z-t" } } : undefined)!;
+        const r = entscheide(w2, e2.id, o.id, new Rng(5));
+        expect(r.text, `${id}/${o.id}`).not.toMatch(KAPUTT);
+      }
+    }
+    if (!["zusage", "koalitionsangebot"].includes(id) && !id.startsWith("start_") && !id.startsWith("katastrophe_") && id !== "grossbeben") expect(geoeffnet, `${id} ließ sich nie öffnen`).toBeGreaterThan(0);
+  });
+});

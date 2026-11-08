@@ -1,0 +1,326 @@
+{
+  "datum": "2026-10-30",
+  "aufgabe": "Fraktionszusagen, Fälligkeitsereignisse und Ressortvergabe reagieren beim aktiven Parteivorsitz statt beim ersten Parteimitglied",
+  "nurLokal": true,
+  "gezielteTests": 58,
+  "bestanden": 58,
+  "fehler": 0,
+  "neueTests": 16,
+  "ergebnisseJeDatei": [
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/versorgungsnachsorge.test.tsx",
+      "protokoll": "/private/tmp/nwo-zusagen-vorsitz-20261030.json",
+      "tests": 32,
+      "bestanden": 32,
+      "pruefungen": [
+        {
+          "name": "Nach dem Versorgungsvotum Beschluss speichert Budget und Laufzeit, benennt offene Forderung und tatsächliche Kosten",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum jüngste Nachsorge öffnet nach dem Votum und bei akuter Gefahr, ohne alle alten Vorlagen aufzuklappen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum abgelehnte Vorlage begründet Verstimmung, erzeugt aber keine Bindung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Zivilgarantie bindet bereits in der Vorbereitung; Kontrolle beginnt mit dem Auftrag",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum reguläres Ende ist kein Zusagenbruch und fehlender Auftrag wird nicht als erfüllt ausgegeben",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum alte Spielstände ohne Beschlusssnapshot behalten nachvollziehbare Bedingungen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum aktueller Monatsbeleg gehört zum konkreten Auftrag, nicht zu einer alten gleichnamigen Maßnahme",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum aktuelle Sanktion wird nach beschlossenem Energieabkommen als Vollzugshindernis gezeigt",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum historische Verstimmung bleibt nach Koalitionswechsel richtig; Rückkehr braucht ein neues Bündnis",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Risiko verwendet echte aktive Vorsitzende und zählt Sitze ohne Doppelzählung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum fraktion nutzt die echte Aktion: Vorschau, Preis und gebuchte Personenfolgen stimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum vertrauen nutzt die echte Aktion: Vorschau, Preis und gebuchte Personenfolgen stimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum rueckendeckung nutzt die echte Aktion: Vorschau, Preis und gebuchte Personenfolgen stimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Fraktionsgespräch stärkt den Vorsitz statt eines vorher einsortierten Ministers",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Rückendeckung zeigt auch Mitbegünstigte und Vertrauenspreis, ohne vorhandene Zusagen zu ändern",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum bei Loyalität null reicht ein einzelnes Gespräch nicht; Oberfläche behauptet keine Rettung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum keine wiederholbare Gratisloyalität: Sperre gilt auch über eine zweite Vorlage hinweg",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum persönliche Termine teilen ihre Sperre, Fraktionsgespräch bleibt eine eigene Handlung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei kapital bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei loyalitaet bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei tag bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei ausgetreten bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei vorlage bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei pause bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum ausgeschöpfte Kapitalüberziehung und vier Termine zeigen echte Hindernisse",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Kapital auf Kredit und knappe Aufmerksamkeit sind vor dem Eingriff sichtbar",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum tatsächlicher Monatswechsel: Gespräch verhindert den sonst eintretenden Koalitionsbruch",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum inaktiver früherer Vorsitz verursacht beim Monatswechsel keinen Bruch",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum beide Ansichten und Laden bewahren Buchungen; reine Anzeige verändert keine alten Profile",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Nachsorge ist in de vollständig beschriftet",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Nachsorge ist in en vollständig beschriftet",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Nachsorge ist in tr vollständig beschriftet",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-sprachen.test.ts",
+      "protokoll": "/private/tmp/nwo-zusagen-vorsitz-20261030.json",
+      "tests": 3,
+      "bestanden": 3,
+      "pruefungen": [
+        {
+          "name": "Zusagen in drei Sprachen haben in allen Katalogen dieselben Schlüssel und Platzhalter",
+          "status": "passed"
+        },
+        {
+          "name": "Zusagen in drei Sprachen übersetzt die Startzusage eines älteren Spielstands über die Kennung",
+          "status": "passed"
+        },
+        {
+          "name": "Zusagen in drei Sprachen nutzt die gespeicherte Meldung und behält den deutschen Text für die Prüfung",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/zusagen-vorsitz.test.tsx",
+      "protokoll": "/private/tmp/nwo-zusagen-vorsitz-final-20261030.json",
+      "tests": 16,
+      "bestanden": 16,
+      "pruefungen": [
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Zuordnung bleibt bei vertauschter Figurenreihenfolge gleich und verändert keinen Spielstand",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz einloesen bucht die Personenfolge am Vorsitz, nicht am Minister",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz vertroesten bucht die Personenfolge am Vorsitz, nicht am Minister",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz brechen bucht die Personenfolge am Vorsitz, nicht am Minister",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz verfall bucht die Personenfolge am Vorsitz, nicht am Minister",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz inaktiver ehemaliger Vorsitz wird weder angesprochen noch belohnt oder bestraft",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz ohne aktiven Vorsitz bleibt die Fraktion zuständig, Minister und Ehemalige bleiben unverändert",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz mehrere aktive Vorsitzende werden einheitlich genannt und reagieren, die Fraktion nur einmal",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz aktiver Vorsitz bleibt auch nach Koalitionsaustritt Ansprechpartner",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Ressortvergabe erreicht den aktiven Vorsitz statt eines früheren oder parteilosen Partners",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz fällige Erinnerung nennt denselben Vorsitz wie die Zusagenansicht",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Startforderung verwendet die Zusage und Vorsitzenden der tatsächlichen Bündnispartei",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Bruch einer Fraktionszusage erreicht die echte Monatsprüfung und kostet die Partnerstimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Zusagenansicht nennt auf de den richtigen persönlichen Empfänger",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Zusagenansicht nennt auf en den richtigen persönlichen Empfänger",
+          "status": "passed"
+        },
+        {
+          "name": "Fraktionszusagen wirken beim aktiven Parteivorsitz Zusagenansicht nennt auf tr den richtigen persönlichen Empfänger",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/amtszeit.test.ts",
+      "protokoll": "/private/tmp/nwo-zusagen-vorsitz-integration-20261030.json",
+      "tests": 1,
+      "bestanden": 1,
+      "pruefungen": [
+        {
+          "name": "Umbildung Partner bekommen Ministerien; offene Ansprüche werden beim Schließen zu Zusagen",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/ereignisse-texte.test.ts",
+      "protokoll": "/private/tmp/nwo-zusagen-vorsitz-integration-20261030.json",
+      "tests": 2,
+      "bestanden": 2,
+      "pruefungen": [
+        {
+          "name": "Ereignistexte zusage: lesbare Texte, benannte Akteure, fehlerfreie Antworten",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignistexte start_partner: lesbare Texte, benannte Akteure, fehlerfreie Antworten",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/personen.test.ts",
+      "protokoll": "/private/tmp/nwo-zusagen-vorsitz-integration-20261030.json",
+      "tests": 4,
+      "bestanden": 4,
+      "pruefungen": [
+        {
+          "name": "Zusagen Die Ansicht nennt Bezug, Frist, Fortschritt und die Folgen von Halten und Brechen",
+          "status": "passed"
+        },
+        {
+          "name": "Zusagen Vertrösten kostet 1 Kapital und Geduld, höchstens zweimal; Brechen kostet Glaubwürdigkeit",
+          "status": "passed"
+        },
+        {
+          "name": "Zusagen Einlösen: Ohne Gesetz kostet es 4 Kapital, mit Gesetz trägt das Gesetz die Kosten; die Glaubwürdigkeit steigt",
+          "status": "passed"
+        },
+        {
+          "name": "Zusagen Zusagen, die andere Systeme erfüllen (Gesetz beschlossen), werden im Monat nachgebucht",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "produktionsbuild": {
+    "erfolg": true,
+    "log": "/private/tmp/nwo-zusagen-vorsitz-build-20261030.log",
+    "bekannteWarnungen": [
+      "infrastrukturEtat: fehlender optionaler Export",
+      "große Build-Chunks"
+    ]
+  },
+  "pruefung": {
+    "reihenfolgeUnabhaengig": true,
+    "ministerKeineFalschenEmpfaenger": true,
+    "inaktiveVorsitzendeUnveraendert": true,
+    "mehrereAktiveVorsitzende": true,
+    "ohneVorsitzBleibtFraktion": true,
+    "preiseUnveraendert": true,
+    "fristEreignisUndStartforderung": true,
+    "ressortsBeimRichtigenPartner": true,
+    "echterMonatsbruch": {
+      "loyalitaetVorher": 40,
+      "loyalitaetNachBruch": 15,
+      "sitzeVorher": 320,
+      "sitzeNachPruefung": 200
+    },
+    "deEnTr": true,
+    "speichernLaden": true,
+    "browser": false,
+    "screenshots": false
+  },
+  "sourceHashes": {
+    "src/sim/koalitionslage.ts": "1e76a1df623dce90ef71501a0b19ebcad01cad8438b2c9ff64dcbf7d1fc487db",
+    "src/sim/zusagen.ts": "d8fdba40e413ff246bc8fee5906512c59b78c627835633e72200e49164531771",
+    "src/sim/ressortvergabe.ts": "7ae3404c247697f3e151965a23d61a81c65bd441a510924f4aa50ebb02771cee",
+    "src/sim/ereignisse.ts": "d97df6fcccc1b5559ff8ee77284365b1c2b31dadb1c43e574dbe93aca9b3c933",
+    "test/zusagen-vorsitz.test.tsx": "f2c4fb876373658c7cdef94b66f0ae71c3beff00d0091a6d7876972fecd5dcfb"
+  }
+}

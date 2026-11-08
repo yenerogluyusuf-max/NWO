@@ -1,0 +1,1879 @@
+[
+  {
+    "id": "m_mindestlohn",
+    "name": "Mindestlohn",
+    "einheit": {
+      "de": "{x} Lira netto je Monat",
+      "en": "{x} lira net per month",
+      "tr": "aylık net {x} lira"
+    },
+    "start": "28.075,50 Lira netto (brutto 33.030 Lira), gültig 01.01.–31.12.2026",
+    "rundung": "auf 50 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://kpmgvergi.com/yayinlar/mali-bultenler/sosyal-guvenlik/2026-yili-asgari-ucreti-aciklandi/3342",
+      "titel": "KPMG Vergi: 2026 Yılı Asgari Ücreti Açıklandı",
+      "datum": "Dez. 2025",
+      "zitat": "2026 asgari ücreti brüt 33.030 TL, net 28.075,50 TL; Resmî Gazete 26.12.2025; artış %27,01 (Suchauszug, mehrere Quellen übereinstimmend)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Satz-Maßnahme. Zweitanzeige brutto = netto × 33.030/28.075,50 (1,1765). Kein Zwischenschritt Juli 2026.",
+    "startwert": 28075.5
+  },
+  {
+    "id": "m_renten",
+    "name": "Rentenerhöhungen",
+    "einheit": {
+      "de": "Mindestrente {x} Lira je Monat",
+      "en": "minimum pension {x} lira per month",
+      "tr": "en düşük emekli aylığı {x} lira"
+    },
+    "start": "20.000 Lira je Monat ab Januar 2026 (vorher 16.881); Juli 2026 laut einer Quelle 23.552 Lira (Gesetz Nr. 7590, prüfen)",
+    "rundung": "auf 100 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://kpmgvergi.com/Content//FinancialBulletins/AsgariÜcretDestegiveEnDusukEmekliAyligiHk._29012026_0343295334351.pdf",
+      "titel": "KPMG Vergi: Asgari Ücret Desteği ve En Düşük Emekli Aylığı (Gesetz Nr. 7573, RG 29.01.2026 Nr. 33152)",
+      "datum": "29.01.2026",
+      "zitat": "5510 sayılı Kanunun ek 19'uncu maddesinde düzenlenen en düşük emekli aylığı tutarı 16.881 TL'den 20.000 TL'ye yükseltilmiş"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Betrifft ~4,9 Mio. Rentner. Juliwert 23.552 nur aus e-yasamrehberi.com (Stand 07.10.2026) – vor Übernahme an RG prüfen. Für den Spielstart 2028 den Wert Januar 2026 als 100 % nehmen.",
+    "startwert": 20000
+  },
+  {
+    "id": "m_fruehrente",
+    "name": "Frühverrentung",
+    "einheit": null,
+    "start": "Zustand: Altersgrenze gilt (Frauen 58 / Männer 60 für Ersteintritt 1999–2008, steigend bis 65 ab 2048); EYT-Öffnung 2023 für Eintritt vor 09.09.1999 ohne Altersgrenze",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://hukukcularevi.com/sgk-emeklilik-yasi-sigortalilik-suresi-5510/",
+      "titel": "Gesetz Nr. 5510 (Sosyal Sigortalar ve GSS Kanunu) Art. 28, Gesetz Nr. 7438 (EYT), RG 03.03.2023",
+      "datum": "03.03.2023",
+      "zitat": "3 Mart 2023 tarihli Resmi Gazete'de yayımlanan 7438 sayılı Kanun ile bu sigortalılar için yaş şartı kaldırılmıştır; 1/1/2048 tarihinden itibaren ise kadın ve erkek için 65"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Ein Renteneintrittsalter skaliert nicht verhältnisgleich (150 % von 60 Jahren = 90 Jahre ist Unsinn). Benannte Zustände; Kosten je Stufe über die Zahl der begünstigten Jahrgänge (EYT: ~12,5 Mio. Anträge, RECHERCHE_GLM_1).",
+    "zustaende": [
+      {
+        "de": "Altersgrenzen verschärfen: 65 für alle ab 2030",
+        "en": "Tighten age limits: 65 for all from 2030",
+        "tr": "Yaş sınırını sıkılaştır: 2030'dan itibaren herkes için 65"
+      },
+      {
+        "de": "Wie heute: Altersgrenze 58/60, ab 2036 schrittweise bis 65",
+        "en": "As today: age 58/60, rising to 65 from 2036",
+        "tr": "Bugünkü gibi: 58/60 yaş, 2036'dan itibaren kademeli 65"
+      },
+      {
+        "de": "Stufenrente für Eintritt 1999–2008 (Kademeli emeklilik)",
+        "en": "Phased early retirement for entrants 1999–2008",
+        "tr": "1999–2008 girişliler için kademeli emeklilik"
+      },
+      {
+        "de": "Zweite EYT-Welle: Eintritt bis 2008 ohne Altersgrenze",
+        "en": "Second EYT wave: entrants up to 2008 without age limit",
+        "tr": "İkinci EYT: 2008'e kadar girişlilere yaş şartı yok"
+      }
+    ],
+    "startzustand": "Wie heute: Altersgrenze 58/60, ab 2036 schrittweise bis 65",
+    "startwert": null
+  },
+  {
+    "id": "m_kindergeld",
+    "name": "Kindergeld und Familienhilfe",
+    "einheit": {
+      "de": "{x} Lira je Kind und Monat ab dem dritten Kind",
+      "en": "{x} lira per child per month from the third child",
+      "tr": "üçüncü çocuktan itibaren çocuk başına aylık {x} lira"
+    },
+    "start": "5.000 Lira je Monat ab dem 3. Kind (bis 5 Jahre); 2. Kind 1.500 Lira je Monat; 1. Kind einmalig 5.000 Lira (Stand 2026)",
+    "rundung": "auf 50 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dunya.com/foto-galeri/ekonomi/devletten-15-ayri-odeme-kimler-alabiliyor-ne-kadar-yatiyor-galeri-839345",
+      "titel": "Dünya: Devletten 15 ayrı ödeme (dazu gazetebirlik.com, Doğum yardımı 2026 Temmuz)",
+      "datum": "2026",
+      "zitat": "1. çocuk: tek seferlik 5.000 TL; 2. çocuk: aylık 1.500 TL; 3. ve sonraki çocuklar: aylık 5.000 TL, 5 yaşına kadar (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Alle drei Beträge skalieren gemeinsam (1. Kind = 1,0 ×, 2. Kind = 0,3 ×, 3. Kind = 1,0 × des Anzeigewerts). Laut Ministerium 788.573 Kinder mit laufender Zahlung (Sept. 2026). Primärquelle: Präsidialbeschluss zur Geburtenhilfe in der RG; aile.gov.tr.",
+    "startwert": 5000
+  },
+  {
+    "id": "m_sozialhilfe",
+    "name": "Sozialhilfe",
+    "einheit": {
+      "de": "{x} Mrd. Lira Sozialhilfe je Jahr",
+      "en": "{x} bn lira social assistance per year",
+      "tr": "yılda {x} milyar lira sosyal yardım"
+    },
+    "start": "917 Mrd. Lira Sozialhilfebudget 2026 (alle Träger; davon ~388 Mrd. Familienministerium); 3.991.766 Haushalte 2025",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://aile.gov.tr/sgbd/haberler/bakanligimizin-2026-yili-butcesi-tbmm-genel-kurulunda-kabul-edildi/",
+      "titel": "Aile ve Sosyal Hizmetler Bakanlığı: 2026 yılı bütçesi TBMM Genel Kurulunda kabul edildi (Betrag laut Cevdet Yılmaz, Presse)",
+      "datum": "Dez. 2025",
+      "zitat": "2026 yılı için sosyal yardım bütçesinin 917 milyar liraya çıkarılacağını açıkladı; 2025 yılında 3 milyon 991 bin 766 hane sosyal yardımlardan yararlandırıldı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Alternative Anzeige: Empfängerhaushalte (3,99 Mio., 2025). 917 Mrd. ist eine Ankündigung, nicht der Haushaltsansatz – an 'Rakamlarla Türkiye'de Sosyal Yardım' und Bütçe-Sunum prüfen.",
+    "startwert": 917
+  },
+  {
+    "id": "m_arbeitslosengeld",
+    "name": "Arbeitslosengeld",
+    "einheit": {
+      "de": "{x} % des letzten Bruttolohns",
+      "en": "{x} % of last gross wage",
+      "tr": "son brüt ücretin %{x}'i"
+    },
+    "start": "40 % des Bruttolohns der letzten 4 Monate; höchstens 80 % des Brutto-Mindestlohns (2026: 26.424 Lira), mindestens 13.212 Lira brutto; Dauer 180–300 Tage",
+    "rundung": "ganze Prozent",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.haberturk.com/2026-issizlik-maasi-ne-kadar-oldu-zamli-issizlik-maasi-kac-tl-ye-yukseldi-en-dusuk-ve-en-yuksek-issizlik-odenegi-ne-kadar-3849742",
+      "titel": "Habertürk: 2026 işsizlik maaşı ne kadar oldu? (Gesetz Nr. 4447 Art. 50)",
+      "datum": "Jan. 2026",
+      "zitat": "Brüt asgari ücretin %80'i işsizlik ödeneğinin tavan değerini oluşturur. 2026'da bu tutar 33.030 × %80 = 26.424 TL'dir"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Ersatzquote skaliert verhältnisgleich (150 % = 60 % des Lohns). Die Deckelung (80 % des Brutto-Mindestlohns) sollte mitwachsen, sonst wirkt die Erhöhung nur unten. Dauer separat (180/240/300 Tage).",
+    "startwert": 40
+  },
+  {
+    "id": "m_kinderbetreuung",
+    "name": "Kinderbetreuung",
+    "einheit": {
+      "de": "{x} % der 3- bis 5-Jährigen in Kita oder Vorschule",
+      "en": "{x} % of 3- to 5-year-olds in pre-school",
+      "tr": "3-5 yaş okullaşma oranı %{x}"
+    },
+    "start": "49 % (Nettobetreuungsquote 3–5 Jahre, Schuljahr 2024/25); 5-Jährige 84,14 % (2025/26)",
+    "rundung": "ganze Prozent",
+    "proportional": "ja, mit Deckel 100 %",
+    "quelle": {
+      "url": "https://www.egitimtercihi.com/uploads/pdf/ARTI_EGITIM_DERGISI_NISAN_2026.pdf",
+      "titel": "ARTI Eğitim Dergisi Nisan 2026 (nach MEB-Statistik); dazu MEB: 2025-2026 Örgün Eğitim İstatistikleri",
+      "datum": "April 2026",
+      "zitat": "Net okullaşma oranı 3-5 yaş aralığında %49, 4-5 yaş aralığında %60,8, 5 yaşta ise %82,5 (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Primärquelle: MEB 'Millî Eğitim İstatistikleri – Örgün Eğitim 2025/'26', Tabelle Net okullaşma oranı. Unter 3 Jahren gibt es kaum öffentliche Krippen; die Quote ist die tragfähige Größe.",
+    "startwert": 49
+  },
+  {
+    "id": "m_ausbildung",
+    "name": "Berufsausbildungsprogramme",
+    "einheit": {
+      "de": "{x} Teilnehmer an İŞKUR-Kursen und Betriebsausbildung je Jahr",
+      "en": "{x} participants in İŞKUR courses and on-the-job training per year",
+      "tr": "yılda {x} İŞKUR kurs ve işbaşı eğitim katılımcısı"
+    },
+    "start": "Lücke: Jahressumme 2025 nicht sicher; Jan.–Mai 2025: 27.803 in İşbaşı-Programmen + 5.892 in Kursen",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2025/06/16/kayitli-issiz-2-161-561-kisi/",
+      "titel": "Alomaliye: Kayıtlı işsiz 2 161 561 kişi (İŞKUR-Bulletin Mai 2025)",
+      "datum": "16.06.2025",
+      "zitat": "5.815 İşbaşı Eğitim Programına 27.803 kişi katılmış; 253 Mesleki Eğitim Kursuna 5.892 kişi katılmıştır"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: İŞKUR 2025 Yılı Faaliyet Raporu (iskur.gov.tr/medya/wmthqzsj/2025-yılı-faaliyet-raporu.pdf), Tabelle 'Aktif İşgücü Programları – yararlanıcı sayısı'. Dreifach mit m_berufsschulen und m_fachkraefteprogramm (B-6).",
+    "startwert": null
+  },
+  {
+    "id": "m_fachkraefteprogramm",
+    "name": "Fachkräfte und Weiterbildung",
+    "einheit": {
+      "de": "{x} Teilnehmer an Weiterbildung je Jahr",
+      "en": "{x} participants in further training per year",
+      "tr": "yılda {x} mesleki gelişim katılımcısı"
+    },
+    "start": "Lücke (wie m_ausbildung; Größen nicht trennbar)",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.iskur.gov.tr/medya/wmthqzsj/2025-yılı-faaliyet-raporu.pdf",
+      "titel": "İŞKUR 2025 Yılı Faaliyet Raporu",
+      "datum": "2026",
+      "zitat": "– (Bericht im Suchauszug nur Titelseite)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Empfehlung: mit m_ausbildung zusammenlegen (B-6). Alternative Größe: MEB-Meisterausbildung (Mesleki Eğitim Merkezi, 'çırak ve kalfa' Schülerzahl) – Suchhinweis MEB MESEM öğrenci sayısı 2025-2026.",
+    "startwert": null
+  },
+  {
+    "id": "m_zuzahlungen",
+    "name": "Zuzahlungen der Patienten",
+    "einheit": {
+      "de": "{x} Lira je Arztbesuch im staatlichen Krankenhaus",
+      "en": "{x} lira per visit at a state hospital",
+      "tr": "devlet hastanesinde muayene başına {x} lira"
+    },
+    "start": "50 Lira je Besuch (staatl. Krankenhaus, seit 01.07.2026; vorher 26); Lehrkrankenhaus 90, privat 100; Hausarzt 0",
+    "rundung": "auf 1 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/07/01/hastane-muayene-katilim-paylari-yeniden-belirlendi/",
+      "titel": "Alomaliye: Hastane muayene katılım payları yeniden belirlendi (SUT-Änderung, RG 01.07.2026 Nr. 33297)",
+      "datum": "01.07.2026",
+      "zitat": "İkinci basamak resmi sağlık hizmeti sunucularında (devlet hastaneleri) katılım payı 26 TL'den 50 TL'ye çıkarıldı"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Satz-Maßnahme. Die anderen Stufen (90/100 Lira) skalieren mit; Hausarzt bleibt 0. Medikamentenzuzahlung (3,76 Lira bis 3 Packungen) als Nebenangabe.",
+    "startwert": 50
+  },
+  {
+    "id": "m_steuerfahndung",
+    "name": "Steuerfahndung",
+    "einheit": {
+      "de": "{x} % der Steuerpflichtigen jährlich geprüft",
+      "en": "{x} % of taxpayers audited per year",
+      "tr": "mükelleflerin yıllık %{x}'i incelendi"
+    },
+    "start": "6,72 % (2025; 2024: 2,91 %); Prüfer: rund 7.300 besetzte Stellen",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ekonomigazetesi.com/kose-yazisi/vergi-denetim-kurulu-faaliyet-raporundan-2025e-dair-veriler-76528",
+      "titel": "Ekonomi Gazetesi: Vergi Denetim Kurulu faaliyet raporundan 2025'e dair veriler",
+      "datum": "2026",
+      "zitat": "İnceleme oranı 2024'te toplam mükelleflerin %2,91'i iken 2025'te %6,72'ye çıktı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Primärquelle: VDK 2025 Yılı Faaliyet Raporu (ms.hmb.gov.tr/uploads/sites/17/2026/03/VDK-2025-Yili-Faaliyet-Raporu-7ed50b67d73e89eb.pdf). Prüferzahl (7.295 von 17.882 Planstellen) nur aus Presse.",
+    "startwert": 6.72
+  },
+  {
+    "id": "m_kraftstoffsteuer",
+    "name": "Steuer auf Kraftstoff",
+    "einheit": {
+      "de": "{x} Lira Verbrauchsteuer (ÖTV) je Liter Benzin",
+      "en": "{x} lira excise tax (ÖTV) per litre of petrol",
+      "tr": "benzinde litre başına {x} lira ÖTV"
+    },
+    "start": "14,8277 Lira je Liter Benzin 95 Oktan (ab 01.01.2026; vorher 13,8642); Diesel 2027 13,9006 Lira. Wegen Eşel-mobil-System 2026 zeitweise gesenkt (Okt. 7,90 Lira)",
+    "rundung": "zwei Nachkommastellen",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.pwc.com.tr/tr/Hizmetlerimiz/vergi/dolayli-vergi/bultenler/kdv-ötv-bültenleri/2026/petrol-urunleri-ile-tutun-mamulleri-ve-alkollu-iceceklerde-maktu-otv-artisi.pdf",
+      "titel": "PwC KDV ve ÖTV Bülteni 2026/1 (Präsidialbeschluss Nr. 10799, RG 31.12.2025 Nr. 33124, 5. Mükerrer)",
+      "datum": "Jan. 2026",
+      "zitat": "95 oktan için 13,8642 TL'den 14,8277 TL'ye; maktu ÖTV tutarları %6,95 artırıldı (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Satz-Maßnahme. Diesel (Motorin) skaliert mit: Regelwert laut Beschluss vom 13.08.2026 ab 01.01.2027 13,9006 Lira/l. Real per Präsidialbeschluss (B-4).",
+    "startwert": 14.8277
+  },
+  {
+    "id": "m_immobiliensteuer",
+    "name": "Steuer auf Immobilien und Vermögen",
+    "einheit": {
+      "de": "Grundsteuer {x} ‰ des Steuerwerts (Wohnung in Großstadt)",
+      "en": "property tax {x} ‰ of assessed value (dwelling in metropolitan city)",
+      "tr": "büyükşehirde konut emlak vergisi binde {x}"
+    },
+    "start": "2 ‰ (Wohnung in Großstadt; sonst 1 ‰); Steuer auf teure Wohnungen 3/6/10 ‰ ab 17.711.000 Lira Wert (2026)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2025/12/31/emlak-vergisi-kanunu-genel-tebligi-seri-no-88-2026-degerli-konut-vergisi/",
+      "titel": "Alomaliye: Emlak Vergisi Kanunu Genel Tebliği (Seri No: 88/89) – 2026 Değerli Konut Vergisi, RG 31.12.2025",
+      "datum": "31.12.2025",
+      "zitat": "değerli konut vergisine tabi olma eşiği 17.711.000 TL; tarife binde 3, binde 6 ve binde 10; konutta binde 1, büyükşehirde binde 2 (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Satz-Maßnahme; alle Sätze (1/2 ‰ und 3/6/10 ‰) skalieren gemeinsam. Rechtsgrundlage Gesetz Nr. 1319 Art. 8 (Satz verdoppelt in Großstädten).",
+    "startwert": 2
+  },
+  {
+    "id": "m_exportfoerderung",
+    "name": "Exportförderung",
+    "einheit": {
+      "de": "{x} Mrd. Dollar Exportkredite und -versicherungen der Eximbank je Jahr",
+      "en": "{x} bn dollars of Eximbank export credit and insurance per year",
+      "tr": "Eximbank'tan yılda {x} milyar dolar ihracat kredisi ve sigortası"
+    },
+    "start": "54 Mrd. Dollar (2025); 48,7 Mrd. Dollar (2024)",
+    "rundung": "auf 0,5 Mrd. Dollar",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.benguturk.com/ekonomi/turk-sanayiinden-tarihi-ihracat-rekoru-254304h",
+      "titel": "Bengütürk: Türk sanayiinden tarihi ihracat rekoru",
+      "datum": "Jan. 2026",
+      "zitat": "Eximbank üzerinden 2025'te ihracatçılara 54 milyar dolar ihracat finansman desteği sağlandı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "2024-Wert 48,7 Mrd. vom Handelsministerium (ticaret.gov.tr) belegt. 2025: Primärquelle Türk Eximbank Faaliyet Raporu 2025.",
+    "startwert": 54
+  },
+  {
+    "id": "m_investitionsanreize",
+    "name": "Investitionsanreize",
+    "einheit": {
+      "de": "{x} Mrd. Lira geförderte Investitionen je Jahr",
+      "en": "{x} bn lira of incentivised investment per year",
+      "tr": "yılda {x} milyar lira teşvikli yatırım"
+    },
+    "start": "rund 980 Mrd. Lira je Jahr (abgeleitet: 897,5 Mrd. Lira in 4.500 Förderbescheiden Juni 2025–April 2026, 11 Monate)",
+    "rundung": "auf 10 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/05/22/nisan-ayinda-81-milyar-tllik-yatirim-tesvik-belgesi-duzenlendi/",
+      "titel": "Alomaliye: Nisan ayında 81 milyar TL'lik yatırım teşvik belgesi düzenlendi (Bülten Sanayi ve Teknoloji Bakanlığı)",
+      "datum": "22.05.2026",
+      "zitat": "2025 Haziran–2026 Nisan döneminde, 2025/9903 sayılı Karar kapsamında toplam sabit yatırım tutarı 897,5 milyar TL olan 4 bin 500 yatırım teşvik belgesi düzenlendi"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Zeigt das geförderte Investitionsvolumen, nicht den Steuerverzicht. Den Steuerverzicht (vergi harcaması) liefert der Vergi Harcamaları Raporu im Haushaltsentwurf (Lücke).",
+    "startwert": 980
+  },
+  {
+    "id": "m_kreditgarantien",
+    "name": "Staatliche Kreditgarantien",
+    "einheit": {
+      "de": "{x} Mrd. Lira staatlich verbürgter Kreditrahmen",
+      "en": "{x} bn lira of state-guaranteed credit line",
+      "tr": "{x} milyar lira Hazine destekli kefalet kredi limiti"
+    },
+    "start": "201,6 Mrd. Lira Kreditrahmen der Hazine-Pakete (Stand 27.03.2026; davon 129,9 Mrd. genutzt)",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ekonomigazetesi.com/ekonomi/70-milyar-liralik-finansmana-ilgi-az-76861",
+      "titel": "Ekonomi Gazetesi: 70 milyar liralık finansmana ilgi az",
+      "datum": "März 2026",
+      "zitat": "27 Mart 2026 itibarıyla destek paketlerinin toplam kredi limiti 201.6 milyar liraya ulaştı. Bu limitin 129.9 milyar lirası kullanılmış (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Eine spätere Meldung nennt 321,5 Mrd. Lira (Datum unklar). Primärquelle: KGF Faaliyet Raporu / Hazine-Pressemitteilungen.",
+    "startwert": 201.6
+  },
+  {
+    "id": "m_tourismuswerbung",
+    "name": "Tourismuswerbung",
+    "einheit": {
+      "de": "{x} Mio. Dollar Werbebudget im Ausland je Jahr",
+      "en": "{x} m dollars foreign tourism advertising per year",
+      "tr": "yılda {x} milyon dolar yurt dışı tanıtım bütçesi"
+    },
+    "start": "Lücke für 2025/26; letzter Ministerwert 140 Mio. Dollar (Plan 2022; 2021: 110 Mio.)",
+    "rundung": "auf 5 Mio. Dollar",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ekonomim.com/ekonomi/tanitima-140-milyon-dolar-harcadik-turizm-37-milyar-dolarla-rekor-kiracak-haberi-664881",
+      "titel": "Ekonomim: 'Tanıtıma 140 milyon dolar harcadık, turizm 37 milyar dolarla rekor kıracak'",
+      "datum": "2022",
+      "zitat": "TGA 2021'de Türkiye'nin tanıtımı için 110 milyon dolar harcadı, bu yıl bu rakam 140 milyon dolara ulaşacak (Suchauszug)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Wert ist veraltet. Suchhinweis: TGA (Türkiye Turizm Tanıtım ve Geliştirme Ajansı) Faaliyet Raporu 2025; TGA finanziert sich zu ~19 % aus dem Staat, Rest aus Abgabe der Betriebe.",
+    "startwert": 140
+  },
+  {
+    "id": "m_kmu",
+    "name": "Mittelstandsförderung",
+    "einheit": {
+      "de": "{x} Mrd. Lira KOSGEB-Förderung je Jahr",
+      "en": "{x} bn lira KOSGEB SME support per year",
+      "tr": "yılda {x} milyar lira KOSGEB desteği"
+    },
+    "start": "34,8 Mrd. Lira an 57.437 Betriebe (2025)",
+    "rundung": "auf 0,5 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://webdosya.kosgeb.gov.tr/Content/Upload/Dosya/Kurumsal/2026/KOSGEB_2025_Y%C4%B1l%C4%B1_Faaliyet_Raporu.pdf",
+      "titel": "KOSGEB 2025 Yılı Faaliyet Raporu",
+      "datum": "2026",
+      "zitat": "yıl içinde 57.437 işletmeye toplam 34,8 milyar TL finansman sağladık"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "1. Halbjahr 2026: 27,08 Mrd. Lira an 24.424 Betriebe (Presse) – Größenordnung 2026 eher ~55 Mrd. Für den Start Jahreswert 2025 nehmen.",
+    "startwert": 34.8
+  },
+  {
+    "id": "m_zoelle",
+    "name": "Einfuhrzölle",
+    "einheit": {
+      "de": "{x} % durchschnittlicher Zollsatz",
+      "en": "{x} % average tariff",
+      "tr": "ortalama gümrük vergisi %{x}"
+    },
+    "start": "17,5 % (einfacher Durchschnitt der MFN-Zölle, alle Waren, 2024; handelsgewichtet 10,7 %)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://ttd.wto.org/en/profiles/turkiye",
+      "titel": "WTO Tariff & Trade Data: Türkiye profile",
+      "datum": "2025",
+      "zitat": "simple average MFN applied tariff 17.5 % (2024); trade-weighted 10.7 % (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Satz-Maßnahme. Achtung: Der Spieltext meint 'außerhalb der Zollunion' – EU-Waren zollfrei, also wirkt der Durchschnitt nur auf Drittländer. 2019 lag er bei 9,4 % (Zusatzzölle seit 2020).",
+    "startwert": 17.5
+  },
+  {
+    "id": "m_industrie_modernisierung",
+    "name": "Industrielle Modernisierung",
+    "einheit": {
+      "de": "{x} Mrd. Dollar Hightech-Förderprogramm (HIT-30) bis 2030",
+      "en": "{x} bn dollars high-tech incentive programme (HIT-30) to 2030",
+      "tr": "2030'a kadar {x} milyar dolarlık HIT-30 yüksek teknoloji desteği"
+    },
+    "start": "30 Mrd. Dollar Förderrahmen (Steuervorteile und Zuschüsse) bis 2030, angekündigt Juli 2024",
+    "rundung": "auf 1 Mrd. Dollar",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://immib.org.tr/TR/hit-30-high-tech-turkiye-yatirim-programi",
+      "titel": "İMMİB: HIT-30 High Tech Türkiye Yatırım Programı",
+      "datum": "Juli 2024",
+      "zitat": "vergi teşvikleri ve hibe desteklerinden oluşan toplam 30 milyar dolarlık kaynak yüksek teknoloji yatırımlarına yönlendirilecek (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Rahmen über sechs Jahre, kein Jahresbudget (≈5 Mrd. Dollar je Jahr abgeleitet). Alternativ als Jahreswert anzeigen: '{x} Mrd. Dollar je Jahr', Start 5.",
+    "startwert": 30
+  },
+  {
+    "id": "m_krankenhausbau",
+    "name": "Krankenhausbau",
+    "einheit": {
+      "de": "{x} Krankenhausbetten je 1.000 Einwohner",
+      "en": "{x} hospital beds per 1,000 inhabitants",
+      "tr": "1.000 kişi başına {x} hastane yatağı"
+    },
+    "start": "3,1 Betten je 1.000 Einwohner (268.359 Betten Ende 2023; OECD-Mittel 4,2)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.birgun.net/makale/ozel-hastaneler-pastanin-kremasini-siyiriyor-660367",
+      "titel": "BirGün: Özel hastaneler pastanın kremasını sıyırıyor (nach Sağlık İstatistikleri Yıllığı 2024 Haber Bülteni); dazu TTB",
+      "datum": "2025",
+      "zitat": "Türkiye'de 2024 yılı itibarıyla 1.562 hastane mevcut. Geçtiğimiz yıl sonu itibarıyla 268.359 olan hastane yatak sayısının beşte biri de özel sektörde"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Bestandsgröße: Der Regler sagt, wohin der Bestand über die Umsetzungszeit läuft, nicht den Zubau eines Jahres. Primärquelle: Sağlık Bakanlığı, Sağlık İstatistikleri Yıllığı 2024, Tabelle 'Yatak sayısı ve 10.000 kişiye düşen yatak'. Doppelt mit m_medizintechnik (B-6).",
+    "startwert": 3.1
+  },
+  {
+    "id": "m_aerztegehalt",
+    "name": "Gehälter im Gesundheitswesen",
+    "einheit": {
+      "de": "{x} Lira netto je Monat für Ärztinnen und Ärzte im Berufseinstieg",
+      "en": "{x} lira net per month for entry-level doctors",
+      "tr": "mesleğe yeni başlayan hekime aylık net {x} lira"
+    },
+    "start": "rund 65.000 Lira garantiertes Netto (Allgemeinarzt, Gesundheitsministerium, Juli 2026; mit Zulagen und Diensten 80.000–125.000)",
+    "rundung": "auf 500 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.tahanci.av.tr/doktor-maaslari/",
+      "titel": "Tahancı Hukuk: Doktor Maaşları 2026 (Juli 2026)",
+      "datum": "Juli 2026",
+      "zitat": "Pratisyen ≈ 65.000 TL, uzman 75.000–85.000 TL, asistan ≈ 65.500 TL (garantili net, Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Quellen streuen stark (65.000 bis 125.000 Lira), weil Zulagen (döner sermaye, nöbet) mal ein-, mal ausgerechnet werden. Amtlich belegt sind nur die Beamtenkoeffizienten Juli–Dez. 2026: Monatsfaktor 1,575512, Grundfaktor 25,794915 (HMB-Rundschreiben). Pflege als Nebenangabe (~81.600 Lira netto, Lizenz 8/1).",
+    "startwert": 65000
+  },
+  {
+    "id": "m_lehrergehaelter",
+    "name": "Lehrergehälter",
+    "einheit": {
+      "de": "{x} Lira netto je Monat für neu eingestellte Lehrkräfte",
+      "en": "{x} lira net per month for newly appointed teachers",
+      "tr": "yeni atanan öğretmene aylık net {x} lira"
+    },
+    "start": "rund 64.000 Lira netto (Juli–Dez. 2026, je nach Steuerstufe 63.998–68.236)",
+    "rundung": "auf 500 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.harbiyehukuk.com/?p=12179",
+      "titel": "Harbiye Hukuk: Öğretmen Maaşları 2026",
+      "datum": "Juli 2026",
+      "zitat": "Yeni atanan kadrolu öğretmenin Temmuz-Aralık 2026 net maaşının vergi dilimine göre 63.998 TL ile 68.236 TL arasında (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Primärquelle: HMB 'Mali ve Sosyal Haklar Genelgesi' Juli 2026 und MEB-Besoldungstabelle. Gehaltserhöhung Juli 2026: 13,52 % (Tarif 7 % + Inflationsausgleich).",
+    "startwert": 64000
+  },
+  {
+    "id": "m_schulbau",
+    "name": "Schulbau",
+    "einheit": {
+      "de": "{x} neue Klassenräume je Jahr",
+      "en": "{x} new classrooms per year",
+      "tr": "yılda {x} yeni derslik"
+    },
+    "start": "rund 8.900 Klassenräume netto mehr im Schuljahr 2025/26 (abgeleitet: 753.571 auf 762.434); Schüler je Klassenraum: Grundschule 19, Mittelschule 25, Oberstufe 21",
+    "rundung": "auf 100",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dunya.com/egitim/meb-egitimde-25-yillik-gelisimi-acikladi-haberi-836266",
+      "titel": "Dünya: MEB eğitimde 25 yıllık gelişimi açıkladı; dazu MEB: 2025-2026 Örgün Eğitim İstatistikleri",
+      "datum": "2026",
+      "zitat": "2002-2003 eğitim öğretim yılında 367 bin 145 olan derslik sayısının 2025-2026 eğitim öğretim yılında 762 bin 434'e yükseldiği bildiriliyor (Suchauszug); 2024-2025: 753 bin 571"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Differenz zweier MEB-Jahreswerte, also Nettozuwachs (Neubau minus Abriss), keine Bauzahl. MEB nennt zugleich 769.933 Klassenräume (mit Privatschulen) – Umfang klären. Nebenangabe 'Schüler je Klassenraum' läuft umgekehrt (mehr Bau = weniger Schüler je Raum).",
+    "startwert": 8900
+  },
+  {
+    "id": "m_berufsschulen",
+    "name": "Berufsschulen",
+    "einheit": {
+      "de": "{x} % der Oberstufenschüler in Berufs- und Fachschulen",
+      "en": "{x} % of upper-secondary pupils in vocational schools",
+      "tr": "ortaöğretim öğrencilerinin %{x}'i mesleki ve teknik eğitimde"
+    },
+    "start": "39,51 % (2025/26; 2024/25: 37,56 %)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja, mit Deckel 100 %",
+    "quelle": {
+      "url": "https://www.meb.gov.tr/20252026orgunegitimistatistikleriaciklandi/haber/42058/tr",
+      "titel": "MEB: 2025-2026 Örgün Eğitim İstatistikleri Açıklandı",
+      "datum": "2026",
+      "zitat": "Mesleki ve teknik eğitimin örgün ortaöğretimdeki payı yüzde 37,56'dan yüzde 39,51'e yükseldi (Suchauszug der MEB-Meldung)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Anteil ist ein Ergebnis, kein Budget; ein Regler auf 150 % ergäbe 59 %. Plausible Obergrenze im Spiel ~60 %. Dreifach mit m_ausbildung/m_fachkraefteprogramm (B-6).",
+    "startwert": 39.51
+  },
+  {
+    "id": "m_unigruendungen",
+    "name": "Neue Universitäten",
+    "einheit": {
+      "de": "{x} Studienplätze an staatlichen Hochschulen je Jahr",
+      "en": "{x} first-year places at state universities per year",
+      "tr": "devlet üniversitelerinde yılda {x} kontenjan"
+    },
+    "start": "602.117 Studienplätze an staatlichen Hochschulen (YKS 2026; insgesamt 805.747); 129 staatliche Universitäten (Jan. 2025)",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dunya.com/egitim/yksde-805-bin-747-kontenjan-adaylari-bekliyor-haberi-833687",
+      "titel": "Dünya: YKS'de 805 bin 747 kontenjan adayları bekliyor (ÖSYM-Tercih Kılavuzu 2026)",
+      "datum": "Juli 2026",
+      "zitat": "toplam 805 bin 747 kontenjan var; bunun 602 bin 117'si devlet, 184 bin 914'ü vakıf, 18 bin 716'sı KKTC üniversitelerine ait (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Jede Provinz hat bereits eine Universität (YÖK: 129 staatliche, 75 Stiftungs-Universitäten, Jan. 2025); der Spieltext 'Universitäten in jeder Provinz' ist erreicht. Die Zahl der Universitäten skaliert nicht sinnvoll, die Studienplätze schon. Vorschlag: Maßnahme in 'Studienplätze' umbenennen.",
+    "startwert": 602117
+  },
+  {
+    "id": "m_stipendien",
+    "name": "Stipendien",
+    "einheit": {
+      "de": "{x} Lira KYK-Stipendium je Monat (Bachelor)",
+      "en": "{x} lira KYK grant per month (bachelor)",
+      "tr": "lisans öğrencisine aylık {x} lira KYK bursu"
+    },
+    "start": "4.000 Lira je Monat ab 06.01.2026 (vorher 3.000); Master 8.000, Promotion 12.000",
+    "rundung": "auf 50 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.gzt.com/gundem/kyk-bursu-ne-kadar-oldu-2026-2027-kyk-burs-ve-kredi-fiyati-4251273",
+      "titel": "Gzt: KYK bursu ne kadar oldu 2026-2027",
+      "datum": "Sept. 2026",
+      "zitat": "Gençlik ve Spor Bakanlığı, 5 Ocak 2026 tarihinde burs ve öğrenim kredisi tutarlarının yüzde 33 artırıldığını duyurdu. Yeni tutarlar 6 Ocak 2026 itibarıyla uygulanmaya başladı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Mehrere Quellen übereinstimmend, Ministeriumsmeldung (gsb.gov.tr) nicht selbst gelesen. Zahl der Geförderten: Lücke (Suchhinweis KYK Faaliyet Raporu 2025, 'burs ve kredi alan öğrenci sayısı').",
+    "startwert": 4000
+  },
+  {
+    "id": "m_forschung",
+    "name": "Forschungsförderung",
+    "einheit": {
+      "de": "{x} % des BIP für Forschung und Entwicklung",
+      "en": "{x} % of GDP for research and development",
+      "tr": "GSYH'nin %{x}'i Ar-Ge harcaması"
+    },
+    "start": "1,55 % des BIP (2025; 980,4 Mrd. Lira; 2024: 1,46 %)",
+    "rundung": "zwei Nachkommastellen",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/10/30/ar-ge-harcamalari-980-milyar-lirayi-asti-2025/",
+      "titel": "Alomaliye: Araştırma-Geliştirme Faaliyetleri Araştırması 2025 (TÜİK-Meldung)",
+      "datum": "30.10.2026",
+      "zitat": "Ar-Ge harcamaları 2025 yılında 328 milyar 607 milyon TL artarak 980 milyar 428 milyon TL; GSYH'ye oranı %1,55 (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Achtung: Gesamtausgaben (65 % Unternehmen). Der Staatsanteil im Zentralhaushalt beträgt 0,40 % des BIP (253,5 Mrd. Lira, 2025); 2026 ist im Haushalt 308,6 Mrd. Lira FuE-Mittel angesetzt. Wenn der Regler nur Staatsgeld meint, diese Größe nehmen.",
+    "startwert": 1.55
+  },
+  {
+    "id": "m_bildungstechnik",
+    "name": "Bildungstechnik und digitales Lernen",
+    "einheit": {
+      "de": "{x} Mrd. Lira für Bildungstechnik je Jahr",
+      "en": "{x} bn lira for education technology per year",
+      "tr": "yılda {x} milyar lira eğitim teknolojisi harcaması"
+    },
+    "start": "Lücke: kein aktueller Betrag gefunden (FATİH-Projekt zuletzt 2013 mit 1,4 Mrd. Lira im Haushalt)",
+    "rundung": "auf 0,5 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dmo.gov.tr/Eng/Home/EngIcerik/3813",
+      "titel": "DMO: FATİH-Katalog Tablet-Rahmenvertrag",
+      "datum": "28.02.2023",
+      "zitat": "– (kein Betrag 2025/26 im Suchauszug)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: MEB 2026 Performans Programı, Programm 'Eğitimde Dijital Dönüşüm' bzw. YEĞİTEK-Ansatz; Investitionsprogramm 2026 (sbb.gov.tr), Sektor Bildung 160,5 Mrd. Lira gesamt.",
+    "startwert": null
+  },
+  {
+    "id": "m_medizintechnik",
+    "name": "Medizintechnik und Krankenhausmodernisierung",
+    "einheit": {
+      "de": "{x} Mrd. Lira Investitionen des Gesundheitsministeriums je Jahr",
+      "en": "{x} bn lira health ministry investment per year",
+      "tr": "Sağlık Bakanlığı'nın yılda {x} milyar lira yatırımı"
+    },
+    "start": "146,9 Mrd. Lira (Investitionsprogramm 2026; Sektor Gesundheit 173,5 Mrd.)",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.sbb.gov.tr/wp-content/uploads/2025/12/1-2026-Yili-Merkezi-Yonetim-Butce-Kanunu.pdf",
+      "titel": "RECHERCHE_HAUSHALT_MINISTERIEN_2026.md Abschnitt 2 (Investitionsprogramm 2026, SBB), Suchauszüge",
+      "datum": "05.11.2026",
+      "zitat": "Gesundheitsministerium 146,9 Mrd., von 173,5 im Sektor Gesundheit (Projektnotiz nach Such-Auszügen der SBB-Unterlagen)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Enthält auch Neubauten (Überschneidung mit m_krankenhausbau). Primärquelle: 2026 Yılı Yatırım Programı (sbb.gov.tr), Kapitel Sağlık.",
+    "startwert": 146.9
+  },
+  {
+    "id": "m_autobahnen",
+    "name": "Autobahn- und Brückenbau",
+    "einheit": {
+      "de": "{x} km neue Autobahn je Jahr",
+      "en": "{x} km of new motorway per year",
+      "tr": "yılda {x} km yeni otoyol"
+    },
+    "start": "157 km geplant für 2026 (Netz 3.796 km Ende 2025 auf 3.953 km Ende 2026); 2025 kein Nettozuwachs",
+    "rundung": "auf 5 km",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Yayinlar/YayinPdf/KarayoluUlasimIstatistikleri2025.pdf",
+      "titel": "KGM: Karayolu Ulaşım İstatistikleri 2025; Planwerte nach sanayigazetesi.com.tr",
+      "datum": "2026",
+      "zitat": "2025 yıl sonunda otoyol uzunluğu 3.796 km; otoyol uzunluğunun 2025'te 3 bin 796, 2026'da 3 bin 953 ve 2027'de 4 bin 262 kilometreye ulaşması öngörülmüştü (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Jährlicher Zubau schwankt stark (2025: 0 km, 2027 geplant +309 km). Für die Anzeige den Mittelwert 2026–2027 (~230 km) erwägen. Alternative Geldgröße: Verkehrsministerium Investitionsvorschlag 562,7 Mrd. Lira (2026).",
+    "startwert": 157
+  },
+  {
+    "id": "m_oepp_garantien",
+    "name": "Garantien für Betreiberprojekte",
+    "einheit": {
+      "de": "{x} Mrd. Lira Garantie- und Mietzahlungen an private Betreiber je Jahr",
+      "en": "{x} bn lira guarantee and lease payments to private operators per year",
+      "tr": "özel işletmecilere yılda {x} milyar lira garanti ve kira ödemesi"
+    },
+    "start": "rund 239 Mrd. Lira 2026 (Brücken/Autobahnen 103,2 Mrd. erwartet, 2025: 85,1 Mrd.; Stadtkliniken 136,1 Mrd. Haushaltsansatz)",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.nefes.com.tr/kopru-otoyol-ve-sehir-hastanesi-bilancosu-6-ayda-120-milyar-lira-gitti-143152",
+      "titel": "Nefes: Köprü, otoyol ve şehir hastanesi bilançosu (nach KGM-Bericht und Sağlık Bakanlığı Performans Programı 2026)",
+      "datum": "2026",
+      "zitat": "ilk altı ayda geçiş garantisi kapsamında 49,6 milyar TL ödendi ve yıl sonunda 103,2 milyar TL'ye ulaşması bekleniyor; 2026 yılı için şehir hastanelerine ödenecek tutar 136 milyar 148 milyon TL (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Summe aus zwei Posten, Flughäfen nicht enthalten. Achtung: Die Zahlungen sind vertraglich fest; ein Regler 'Garantien senken' wirkt nur auf neue Verträge. Für bestehende Verträge besser nichtlinear: Senkung nur über Rückkauf/Neuverhandlung.",
+    "startwert": 239
+  },
+  {
+    "id": "m_bahn",
+    "name": "Bahnausbau",
+    "einheit": {
+      "de": "{x} Mrd. Lira Bahninvestitionen je Jahr",
+      "en": "{x} bn lira rail investment per year",
+      "tr": "yılda {x} milyar lira demiryolu yatırımı"
+    },
+    "start": "145,6 Mrd. Lira (Investitionsprogramm 2026); Netz 2.251 km Schnellfahrstrecke, 3.776 km im Bau",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ensonhaber.com/gundem/abdulkadir-uraloglu-duyurdu-hizli-tren-hat-uzunlugu-3-yilda-katlanacak",
+      "titel": "Ensonhaber: Uraloğlu – Hızlı tren hat uzunluğu 3 yılda katlanacak; Betrag aus RECHERCHE_HAUSHALT_MINISTERIEN_2026.md (Investitionsprogramm 2026)",
+      "datum": "2025/2026",
+      "zitat": "YHT hat uzunluğunun 2 bin 251 kilometreye ulaştığını, yeni hatların yapım çalışmalarının ise sürdüğünü bildirdi; Eisenbahn 145,6 (Mrd. Lira, Projektansatz 2026)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Geldgröße skaliert sauber; Kilometer als Nebenangabe ('2.251 km in Betrieb'). Primärquelle Betrag: 2026 Yılı Yatırım Programı, Sektor Ulaştırma – Demiryolu.",
+    "startwert": 145.6
+  },
+  {
+    "id": "m_nahverkehr",
+    "name": "Nahverkehr",
+    "einheit": {
+      "de": "{x} km städtische Schienenstrecken im Bau",
+      "en": "{x} km of urban rail under construction",
+      "tr": "yapımı süren {x} km kent içi raylı sistem"
+    },
+    "start": "220,85 km im Bau in neun Provinzen (Ministeriumsprojekte); Bestand 1.054,7 km städtische Schiene (2026)",
+    "rundung": "auf 5 km",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dha.com.tr/gundem/bakan-uraloglu-452-kilometrelik-kent-ici-rayli-sistem-hattini-hizmete-sunduk-2958129",
+      "titel": "DHA: Bakan Uraloğlu – 452 kilometrelik kent içi raylı sistem hattını hizmete sunduk",
+      "datum": "2026",
+      "zitat": "Dokuz ilde 220,85 kilometrelik hattın yapımı sürüyor (Suchauszug); toplam 2026 yılında 1.054,7 kilometreye ulaştı"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Nur Bauten des Ministeriums; Kommunen (Istanbul, Ankara, Izmir) bauen zusätzlich. Bestand 2024 laut Karar: Metro 387, Tram 369, Leichtbahn 296 km.",
+    "startwert": 220.85
+  },
+  {
+    "id": "m_breitband",
+    "name": "Breitbandausbau",
+    "einheit": {
+      "de": "{x} Mio. Glasfaseranschlüsse",
+      "en": "{x} m fibre subscriptions",
+      "tr": "{x} milyon fiber abone"
+    },
+    "start": "10,7 Mio. Glasfaserkunden (2. Quartal 2026; davon bis in die Wohnung 9,15 Mio. im 1. Quartal); Glasfasernetz 720.012 km",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.cnbce.com/teknoloji/btk-acikladi-turkiyede-2-milyon-yeni-abone-fiber-internetle-tanisti-h32577",
+      "titel": "CNBC-e: BTK açıkladı – Türkiye'de 2 milyon yeni abone fiber internetle tanıştı",
+      "datum": "2026",
+      "zitat": "2026 yılının ikinci çeyreğinde fiber internet abone sayımız geçen yılın aynı dönemine göre yüzde 22 artarak 10,7 milyona ulaştı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Bestandsgröße. Primärquelle: BTK Üç Aylık Pazar Verileri Raporu 2026/2. Alternativ Quote: Anschlüsse ÷ Haushalte (TÜİK ~26 Mio. Haushalte, prüfen).",
+    "startwert": 10.7
+  },
+  {
+    "id": "m_regionalfoerderung",
+    "name": "Regionalförderung",
+    "einheit": {
+      "de": "{x} Mrd. Lira für die Entwicklungsagenturen je Jahr",
+      "en": "{x} bn lira for regional development agencies per year",
+      "tr": "kalkınma ajanslarına yılda {x} milyar lira"
+    },
+    "start": "2,75 Mrd. Lira Transfermittel 2026 (Präsidialbeschluss Nr. 11067)",
+    "rundung": "auf 0,05 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/03/17/2026-yilinda-kalkinma-ajanslarina-kullandirilacak-transfer-odenekleri-karar-sayisi-11067/",
+      "titel": "Alomaliye: 2026 yılında kalkınma ajanslarına kullandırılacak transfer ödenekleri (Karar Sayısı 11067, RG 17.03.2026)",
+      "datum": "17.03.2026",
+      "zitat": "Kalkınma ajansları 2026 yılı transfer ödeneği 2.750.000.000 TL olarak öngörülmüş (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Nur der kleinste, aber sauber belegte Topf. Die regionale Investitionsförderung (Teşvik-Regionen 1–6) läuft über m_investitionsanreize; Doppelzählung vermeiden. 2025: 1.155 Projekte, 2,8 Mrd. Lira.",
+    "startwert": 2.75
+  },
+  {
+    "id": "m_smart_infrastruktur",
+    "name": "Intelligente Infrastruktur",
+    "einheit": {
+      "de": "{x} Mrd. Lira für Verkehrsleit- und Sensortechnik je Jahr",
+      "en": "{x} bn lira for traffic management and sensor systems per year",
+      "tr": "akıllı ulaşım sistemlerine yılda {x} milyar lira"
+    },
+    "start": "Lücke",
+    "rundung": "auf 0,5 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.uab.gov.tr/",
+      "titel": "Ulaştırma ve Altyapı Bakanlığı (Akıllı Ulaşım Sistemleri Strateji Belgesi 2020–2023 und Nachfolger)",
+      "datum": "–",
+      "zitat": "– (kein Betrag gefunden)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: 'Ulusal Akıllı Ulaşım Sistemleri Strateji Belgesi ve Eylem Planı' (UAB), KGM 'AUS yatırımları' im Investitionsprogramm 2026. Ehrlicher wäre ein Zustandsregler (keine / Pilotstädte / Autobahnen voll / landesweit).",
+    "startwert": null
+  },
+  {
+    "id": "m_instandhaltung",
+    "name": "Instandhaltung der Infrastruktur",
+    "einheit": {
+      "de": "{x} Mrd. Lira für Erhaltung von Straßen und Schienen je Jahr",
+      "en": "{x} bn lira for road and rail maintenance per year",
+      "tr": "yol ve demiryolu bakımına yılda {x} milyar lira"
+    },
+    "start": "Lücke",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Yayinlar/YayinPdf/KarayoluUlasimIstatistikleri2025.pdf",
+      "titel": "KGM-Veröffentlichungen (Faaliyet Raporu)",
+      "datum": "–",
+      "zitat": "– (kein Betrag gefunden)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: KGM 2025 Faaliyet Raporu, Posten 'bakım-onarım' bzw. 'yol bakım ve işletme'; TCDD 'yol yenileme'. Netz 68.517 km Staats- und Provinzstraßen (KGM 2025).",
+    "startwert": null
+  },
+  {
+    "id": "m_handelssysteme",
+    "name": "Moderne Zoll- und Handelssysteme",
+    "einheit": {
+      "de": "{x} Stunden Zollabfertigung bei der Einfuhr",
+      "en": "{x} hours import customs clearance",
+      "tr": "ithalatta {x} saat gümrük işlemi"
+    },
+    "start": "Lücke (letzter belastbarer internationaler Wert ist der Doing-Business-Bericht 2020)",
+    "rundung": "ganze Stunden",
+    "proportional": "nein (umgekehrt: mehr Ausbau = weniger Stunden)",
+    "quelle": {
+      "url": "https://lpi.worldbank.org/international/global",
+      "titel": "Weltbank Logistics Performance Index 2023 (Teilindex Zoll)",
+      "datum": "2023",
+      "zitat": "– (Wert im Suchauszug nicht enthalten)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Wenn Stunden: Anzeige x = Start × Startpegel ÷ Stufe (umgekehrt proportional). Ehrlicher: benannte Zustände (Papierzoll / elektronische Anmeldung / Einziges Fenster für alle Behörden / Vorabfreigabe mit Risikoprofil). Suchhinweis: Ticaret Bakanlığı 'Tek Pencere' und 'ortalama gümrük işlem süresi'.",
+    "startwert": null
+  },
+  {
+    "id": "m_verwaltungsdigital",
+    "name": "Digitale Verwaltung und Steuertechnik",
+    "einheit": null,
+    "start": "Zustand: E-Rechnung Pflicht für Betriebe ab 3 Mio. Lira Umsatz (ab 01.07.2026; Handel online, Immobilien, Kfz ab 0,5 Mio.); e-Devlet mit 9.170 Diensten und 68,2 Mio. Nutzern (2025)",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://sovos.com/tr/blog/kdv/taslak-teblig-yayimlandi-elektronik-belgelerin-kapsaminin-genisleyecegi-ongoruluyor/",
+      "titel": "Sovos: Taslak Tebliğ – elektronik belgelerin kapsamı genişleyecek; dazu turkiye.gov.tr Resmî İstatistik 2025",
+      "datum": "Mai 2026",
+      "zitat": "2025 hesap döneminde brüt satış hasılatı 3 milyon TL ve üzerinde olan KDV mükellefleri 1 Temmuz 2026 tarihine kadar e-fatura sistemine geçmek zorundadır (Suchauszug); e-Devlet kullanıcı sayısı 68.193.133, hizmet sayısı 9.170 (2025)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Text der Maßnahme beschreibt selbst Stufen. Die Grenze 3 Mio. Lira stammt aus Fachblogs; amtlich: VUK Genel Tebliği Sıra No. 509 und Änderungen (GİB). Ein Entwurf 2026 senkt die Grenze auf 0,5 Mio. Lira.",
+    "zustaende": [
+      {
+        "de": "Papierakten",
+        "en": "Paper files",
+        "tr": "Kâğıt dosyalar"
+      },
+      {
+        "de": "Portal für Bürger (e-Devlet), Belege auf Papier",
+        "en": "Citizen portal (e-Devlet), paper receipts",
+        "tr": "Vatandaş portalı (e-Devlet), kâğıt belgeler"
+      },
+      {
+        "de": "E-Rechnung Pflicht für größere Betriebe (wie heute)",
+        "en": "E-invoicing mandatory for larger firms (as today)",
+        "tr": "Büyük işletmelere e-fatura zorunlu (bugünkü gibi)"
+      },
+      {
+        "de": "E-Rechnung für alle, Datenabgleich zwischen Behörden",
+        "en": "E-invoicing for all, data matching between agencies",
+        "tr": "Herkese e-fatura, kurumlar arası veri eşleştirme"
+      },
+      {
+        "de": "Vollständig vernetzt: Belege in Echtzeit, vorausgefüllte Erklärungen",
+        "en": "Fully connected: real-time receipts, pre-filled returns",
+        "tr": "Tam entegre: anlık belge, hazır beyanname"
+      }
+    ],
+    "startzustand": "E-Rechnung Pflicht für größere Betriebe (wie heute)",
+    "startwert": null
+  },
+  {
+    "id": "m_digitale_oeffentlichkeit",
+    "name": "Digitale Öffentlichkeit und Beteiligung",
+    "einheit": null,
+    "start": "Zustand: Behördengänge online (e-Devlet, 69,8 Mio. Nutzer Sept. 2026) und Beschwerdestelle des Präsidialamts (CİMER); kein nationales Portal für offene Daten (veri.gov.tr angekündigt), keine Online-Anhörung zu Gesetzentwürfen",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://www.trthaber.com/haber/ekonomi/e-devlette-kullanici-sayisinin-2026da-70-milyona-ulasmasi-hedefleniyor-925089.html",
+      "titel": "TRT Haber: e-Devlet'te kullanıcı sayısının 2026'da 70 milyona ulaşması hedefleniyor; dazu Gazete Vatan: Kamudaki datalar veri adresiyle vatandaşa açılacak",
+      "datum": "2026",
+      "zitat": "Eylül 2026 itibarıyla kayıtlı kullanıcı sayısının 69,8 milyona ulaştığı ... bildiriliyor; toplanan bütün kamudaki dataları veri.gov.tr adında halkımıza açacaklarını (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Startzustand 'Portal und Beschwerdestelle' ist gut belegt; dass es kein nationales Open-Data-Portal gibt, beruht auf der Ankündigung (veri.gov.tr) – vor Übernahme prüfen, ob veri.gov.tr inzwischen online ist. CİMER-Antwortpflicht: Gesetz Nr. 3071 (Dilekçe Hakkı) Art. 7, 30 Tage.",
+    "zustaende": [
+      {
+        "de": "Nur Behördengänge online",
+        "en": "Online services only",
+        "tr": "Yalnızca çevrim içi kamu hizmetleri"
+      },
+      {
+        "de": "Portal und Beschwerdestelle mit Antwortpflicht (wie heute)",
+        "en": "Portal and complaints office with duty to respond (as today)",
+        "tr": "Portal ve yanıt yükümlü şikâyet merkezi (bugünkü gibi)"
+      },
+      {
+        "de": "Offene Daten und Online-Anhörung zu Gesetzentwürfen",
+        "en": "Open data and online consultation on draft laws",
+        "tr": "Açık veri ve kanun taslaklarına çevrim içi görüş"
+      },
+      {
+        "de": "Bürgerhaushalt und Volksbegehren online mit verbindlicher Antwort",
+        "en": "Participatory budget and online petitions with binding reply",
+        "tr": "Katılımcı bütçe ve bağlayıcı yanıtlı çevrim içi dilekçe"
+      }
+    ],
+    "startzustand": "Portal und Beschwerdestelle mit Antwortpflicht (wie heute)",
+    "startwert": null
+  },
+  {
+    "id": "m_solar_wind",
+    "name": "Ausbau von Sonne und Wind",
+    "einheit": {
+      "de": "{x} GW neue Wind- und Solarleistung je Jahr",
+      "en": "{x} GW of new wind and solar capacity per year",
+      "tr": "yılda {x} GW yeni rüzgâr ve güneş kapasitesi"
+    },
+    "start": "6,5 GW Zubau 2025 (Rekord; Solar 4,7 GW, Wind 1,9–2,1 GW); Bestand Ende 2025 rund 39,9 GW",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://ember-energy.org/tr/analizler/turkiye-elektrik-gorunumu-2026/ruzgar-ve-gunes",
+      "titel": "Ember: Türkiye Elektrik Görünümü 2026 – Rüzgar ve Güneş",
+      "datum": "2026",
+      "zitat": "2025 yılında Türkiye'de rüzgar ve güneş birlikte 6,5 GW'lık yeni kapasiteye ulaşarak rekor seviyede kurulum gerçekleştirilmiştir (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "TEİAŞ bestätigt Solar 4.694 MW Zubau 2025. Ziel 2035: 120 GW Wind+Solar ⇒ ~8 GW je Jahr nötig. Doppelt mit m_yeka_serie (B-6): YEKA ist nur der ausgeschriebene Teil.",
+    "startwert": 6.5
+  },
+  {
+    "id": "m_yeka_serie",
+    "name": "YEKA-Ausschreibungsserie",
+    "einheit": {
+      "de": "{x} GW ausgeschriebene YEKA-Leistung je Jahr",
+      "en": "{x} GW of YEKA capacity tendered per year",
+      "tr": "yılda {x} GW YEKA ihalesi"
+    },
+    "start": "2,4 GW (YEKA 2026: 21 Ausschreibungen, 1,5 GW Wind + 0,9 GW Solar; 2025: 3,8 GW)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.mercomindia.com/turkiye-floats-21-renewable-energy-tenders-for-2-4-gw-capacity",
+      "titel": "Mercom India: Türkiye Floats 21 Renewable Energy Tenders for 2.4 GW Capacity",
+      "datum": "Juli 2026",
+      "zitat": "The Ministry of Energy launched 21 solar and wind tenders totaling 2.4 GW of grid connection capacity (Suchauszug); YEKA tenders have reached 7.8 GW to date, including 3.8 GW in 2025 (Hürriyet Daily News)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Gebotsschluss 13.10.2026. Ministerium sagt 'mindestens 2 GW je Jahr'. Höchstpreise widersprüchlich (3,2/3,25/3,5 €-ct oder 5,5 €-ct/kWh) – nicht für die Anzeige nötig.",
+    "startwert": 2.4
+  },
+  {
+    "id": "m_gasfoerderung",
+    "name": "Heimische Gasförderung",
+    "einheit": {
+      "de": "{x} Mio. m³ Gas je Tag aus dem Schwarzen Meer",
+      "en": "{x} m cubic metres of Black Sea gas per day",
+      "tr": "Karadeniz'den günde {x} milyon m³ gaz"
+    },
+    "start": "9,5 Mio. m³ je Tag (Sakarya Phase 1, 12 Bohrungen, Stand Okt. 2026); Phase 2 mit FPU Osman Gazi auf 20 Mio. m³ ab Anfang 2027",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja, mit Deckel durch die Förderanlagen (9,5 → 20 → 45 Mio. m³)",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/10/15/osman-gazi-karadenize-aciliyor/",
+      "titel": "Alomaliye: Osman Gazi Karadeniz'e açılıyor",
+      "datum": "15.10.2026",
+      "zitat": "12 üretim kuyusundan doğal gaz üretimi gerçekleştiriliyor. Günlük üretimin yaklaşık 9,5 milyon metreküp seviyesine ulaştığı (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Ein Regler darf die Förderung nicht über die Anlagenkapazität heben: Anzeige x = min(Start × Stufe/Startpegel, Kapazität der erreichten Phase). Doppelt mit m_sakarya_phase3 (B-6) – Vorschlag: Phase 3 als Zustand, Förderung als Ergebnis.",
+    "startwert": 9.5
+  },
+  {
+    "id": "m_sakarya_phase3",
+    "name": "Sakarya Phase 3 (zweite FPU)",
+    "einheit": null,
+    "start": "Zustand: zweite Förderanlage im Bau (EPCIC-Vertrag Wison/TPAO Sept. 2025, Aufbauten seit Mai 2026, Kiellegung 25.10.2026; Inbetriebnahme Ende 2027 bis Mitte 2028)",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://www.offshore-technology.com/news/wison-sakarya-fpu-epcic-tpao/",
+      "titel": "Offshore Technology: Wison New Energies secures Sakarya FPU EPCIC contract with TPAO; dazu chemxplore: Keel laying for Sakarya Phase 3 FPU",
+      "datum": "Sept. 2025 / Okt. 2026",
+      "zitat": "In September 2025, Wison New Energies received an EPCIC contract for the FPU in Phase 3 of the project; designed for a gas export rate of 25 MM std cu m/d (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Ein Projekt, kein Mengenregler (B-16). Kapazität der zweiten FPU 25 Mio. m³/Tag; Phase 3 zusammen ~40–45 Mio. m³/Tag. Termin widersprüchlich (Inbetriebnahme Ende 2027 oder Mitte 2028, kommerziell 2030). Für Spielbeginn 2028: Zustand 'Anlage wird installiert'.",
+    "zustaende": [
+      {
+        "de": "Nicht begonnen",
+        "en": "Not started",
+        "tr": "Başlanmadı"
+      },
+      {
+        "de": "Vertrag vergeben, Anlage im Bau (2026)",
+        "en": "Contract awarded, unit under construction (2026)",
+        "tr": "Sözleşme imzalandı, platform inşa hâlinde (2026)"
+      },
+      {
+        "de": "Anlage installiert, Bohrungen angeschlossen",
+        "en": "Unit installed, wells tied in",
+        "tr": "Platform yerleştirildi, kuyular bağlandı"
+      },
+      {
+        "de": "In Betrieb: rund 40 Mio. m³ je Tag",
+        "en": "In operation: about 40 m cubic metres per day",
+        "tr": "Üretimde: günde yaklaşık 40 milyon m³"
+      }
+    ],
+    "startzustand": "Vertrag vergeben, Anlage im Bau (2026)",
+    "startwert": null
+  },
+  {
+    "id": "m_akkuyu_ppa",
+    "name": "Akkuyu-Vertrag nachverhandeln",
+    "einheit": null,
+    "start": "Zustand: Vertrag gilt unverändert – Abnahmegarantie 12,35 US-Cent je kWh für 15 Jahre (70 % der Erzeugung Blöcke 1–2, 30 % Blöcke 3–4); Block 1 erste Stromerzeugung Ziel Ende 2026",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://en.wikipedia.org/wiki/Akkuyu_Nuclear_Power_Plant",
+      "titel": "Wikipedia: Akkuyu Nuclear Power Plant (nach Abkommen Türkei–Russland 12.05.2010, Gesetz Nr. 6007); dazu World Nuclear Association, Nuclear Power in Turkey",
+      "datum": "Stand 2026",
+      "zitat": "electricity will be purchased at a price of 12.35 US cents per kW·h and the remaining power will be sold in the open market by the producer; guaranteed the purchase of 70% power generated from the first two units and 30% from the third and fourth units over a 15-year power purchase agreement"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Preis 12,35 US-Cent übereinstimmend; Anteil teils als '50 %' berichtet (Sözcü, Eurasia Review) – Vertragstext (Gesetz Nr. 6007, RG 21.07.2010) entscheidet. Als Mengenregler sinnlos (B-16). Nebenangabe für Zustände: Preis in US-Cent je kWh.",
+    "zustaende": [
+      {
+        "de": "Vertrag halten (12,35 US-Cent je kWh)",
+        "en": "Keep the contract (12.35 US cents per kWh)",
+        "tr": "Sözleşmeye bağlı kal (kWh başına 12,35 sent)"
+      },
+      {
+        "de": "Nachverhandlung anbieten (Laufzeit gegen Preis)",
+        "en": "Offer renegotiation (term for price)",
+        "tr": "Yeniden müzakere öner (süre karşılığı fiyat)"
+      },
+      {
+        "de": "Nachverhandlung erzwingen (Genehmigungen als Druckmittel)",
+        "en": "Force renegotiation (permits as leverage)",
+        "tr": "Yeniden müzakereyi dayat (izinler baskı aracı)"
+      },
+      {
+        "de": "Abnahme verweigern und Schiedsgericht riskieren",
+        "en": "Refuse offtake and risk arbitration",
+        "tr": "Alımı reddet, tahkimi göze al"
+      }
+    ],
+    "startzustand": "Vertrag halten (12,35 US-Cent je kWh)",
+    "startwert": null
+  },
+  {
+    "id": "m_heimische_kohle",
+    "name": "Heimische Kohle (Afşin-Elbistan)",
+    "einheit": null,
+    "start": "Zustand: Erweiterung um 688 MW (2 Blöcke) geplant, nichts im Bau; Afşin-Elbistan A 1.360 MW in Betrieb",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://ember-energy.org/latest-insights/",
+      "titel": "Ember (14.04.2025) nach RECHERCHE_ENERGIE.md Abschnitt 4.3",
+      "datum": "14.04.2025",
+      "zitat": "Kraftwerk Afsin-Elbistan A 1.360 MW, Erweiterung +688 MW (2 Blöcke) geplant; kein Kohle-Neubau im Bau, aber Projekte offen (Projektnotiz nach Ember)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Der Text nennt genau ein Projekt (+688 MW) – das ist ein Vorhaben, keine Menge. Benannte Zustände; Leistung als Nebenangabe. Exakte Ember-URL nicht im Projekt hinterlegt (Suchhinweis: Ember 'Türkiye coal' April 2025, EÜAŞ Afşin-Elbistan).",
+    "zustaende": [
+      {
+        "de": "Kohle zurückfahren: Altblöcke stilllegen",
+        "en": "Scale back coal: retire old units",
+        "tr": "Kömürü azalt: eski üniteleri kapat"
+      },
+      {
+        "de": "Wie heute: +688 MW geplant, kein Bau",
+        "en": "As today: +688 MW planned, no construction",
+        "tr": "Bugünkü gibi: +688 MW planlı, inşaat yok"
+      },
+      {
+        "de": "Bau der zwei Blöcke (+688 MW)",
+        "en": "Build the two units (+688 MW)",
+        "tr": "İki üniteyi inşa et (+688 MW)"
+      },
+      {
+        "de": "Großausbau des Reviers (weitere Kraftwerke)",
+        "en": "Major expansion of the coalfield (further plants)",
+        "tr": "Havzada büyük genişleme (yeni santraller)"
+      }
+    ],
+    "startzustand": "Wie heute: +688 MW geplant, kein Bau",
+    "startwert": null
+  },
+  {
+    "id": "m_energieeffizienz",
+    "name": "Effizienz, Wärmepumpen, E-Mobilität",
+    "einheit": {
+      "de": "{x} neu zugelassene Elektroautos je Jahr",
+      "en": "{x} new electric cars registered per year",
+      "tr": "yılda {x} yeni elektrikli otomobil"
+    },
+    "start": "191.960 Elektroautos verkauft 2025 (17,7 % Marktanteil, +82 %)",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.cnbce.com/otomotiv/turkiyede-2025te-yaklasik-200-bin-elektrikli-arac-satildi-h22676",
+      "titel": "CNBC-e: Türkiye'de 2025'te yaklaşık 200 bin elektrikli araç satıldı (ODMD-Zahlen)",
+      "datum": "Jan. 2026",
+      "zitat": "Ocak–Aralık 2025 döneminde Türkiye'de elektrikli otomobil satışları yüzde 82 artarak 191.960 adet olarak gerçekleşti. Böylece elektrikli otomobillerin toplam pazardaki payı yüzde 17,7'ye çıktı"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Die Maßnahme bündelt drei Dinge (Effizienz, Wärmepumpen, E-Autos); nur die E-Auto-Zahl ist belegt. Wärmepumpen: Lücke. Der Text rechnet mit '1 Mio. E-Autos' als Bestand – Bestand Ende 2025 rund 0,4 Mio. (Lücke, TÜİK Motorlu Kara Taşıtları).",
+    "startwert": 191960
+  },
+  {
+    "id": "m_preiswahrheit",
+    "name": "Preiswahrheit bei Energie",
+    "einheit": null,
+    "start": "Zustand: Staffeltarif für Gas seit 04.04.2026 (Stufe 1: 10,625 Lira/m³, Stufe 2: 18 Lira/m³ ab Verbrauch über der Provinzgrenze); BOTAŞ-Stützung 2026 rund 950 Mrd. Lira",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://www.evrensel.net/haber/5978166/dogal-gazda-zam-kademeli-sistem-milyonlarca-abone-etkilenecek",
+      "titel": "Evrensel: Doğal gazda zam, kademeli sistem (BOTAŞ-Tarif ab 04.04.2026)",
+      "datum": "04.04.2026",
+      "zitat": "BOTAŞ'ın 4 Nisan 2026'dan itibaren geçerli toptan satış tarifesinde konutlar için Kademe-1 fiyatı 10,625 TL/Sm³, Kademe-2 fiyatı ise 18 TL/Sm³ (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Doppelregler zu m_energiesubventionen (B-6): Empfehlung zusammenlegen. 2,5–3 Mio. Haushalte (~12 %) zahlen Stufe 2. Subventionsbetrag 950 Mrd. Lira laut Minister (Forbes, 04.04.2026; RECHERCHE_ENERGIE 2.4).",
+    "zustaende": [
+      {
+        "de": "Deckel für alle",
+        "en": "Price cap for everyone",
+        "tr": "Herkese fiyat tavanı"
+      },
+      {
+        "de": "Staffeltarif: Vielverbraucher zahlen mehr (wie heute)",
+        "en": "Tiered tariff: heavy users pay more (as today)",
+        "tr": "Kademeli tarife: çok tüketen fazla öder (bugünkü gibi)"
+      },
+      {
+        "de": "Marktpreis mit Sozialtarif für Bedürftige",
+        "en": "Market price with social tariff for the needy",
+        "tr": "İhtiyaç sahiplerine sosyal tarifeli piyasa fiyatı"
+      },
+      {
+        "de": "Volle Marktpreise ohne Stützung",
+        "en": "Full market prices without support",
+        "tr": "Desteksiz tam piyasa fiyatı"
+      }
+    ],
+    "startzustand": "Staffeltarif: Vielverbraucher zahlen mehr (wie heute)",
+    "startwert": null
+  },
+  {
+    "id": "m_gashub",
+    "name": "Gas-Hub und Transit-Ausbau",
+    "einheit": {
+      "de": "{x} Mrd. m³ Pipeline-Kapazität über TurkStream und TANAP je Jahr",
+      "en": "{x} bn cubic metres pipeline capacity via TurkStream and TANAP per year",
+      "tr": "TürkAkım ve TANAP üzerinden yılda {x} milyar m³ boru hattı kapasitesi"
+    },
+    "start": "47,5 Mrd. m³ je Jahr (TurkStream 2 × 15,75 + TANAP 16)",
+    "rundung": "auf 0,5 Mrd. m³",
+    "proportional": "ja, in Stufen (ein Strang ≈ 15,75 Mrd. m³)",
+    "quelle": {
+      "url": "https://www.botas.gov.tr/",
+      "titel": "RECHERCHE_ENERGIE.md Abschnitt 2.2 (Energy News Beat 01.06.2026; eualive.net 2026)",
+      "datum": "2026",
+      "zitat": "TurkStream-Transit: 2 × 15,75 Mrd. m³/J; Aserbaidschan (TANAP, Gesamtkap. 16 Mrd. m³/J) (Projektnotiz)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Nennkapazitäten sind technische Daten (Gazprom/TANAP) und gut bekannt, hier aber nur aus der Projektnotiz übernommen. Ausbau geschieht in ganzen Strängen: Anzeige auf ganze Stränge runden.",
+    "startwert": 47.5
+  },
+  {
+    "id": "m_lng_vertraege",
+    "name": "LNG-Langzeitverträge",
+    "einheit": {
+      "de": "{x} Mrd. m³ Flüssiggas unter Langzeitvertrag je Jahr",
+      "en": "{x} bn cubic metres of LNG under long-term contract per year",
+      "tr": "uzun vadeli sözleşmeyle yılda {x} milyar m³ LNG"
+    },
+    "start": "rund 9,7 Mrd. m³ je Jahr (abgeleitet: Algerien 4,4 + Nigeria 1,3 + Mercuria/USA 4,0 ab 2026; dazu befristete Verträge 2026–28)",
+    "rundung": "auf 0,5 Mrd. m³",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.turkishminute.com/",
+      "titel": "RECHERCHE_ENERGIE.md Abschnitt 2.2 (Turkish Minute 24.09.2025 und 04.12.2025; AIIB-Projektunterlage)",
+      "datum": "2025",
+      "zitat": "Algerien (LNG, Sonatrach) 4,4 Mrd. m³/J; Nigeria (LNG) ~1,3 Mrd. m³/J; USA/Mercuria ~4 Mrd. m³/J, 20 Jahre, ab 2026 (Projektnotiz)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Summe selbst gebildet; kurzfristige Verträge (BP 4,8, Shell 2,4, ENI 1,5 Mrd. m³ für 2026–28) nicht eingerechnet. Text der Maßnahme meint 'zusätzliche' 2–4 Mrd. m³ – dann wäre der Startpegel 0 und der Regler zeigte nur den Zuschlag.",
+    "startwert": 9.7
+  },
+  {
+    "id": "m_regas_ausbau",
+    "name": "FSRU- und Regasifizierungs-Ausbau",
+    "einheit": {
+      "de": "{x} Mio. m³ LNG-Anlandekapazität je Tag",
+      "en": "{x} m cubic metres LNG regasification capacity per day",
+      "tr": "günde {x} milyon m³ LNG gazlaştırma kapasitesi"
+    },
+    "start": "rund 161 Mio. m³ je Tag (5 Anlagen: 2 an Land, 3 FSRU; Atlantic Council: ~150)",
+    "rundung": "auf 5 Mio. m³",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.turkishminute.com/",
+      "titel": "RECHERCHE_ENERGIE.md Abschnitt 2.3 (Bayraktar via Turkish Minute, 04.12.2025; BOTAŞ GM Fidan 06.12.2025)",
+      "datum": "Dez. 2025",
+      "zitat": "Regas-Kapazität ~161 Mio. m³/Tag — Verfünffachung seit ~2017/18 (Projektnotiz)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Engpass ist laut Notiz nicht Regas, sondern Verträge und Preis – ein Ausbau über 100 % hat kaum Wirkung. FSRU Ertuğrul Gazi 2025 an Ägypten verliehen.",
+    "startwert": 161
+  },
+  {
+    "id": "m_gasspeicher",
+    "name": "Gasspeicher-Ausbau",
+    "einheit": {
+      "de": "{x} Mrd. m³ Gasspeicher",
+      "en": "{x} bn cubic metres of gas storage",
+      "tr": "{x} milyar m³ gaz depolama"
+    },
+    "start": "6,3 Mrd. m³ (Silivri 4,6 + Tuz Gölü; Nov. 2025); Ziel 14,4 Mrd. m³ bis 2028",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.hurriyetdailynews.com/",
+      "titel": "RECHERCHE_ENERGIE.md Abschnitt 2.6 (Bayraktar via X, 11/2025; Hürriyet Daily News 10.09.2025)",
+      "datum": "Nov. 2025",
+      "zitat": "Summe 6,3 Mrd. m³ (11/2025, winterbereit voll); 14,4 Mrd. m³ bis 2028 (Projektnotiz)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Bestandsgröße; Kosten-Maßstab aus dem Spieltext: Tuz Gölü 2,7 Mrd. Dollar für 4,2 Mrd. m³. Primärquelle: BOTAŞ Faaliyet Raporu 2025.",
+    "startwert": 6.3
+  },
+  {
+    "id": "m_netzausbau",
+    "name": "Stromnetzausbau",
+    "einheit": {
+      "de": "{x} Mrd. Lira Investitionen ins Übertragungsnetz je Jahr",
+      "en": "{x} bn lira transmission grid investment per year",
+      "tr": "iletim şebekesine yılda {x} milyar lira yatırım"
+    },
+    "start": "rund 72 Mrd. Lira je Jahr (abgeleitet: TEİAŞ-Investitionsprogramm 362 Mrd. Lira für 2024–2028)",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.teias.gov.tr/",
+      "titel": "RECHERCHE_ENERGIE.md Abschnitt 1.5 (TEİAŞ-Strategieplan nach Grokipedia, 13.03.2026, Vorbehalt)",
+      "datum": "2026",
+      "zitat": "TEİAŞ-Investitionsprogramm 2024–2028: 362 Mrd. TL (~10,6 Mrd. USD), davon 74 % für Erneuerung/Verstärkung/Neubau (Projektnotiz)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Quelle ist eine Sekundärzusammenfassung. Primärquelle: TEİAŞ Stratejik Plan 2024–2028 und Yatırım Programı 2026 (Sektor Enerji, TEİAŞ). Doppelt mit m_speicher_smartgrid (B-6).",
+    "startwert": 72
+  },
+  {
+    "id": "m_speicher_smartgrid",
+    "name": "Netzmodernisierung und Speicher",
+    "einheit": {
+      "de": "{x} MW Batteriespeicher am Netz",
+      "en": "{x} MW of battery storage on the grid",
+      "tr": "şebekede {x} MW batarya depolama"
+    },
+    "start": "208 MW (Speicher-Wind-/Solarprojekte in Betrieb, Feb. 2026); 2026 erwartet +1.500–2.000 MW; 33 GW in Vorbereitung",
+    "rundung": "auf 10 MW",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://ember-energy.org/tr/analizler/turkiye-elektrik-gorunumu-2026/depolama",
+      "titel": "Ember: Türkiye Elektrik Görünümü 2026 – Depolama",
+      "datum": "2026",
+      "zitat": "Şubat 2026 itibariyle Türkiye'de depolamalı rüzgar ve güneş santrali projelerinden 208 MW'ı devreye alınmıştır"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Startwert klein, Zubau 2026 sprunghaft – Spielbeginn 2028 dürfte bei ~2 GW liegen. Für den Start mit Spielbeginn neu messen. Ziel 2035: 7,5–8 GW.",
+    "startwert": 208
+  },
+  {
+    "id": "m_agrarsubventionen",
+    "name": "Agrarsubventionen",
+    "einheit": {
+      "de": "{x} Mrd. Lira Agrarförderung je Jahr",
+      "en": "{x} bn lira agricultural support per year",
+      "tr": "yılda {x} milyar lira tarımsal destek"
+    },
+    "start": "167,6 Mrd. Lira (2026; 2,9 Mio. geförderte Landwirte; 1. Halbjahr 2026 ausgezahlt 106,0 Mrd.)",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.tarimorman.gov.tr/SGB/Haber/196/2026-Yili-Butcesi-Tbmm-Plan-Ve-Butce-Komisyonunda-Kabul-Edildi",
+      "titel": "Tarım ve Orman Bakanlığı: 2026 Yılı Bütçesi TBMM Plan ve Bütçe Komisyonunda Kabul Edildi; dazu Alomaliye 12.08.2026",
+      "datum": "Nov. 2025 / Aug. 2026",
+      "zitat": "Tarımsal Destekler 2026 (Milyar ₺) 167,6; 2026'nın ilk yarısında 106 milyar 22 milyon TL tarımsal destek ödemesi yapıldı (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Für 2027 sind 235 Mrd. Lira angekündigt (Ekonomi Gazetesi). Nebenangabe je Fläche (Lira je Dekar) wäre möglich, aber die Sätze unterscheiden sich je Produkt.",
+    "startwert": 167.6
+  },
+  {
+    "id": "m_bewaesserung",
+    "name": "Moderne Bewässerung",
+    "einheit": {
+      "de": "{x} % der Bewässerungsfläche mit Tropfbewässerung",
+      "en": "{x} % of irrigated area under drip irrigation",
+      "tr": "sulanan alanın %{x}'i damla sulama"
+    },
+    "start": "17,5 % (2023; 2018: 17,4 %); Rohrleitungsnetze insgesamt 33,7 % (2023)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja, mit Deckel 100 %",
+    "quelle": {
+      "url": "https://cdniys.tarimorman.gov.tr/api/File/GetGaleriFile/425/DosyaGaleri/8848/haber_bulteni_aralik_2024.docx",
+      "titel": "DSİ Haber Bülteni Aralık 2024",
+      "datum": "Dez. 2024",
+      "zitat": "2018 yılında Borulu Sistem kullanımı % 26,6 iken 2023 yılında % 33,7 olmuştur; 2018 yılında Damla Sulama Yöntemiyle Sulanan Alan % 17,4 iken 2023 yılında % 17,5 olmuştur"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Bezug ist vermutlich nur die DSİ-Bewässerungsfläche, nicht alle Felder. Primärquelle: DSİ 'Sulama Oranı ve Sulama Randımanı' bzw. DSİ Faaliyet Raporu 2025. Doppelt mit m_agrarforschung (Tropfbewässerung).",
+    "startwert": 17.5
+  },
+  {
+    "id": "m_staudaemme",
+    "name": "Staudämme und Speicher",
+    "einheit": {
+      "de": "{x} Mio. m³ neues Speichervolumen je Jahr",
+      "en": "{x} m cubic metres of new storage per year",
+      "tr": "yılda {x} milyon m³ yeni depolama hacmi"
+    },
+    "start": "512 Mio. m³ (Plan 2025: 52 neue Talsperren und Teiche); Gesamtspeicher rund 183 Mrd. m³ (Jan. 2024)",
+    "rundung": "auf 10 Mio. m³",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.benguturk.com/ekonomi/bakan-yumakli-2025te-52-yeni-baraj-ve-golet-insa-ederek-512-milyon-metrekup-175128h",
+      "titel": "Bengütürk: Bakan Yumaklı – 2025'te 52 yeni baraj ve gölet inşa ederek 512 milyon metreküp suyu depolayacağız",
+      "datum": "Jan. 2025",
+      "zitat": "2025'te 52 yeni baraj ve gölet inşa ederek, 512 milyon metreküp suyu depolayacağız"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Planwert, kein Ist. Ist 2025 laut DSİ-Faaliyet-Raporu-Auszug evtl. 22 Talsperren + 7 Teiche (unklar). Primärquelle: DSİ 2025 Faaliyet Raporu (cdniys.tarimorman.gov.tr/.../dsi2025faaliyetraporu.pdf).",
+    "startwert": 512
+  },
+  {
+    "id": "m_wasserleitungen",
+    "name": "Wasserleitungen und Kläranlagen",
+    "einheit": {
+      "de": "{x} % der Gemeindebevölkerung an Kläranlagen",
+      "en": "{x} % of municipal population served by wastewater treatment",
+      "tr": "belediye nüfusunun %{x}'i atıksu arıtma hizmetinde"
+    },
+    "start": "76,9 % (2024); Kanalnetz 92,8 %, Trinkwassernetz 98,8 %; Leitungsverluste 47,9 % (2023)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja, mit Deckel 100 %",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2025/12/09/su-ve-atiksu-istatistikleri-2024/",
+      "titel": "Alomaliye: Su ve Atıksu İstatistikleri – 2024 (TÜİK-Meldung)",
+      "datum": "09.12.2025",
+      "zitat": "Atıksu arıtma tesisi hizmeti verilen nüfus oranı ise yüzde 76,9 olarak belirlendi"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Nebenangabe Leitungsverluste (umgekehrt: mehr Ausbau = weniger Verlust); 47,9 % nur aus einem Kommentar, an TÜİK 'Belediye Su İstatistikleri' prüfen.",
+    "startwert": 76.9
+  },
+  {
+    "id": "m_saatgut",
+    "name": "Saatgut- und Erzeugerprogramme",
+    "einheit": {
+      "de": "{x} Tonnen zertifiziertes Saatgut je Jahr",
+      "en": "{x} tonnes of certified seed per year",
+      "tr": "yılda {x} ton sertifikalı tohum"
+    },
+    "start": "Lücke",
+    "rundung": "auf 10.000 t",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.tarimorman.gov.tr/BUGEM",
+      "titel": "Tarım ve Orman Bakanlığı, BÜGEM Tohumculuk İstatistikleri",
+      "datum": "–",
+      "zitat": "– (kein Wert gefunden)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: BÜGEM 'sertifikalı tohum üretimi ve kullanımı' Jahrestabelle; TÜRKTOB Jahresbericht 2025. Doppelt mit m_agrarforschung.",
+    "startwert": null
+  },
+  {
+    "id": "m_mechanisierung",
+    "name": "Landwirtschaftliche Mechanisierung",
+    "einheit": {
+      "de": "{x} Traktoren im Bestand",
+      "en": "{x} tractors in use",
+      "tr": "{x} traktör"
+    },
+    "start": "2.315.504 Traktoren (Ende 2025); 2.321.253 (Ende März 2026)",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.turkiyegazetesi.com.tr/ekonomi/78-ilde-artti-3-ilde-azaldi-tarimin-lokomotif-sehirlerine-sel-darbesi-traktor-sayisi-1785088",
+      "titel": "Türkiye Gazetesi: 78 ilde arttı, 3 ilde azaldı – traktör sayısı (TÜİK Motorlu Kara Taşıtları)",
+      "datum": "2026",
+      "zitat": "2 milyon 315 bin 504 olan toplam traktör sayısı, bu yılın ilk üç ayında 5 bin 749 adet artarak mart sonu itibarıyla 2 milyon 321 bin 253'e ulaştı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Bestandsgröße, wächst langsam (+0,25 % je Quartal); ein Regler auf 150 % ist weit jenseits jeder realen Entwicklung. Besser: Zuschuss für Maschinenkauf (Lücke) oder Zustände 'Handarbeit / Traktor / Präzisionstechnik'. Primärquelle: TÜİK Motorlu Kara Taşıtları, Dez. 2025.",
+    "startwert": 2315504
+  },
+  {
+    "id": "m_agrarforschung",
+    "name": "Agrarforschung und Hochtechnologie",
+    "einheit": {
+      "de": "{x} Mio. Lira für Agrarforschung je Jahr",
+      "en": "{x} m lira for agricultural research per year",
+      "tr": "yılda {x} milyon lira tarımsal araştırma"
+    },
+    "start": "Lücke (TAGEM mit 49 Instituten; Betrag 2026 nicht gefunden)",
+    "rundung": "auf 10 Mio. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.paradergi.com.tr/sektorler/2025/08/25/tarimsal-ar-genin-kalbi-tagemde-atiyor",
+      "titel": "Para Dergi: Tarımsal Ar-Ge'nin kalbi TAGEM'de atıyor",
+      "datum": "25.08.2025",
+      "zitat": "TAGEM, 49 araştırma enstitüsü ile faaliyet gösteriyor (Suchauszug)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: 2026 Merkezi Yönetim Bütçe Kanunu, Cetvel A, Tarım ve Orman Bakanlığı – Programm 'Tarımsal Araştırma'; TAGEM 2026 Performans Programı.",
+    "startwert": null
+  },
+  {
+    "id": "m_bauindustrie",
+    "name": "Industrieller Wohnungsbau",
+    "einheit": {
+      "de": "{x} Fertigteil- und Modulwohnungen je Jahr",
+      "en": "{x} prefabricated and modular homes per year",
+      "tr": "yılda {x} prefabrik ve modüler konut"
+    },
+    "start": "Lücke",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ekonomigazetesi.com/sirket-haberleri/prefabrik-yapi-as-36nci-yilini-kutluyor-53618",
+      "titel": "Ekonomi Gazetesi: Prefabrik Yapı A.Ş. 36'ncı yılını kutluyor (Branchenstimme)",
+      "datum": "–",
+      "zitat": "Türkiye'de yaklaşık 1 milyon yeni konutun deprem bölgelerinde halkın kullanımına sunulduğunu ancak halen değişimi ya da güçlendirilmesi gereken 6,5 milyon konut bulunduğunu söyledi (Suchauszug, Firmenangabe)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Keine amtliche Statistik zu Fertigteilwohnungen gefunden. Suchhinweis: TÜİK Yapı İzin İstatistikleri nach 'taşıyıcı sistem' (prefabrik/çelik), Türkiye Prefabrik Birliği Jahresbericht.",
+    "startwert": null
+  },
+  {
+    "id": "m_sozialwohnungen",
+    "name": "Staatlicher Wohnungsbau",
+    "einheit": {
+      "de": "{x} fertiggestellte TOKİ-Sozialwohnungen je Jahr",
+      "en": "{x} TOKİ social homes completed per year",
+      "tr": "yılda {x} TOKİ sosyal konutu tamamlandı"
+    },
+    "start": "83.503 Sozialwohnungen fertig (Programm '250.000 Sozialwohnungen', Stand 10.10.2026); im Erdbebengebiet 455.357 Einheiten bis 27.12.2025 übergeben",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://yeniasir.com.tr/ekonomi/2026/10/10/toki-83-bin-503-sosyal-konutun-insasini-tamamladi",
+      "titel": "Yeni Asır: TOKİ 83 bin 503 sosyal konutun inşasını tamamladı",
+      "datum": "10.10.2026",
+      "zitat": "TOKİ 83 bin 503 sosyal konutun inşasını tamamladı (Überschrift)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Kein sauberer Jahreswert: 83.503 sind kumuliert seit Programmstart (2025). Ausschreibungen 2024: 205.729 Wohnungen (TOKİ-Präsident). Primärquelle: TOKİ Faaliyet Raporu 2025.",
+    "startwert": 83503
+  },
+  {
+    "id": "m_stadterneuerung",
+    "name": "Erdbebensichere Stadterneuerung",
+    "einheit": {
+      "de": "{x} erneuerte Wohnungen je Jahr",
+      "en": "{x} homes rebuilt per year",
+      "tr": "yılda {x} konut dönüştürüldü"
+    },
+    "start": "rund 197.000 je Jahr (abgeleitet: 2.761.000 Einheiten seit 2012 im Programm, 14 Jahre); Regierungsziel 300.000 je Jahr",
+    "rundung": "auf 5.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/08/17/istanbulda-donusum-1-milyonu-asti/",
+      "titel": "Alomaliye: İstanbul'da dönüşüm 1 milyonu aştı",
+      "datum": "17.08.2026",
+      "zitat": "2012'den bu yana 81 ilde 2 milyon 761 bin bağımsız bölüm dönüşüm kapsamına alındı (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "'Im Programm' heißt nicht 'fertig'. Ziel 300.000/Jahr (davon 30.000 durch das Ministerium) laut Minister Kurum. Primärquelle: ÇŞİDB Kentsel Dönüşüm istatistikleri.",
+    "startwert": 197000
+  },
+  {
+    "id": "m_gebaeudeverstaerkung",
+    "name": "Gebäude-Verstärkungsprogramm",
+    "einheit": {
+      "de": "{x} Lira Zuschuss je Wohnung für erdbebensicheren Ersatz",
+      "en": "{x} lira grant per home for earthquake-safe replacement",
+      "tr": "deprem dönüşümünde konut başına {x} lira hibe"
+    },
+    "start": "875.000 Lira Zuschuss je Wohnung (dazu 875.000 Lira Kredit und 125.000 Lira Umzugshilfe; Programm 'Yarısı Bizden', Istanbul, bis 31.12.2027)",
+    "rundung": "auf 5.000 Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.alomaliye.com/2026/10/20/istanbulda-yarisi-bizden-destegi-2027ye-uzatildi/",
+      "titel": "Alomaliye: İstanbul'da Yarısı Bizden desteği 2027'ye uzatıldı",
+      "datum": "20.10.2026",
+      "zitat": "875 bin TL hibe, 875 bin TL kredi ve 125 bin TL taşınma desteği (Suchauszug, mehrere Quellen übereinstimmend)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Achtung: Das Programm fördert Abriss und Neubau, nicht Ertüchtigung im Bestand. Eine echte Verstärkungsförderung gibt es nicht (Lücke). Vorher 700.000 + 700.000 + 100.000 Lira.",
+    "startwert": 875000
+  },
+  {
+    "id": "m_versicherungspflicht",
+    "name": "Katastrophen-Pflichtversicherung",
+    "einheit": {
+      "de": "{x} % der Wohnungen mit Pflicht-Erdbebenversicherung",
+      "en": "{x} % of homes with compulsory earthquake insurance",
+      "tr": "konutların %{x}'i zorunlu deprem sigortalı"
+    },
+    "start": "58 % (11.628.088 von 20.032.000 Wohnungen; 2020: 53,8 %)",
+    "rundung": "ganze Prozent",
+    "proportional": "ja, mit Deckel 100 %",
+    "quelle": {
+      "url": "https://www.capital.com.tr/finans/sigorta/daskli-konut-sayisi-artti-ancak-84-milyon-konut-hala-sigortasiz",
+      "titel": "Capital: DASK'lı konut sayısı arttı ancak 8,4 milyon konut hâlâ sigortasız",
+      "datum": "2026",
+      "zitat": "20 milyon 32 bin konutun 11 milyon 628 bin 88'inde poliçe bulunduğu ve oranın yüzde 58'e yükseldiği (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Milliyet nennt 11.700.223 Policen. Primärquelle: DASK Bölgesel Sigortalılık Oranları (dask.gov.tr). Ein Umbau zur Pflicht-Katastrophenversicherung (auch Flut) ist in Vorbereitung.",
+    "startwert": 58
+  },
+  {
+    "id": "m_baukredite",
+    "name": "Günstige Baukredite",
+    "einheit": null,
+    "start": "Zustand: keine breite staatliche Zinsverbilligung; Marktzins ~3,5 % je Monat (Ø 30.10.2026); Programm 'İlk Evim' (1,20 % je Monat, 180 Monate) angekündigt, nicht gestartet (Stand April 2026)",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://www.hesapkurdu.com/konut-kredisi",
+      "titel": "Hesapkurdu: Konut kredisi faiz oranları (Stand 30.10.2026); dazu Milliyet Uzmanpara 30.04.2026 zu 'İlk Evim'",
+      "datum": "Okt. 2026",
+      "zitat": "konut kredisi faiz/kâr payı ortalaması %3,52 (30.10.2026, Suchauszug); aylık yaklaşık yüzde 1,20 seviyesinde planlanan sabit faiz ve 180 ay vade"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Ein Zinsvorteil wirkt nicht verhältnisgleich (50 % mehr Subvention ≠ 50 % mehr Wohnungen). Zustände; Nebenangabe Zins je Monat. Prüfen, ob 'İlk Evim' bis zum Spielstart gestartet ist.",
+    "zustaende": [
+      {
+        "de": "Keine Förderung, Marktzins",
+        "en": "No support, market rate",
+        "tr": "Destek yok, piyasa faizi"
+      },
+      {
+        "de": "Einzelaktionen der Staatsbanken (wie heute)",
+        "en": "Ad-hoc state-bank campaigns (as today)",
+        "tr": "Kamu bankalarının dönemsel kampanyaları (bugünkü gibi)"
+      },
+      {
+        "de": "Programm für Erstkäufer: 1,20 % je Monat, 15 Jahre",
+        "en": "First-buyer programme: 1.20 % per month, 15 years",
+        "tr": "İlk ev programı: aylık %1,20, 15 yıl"
+      },
+      {
+        "de": "Breite Zinssubvention für alle Käufer",
+        "en": "Broad interest subsidy for all buyers",
+        "tr": "Tüm alıcılara geniş faiz desteği"
+      }
+    ],
+    "startzustand": "Einzelaktionen der Staatsbanken (wie heute)",
+    "startwert": null
+  },
+  {
+    "id": "m_fruehwarnsystem",
+    "name": "Frühwarnsystem",
+    "einheit": null,
+    "start": "Zustand: Unwetterwarnungen auf Handys (AFAD 'Hayati Uyarı', nicht bei allen Netzbetreibern); Erdbebenwarnung nur privat (Android) und regional (Izmir, 12 Messpunkte); landesweites System mit ASELSAN vertraglich in Entwicklung",
+    "rundung": "–",
+    "proportional": "nein",
+    "quelle": {
+      "url": "https://shiftdelete.net/?p=240964",
+      "titel": "ShiftDelete: AFAD ve ASELSAN – Ulusal Erken Uyarı Sistemi (Sirenen und Architektur)",
+      "datum": "2025/2026",
+      "zitat": "Ülke genelinde kurulması planlanan bir Ulusal Erken Uyarı Sistemi mimarisi de ortaklaşa geliştirilecek; hücre yayını, toplu SMS, radyo, televizyon ve sosyal medya kanalları incelenecek (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Ein Vorhaben, kein Mengenregler (B-16). Startzustand aus mehreren Auszügen zusammengesetzt; ob Cell Broadcast 2026 landesweit läuft, ist unbelegt – an afad.gov.tr prüfen.",
+    "zustaende": [
+      {
+        "de": "Kein Warnsystem",
+        "en": "No warning system",
+        "tr": "Uyarı sistemi yok"
+      },
+      {
+        "de": "Unwetterwarnung aufs Handy, Bebenwarnung nur regional (wie heute)",
+        "en": "Storm alerts to phones, quake alerts only regional (as today)",
+        "tr": "Telefona hava uyarısı, deprem uyarısı yalnız bölgesel (bugünkü gibi)"
+      },
+      {
+        "de": "Landesweite Sirenen und Bebenwarnung in Ballungsräumen",
+        "en": "Nationwide sirens and quake alerts in metro areas",
+        "tr": "Ülke çapında siren ve büyükşehirlerde deprem uyarısı"
+      },
+      {
+        "de": "Beben und Sturzflut landesweit auf allen Telefonen in Sekunden",
+        "en": "Quakes and flash floods nationwide on all phones within seconds",
+        "tr": "Deprem ve ani sel uyarısı saniyeler içinde tüm telefonlarda"
+      }
+    ],
+    "startzustand": "Unwetterwarnung aufs Handy, Bebenwarnung nur regional (wie heute)",
+    "startwert": null
+  },
+  {
+    "id": "m_afad_ausbau",
+    "name": "Ausbau der Katastrophenbehörde (AFAD)",
+    "einheit": {
+      "de": "{x} Beschäftigte der Katastrophenbehörde",
+      "en": "{x} disaster agency staff",
+      "tr": "{x} AFAD personeli"
+    },
+    "start": "8.541 Beschäftigte, davon 3.529 Such- und Rettungskräfte (Datum der Meldung unklar, 2025); 1,6 Mio. Freiwillige",
+    "rundung": "auf 100",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.yenisafak.com/gundem/afad-gonullu-ordusu-16-milyonu-asti-4749031",
+      "titel": "Yeni Şafak: AFAD gönüllü ordusu 1,6 milyonu aştı",
+      "datum": "2025",
+      "zitat": "AFAD'ın kendi personel sayısı 8 bin 541'e, doğrudan arama-kurtarma kadrosu ise 3 bin 529'a yükseldi (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Haushalt 2026 laut Presse 373 Mrd. Lira – enthält Wiederaufbau im Erdbebengebiet, daher als Reglergröße ungeeignet. Primärquelle Personal: Sayıştay Denetim Raporu AFAD 2024, Tabelle Personal.",
+    "startwert": 8541
+  },
+  {
+    "id": "m_polizei",
+    "name": "Polizei und Gendarmerie",
+    "einheit": {
+      "de": "{x} Beschäftigte der Polizei",
+      "en": "{x} police staff",
+      "tr": "{x} emniyet personeli"
+    },
+    "start": "rund 350.000 Beschäftigte der Polizei (EGM, alle Laufbahnen); Gendarmerie: Lücke; Personalausgaben 2026: Polizei 412,3 Mrd., Gendarmerie 287,1 Mrd. Lira (Entwurf)",
+    "rundung": "auf 1.000",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.trthaber.com/haber/gundem/emniyet-genel-mudurlugu-baskanlik-oluyor-929068.html",
+      "titel": "TRT Haber: Emniyet Genel Müdürlüğü başkanlık oluyor",
+      "datum": "2026",
+      "zitat": "Emniyet Genel Müdürlüğü'nün 350 bin personeli bünyesinde barındırdığını (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Gerundete Zahl inkl. Verwaltung. 10.102 neue Planstellen im März 2026. Alternative Geldgröße (sauberer belegbar): Personalausgaben Polizei + Gendarmerie 699,3 Mrd. Lira (RECHERCHE_HAUSHALT_MINISTERIEN_2026.md). Gendarmerie-Personal: Suchhinweis JGK Faaliyet Raporu.",
+    "startwert": 350000
+  },
+  {
+    "id": "m_polizeitechnik",
+    "name": "Moderne Sicherheitsverwaltung",
+    "einheit": {
+      "de": "{x} Mrd. Lira für Forensik und digitale Polizeitechnik je Jahr",
+      "en": "{x} bn lira for forensics and police IT per year",
+      "tr": "adli bilişim ve emniyet teknolojisine yılda {x} milyar lira"
+    },
+    "start": "Lücke",
+    "rundung": "auf 0,5 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.egm.gov.tr/kurumlar/egm.gov.tr/IcSite/strateji/MaliDurum/2025_Performans_Programi.pdf",
+      "titel": "EGM 2025 Performans Programı",
+      "datum": "2025",
+      "zitat": "– (Betrag im Suchauszug nicht enthalten)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Suchhinweis: EGM Performans Programı 2026, Programm 'Kamu Düzeni ve Güvenliği', Ausgaben für Bilgi Teknolojileri und Kriminal Polis Laboratuvarları. Doppelt mit m_polizei (B-6).",
+    "startwert": null
+  },
+  {
+    "id": "m_verteidigung",
+    "name": "Verteidigungsausgaben",
+    "einheit": {
+      "de": "{x} % des BIP für Verteidigung",
+      "en": "{x} % of GDP on defence",
+      "tr": "GSYH'nin %{x}'i savunma harcaması"
+    },
+    "start": "2,33 % des BIP (NATO-Schätzung 2025; SIPRI: 1,9 % bzw. 30,0 Mrd. Dollar); Haushalt 2026: 1.202 Mrd. Lira für Verteidigung und Sicherheit, Ministerium 822,9 Mrd.",
+    "rundung": "zwei Nachkommastellen",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dailysabah.com/business/defense/nato-defense-spending-how-allies-stand-ahead-of-key-ankara-summit/amp",
+      "titel": "Daily Sabah: NATO defense spending – how allies stand ahead of key Ankara summit",
+      "datum": "2026",
+      "zitat": "Türkiye 2.33% (Tabelle nach NATO-Schätzung 2025, Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "NATO zählt Gendarmerie und Küstenwache mit, SIPRI anders – im Spiel eine Definition festlegen. Primärquelle: NATO 'Defence Expenditure of NATO Countries (2014–2025)'. NATO-Ziel 5 % bis 2035, von der Türkei unterstützt.",
+    "startwert": 2.33
+  },
+  {
+    "id": "m_ruestungsindustrie",
+    "name": "Heimische Rüstungsindustrie",
+    "einheit": {
+      "de": "{x} Mrd. Dollar Rüstungs- und Luftfahrtexporte je Jahr",
+      "en": "{x} bn dollars defence and aerospace exports per year",
+      "tr": "yılda {x} milyar dolar savunma ve havacılık ihracatı"
+    },
+    "start": "10,05 Mrd. Dollar (2025; 2024: 7,15 Mrd.); neue Verträge 2025: 17,8 Mrd. Dollar",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.borsagundem.com.tr/savunma-ve-havacilik-ihracati-10-milyar-dolar-esigini-asti",
+      "titel": "Borsa Gündem: Savunma ve havacılık ihracatı 10 milyar dolar eşiğini aştı (SSB-Präsident Görgün)",
+      "datum": "Jan. 2026",
+      "zitat": "9 milyar 870 milyon dolar mal ve 184 milyon dolar hizmet olmak üzere 10 milyar 54 milyon dolara ulaştığını (Suchauszug)"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Export ist ein Ergebnis, kein Förderbetrag; als Anzeige aber verständlich. Fördergröße (Rüstungsfonds SSDF) ist außerhalb des Haushalts und nicht belegt (RECHERCHE_HAUSHALT_MINISTERIEN, Lücke).",
+    "startwert": 10.05
+  },
+  {
+    "id": "m_uebungen",
+    "name": "Ausbildung und Übungen",
+    "einheit": {
+      "de": "{x} Flugstunden je Kampfpilot und Jahr",
+      "en": "{x} flight hours per combat pilot per year",
+      "tr": "muharip pilot başına yılda {x} uçuş saati"
+    },
+    "start": "Lücke (nicht öffentlich)",
+    "rundung": "auf 5 Stunden",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.nato.int/",
+      "titel": "NATO-Richtwert (nicht türkische Angabe)",
+      "datum": "–",
+      "zitat": "– (kein türkischer Wert öffentlich)"
+    },
+    "sicherheit": "Lücke",
+    "hinweis": "Türkische Flugstunden sind nicht veröffentlicht. Ehrlicher: benannte Zustände (Mindestbetrieb / wie heute: jährliche Großmanöver wie EFES und Denizkurdu / NATO-Standard / Kriegsbereitschaft). Suchhinweis: MSB Faaliyet Raporu, Tatbikat-Kalender.",
+    "startwert": null
+  },
+  {
+    "id": "m_religionsbehoerde",
+    "name": "Budget der Religionsbehörde",
+    "einheit": {
+      "de": "{x} Mrd. Lira Haushalt der Religionsbehörde je Jahr",
+      "en": "{x} bn lira religious affairs budget per year",
+      "tr": "Diyanet'e yılda {x} milyar lira bütçe"
+    },
+    "start": "174,389 Mrd. Lira (Haushalt 2026; davon Personal 148,8 Mrd.)",
+    "rundung": "auf 1 Mrd. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.diken.com.tr/?p=1662584",
+      "titel": "Diken: 2026 bütçesi – Diyanet'e 174 milyar lira, MİT'e 39 milyar lira ayrıldı",
+      "datum": "Okt. 2025",
+      "zitat": "Cumhurbaşkanı Yardımcısı Cevdet Yılmaz 2026'da Diyanet'e 174 milyar 389 milyon lira ... bütçe ayrıldığını duyurdu"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Wert des Entwurfs; im Ausschuss wurde laut Projektnotiz nur das Finanzministerium geändert. Birgün nennt 373,5 Mrd. Lira mit Nebenhaushalten (Stiftung) – nicht dieselbe Größe.",
+    "startwert": 174.389
+  },
+  {
+    "id": "m_richterstellen",
+    "name": "Richter- und Staatsanwaltsstellen",
+    "einheit": {
+      "de": "{x} Richterinnen, Richter und Staatsanwälte je 100.000 Einwohner",
+      "en": "{x} judges and prosecutors per 100,000 inhabitants",
+      "tr": "100.000 kişiye {x} hâkim ve savcı"
+    },
+    "start": "rund 31 je 100.000 (abgeleitet: 26.642 Richter und Staatsanwälte am 23.09.2026, davon 18.167 Richter, ÷ 86,09 Mio. Einwohner); nur Richter ≈ 21",
+    "rundung": "ganze Zahl",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.haberhurriyeti.com/haber/27185619/bir-hakim-ortalama-800-davaya-bakiyor-karar-bekleyen-12-milyon-dosya-var",
+      "titel": "Haberhürriyeti: Bir hâkim ortalama 800 davaya bakıyor (dazu Suchauszug mit Stand 23.09.2026)",
+      "datum": "2026",
+      "zitat": "hakim ve savcı sayısı ise 26 bin 803; 23 Eylül 2026 itibarıyla hakim sayısı 18 bin 167, cumhuriyet savcısı sayısı ise 8 bin 475 (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Widerspruch zum Spieltext ('heute 17, Europa 22'): Mit 18.167 Richtern ergibt sich ≈ 21 Richter je 100.000. Der Wert 17 stammt vermutlich aus CEPEJ 2022. Vor Übernahme Text und Startwert angleichen. Primärquelle: HSK/Adalet Bakanlığı 'Adli İstatistikler 2025'.",
+    "startwert": 31
+  },
+  {
+    "id": "m_haftvermeidung",
+    "name": "Haftvermeidung und Bewährung",
+    "einheit": {
+      "de": "{x} % der Gefangenen in Untersuchungshaft",
+      "en": "{x} % of prisoners in pre-trial detention",
+      "tr": "hükümlü ve tutukluların %{x}'i tutuklu"
+    },
+    "start": "15,0 % (65.227 von 433.520 Gefangenen, 03.08.2026; 402 Anstalten für 304.956 Plätze)",
+    "rundung": "eine Nachkommastelle",
+    "proportional": "nein (umgekehrt: mehr Haftvermeidung = niedrigerer Anteil)",
+    "quelle": {
+      "url": "https://www.istiklal.com.tr/genel/adalet-bakanligi-verileri-cezaevlerinde-433-bin-520-kisi-bulunuyor-1101767h",
+      "titel": "İstiklal: Adalet Bakanlığı verileri – Cezaevlerinde 433 bin 520 kişi bulunuyor (CTE 03.08.2026)",
+      "datum": "Aug. 2026",
+      "zitat": "402 ceza infaz kurumunda toplam 433 bin 520 kişi bulunuyor. Tutuklu sayısı ise 65 bin 227 olarak kaydedildi"
+    },
+    "sicherheit": "belegt",
+    "hinweis": "Anzeige umgekehrt proportional: x = Start × Startpegel ÷ Stufe (Regler 150 % ⇒ 10,0 %). Auffällig: Juli- und Augustzahlen identisch (Yeniçağ) – an cte.adalet.gov.tr prüfen. Dazu 494.000 Personen in Bewährungsaufsicht.",
+    "startwert": 15.0
+  },
+  {
+    "id": "m_denkmalschutz",
+    "name": "Denkmalschutz und Restaurierung",
+    "einheit": {
+      "de": "{x} restaurierte Stiftungsbaudenkmäler je Jahr",
+      "en": "{x} restored foundation monuments per year",
+      "tr": "yılda {x} vakıf eseri restore edildi"
+    },
+    "start": "rund 100 je Jahr (abgeleitet: 201 Baudenkmäler in zwei Jahren laut Minister); 2025 davon 73 im Erdbebengebiet",
+    "rundung": "auf 5",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ensonhaber.com/gundem/mehmet-nuri-ersoy-son-2-yilda-201-vakif-eserinin-restorasyonu-tamamlandi",
+      "titel": "Ensonhaber: Mehmet Nuri Ersoy – Son 2 yılda 201 vakıf eserinin restorasyonu tamamlandı",
+      "datum": "2025",
+      "zitat": "Son 2 yılda 201 vakıf eserinin restorasyonu tamamlandı (Überschrift)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Nur Vakıflar Genel Müdürlüğü; Restaurierungen des Kulturministeriums und der Kommunen fehlen. Geldgröße Lücke (Suchhinweis: VGM 2026 Performans Programı, 'restorasyon ödeneği').",
+    "startwert": 100
+  },
+  {
+    "id": "m_kulturfoerderung",
+    "name": "Kunst- und Kulturförderung",
+    "einheit": {
+      "de": "{x} Mio. Lira Film- und Theaterförderung je Jahr",
+      "en": "{x} m lira film and theatre support per year",
+      "tr": "yılda {x} milyon lira sinema ve tiyatro desteği"
+    },
+    "start": "rund 414 Mio. Lira (Film 316,7 Mio. 2025 + private Theater 97,2 Mio. Saison 2025/26)",
+    "rundung": "auf 5 Mio. Lira",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.dha.com.tr/kultur-sanat/bakan-ersoy-2025te-sinema-alaninda-316-6-milyon-tl-destek-sagladik-2787672",
+      "titel": "DHA: Bakan Ersoy – 2025'te sinema alanında 316,6 milyon TL destek sağladık; dazu Türkgün zu 97,216 Mio. Theaterförderung",
+      "datum": "Jan. 2026",
+      "zitat": "Sinema Genel Müdürlüğü 150 projeyi toplam 316 milyon 674 bin TL ile destekledi; özel tiyatrolara 97 milyon 216 bin lira (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Andere Meldungen nennen 359,4 Mio. Lira Filmförderung 2025 (anderer Umfang). Staatstheater, Opern, Festivals nicht enthalten – Gesamtgröße wäre der Etat des Kulturministeriums (~70 Mrd. Lira mit Tourismus, nicht trennbar).",
+    "startwert": 414
+  },
+  {
+    "id": "m_archaeologie",
+    "name": "Ausgrabungen und Museen",
+    "einheit": {
+      "de": "{x} Ausgrabungen und Forschungsgrabungen je Jahr",
+      "en": "{x} excavations and archaeological surveys per year",
+      "tr": "yılda {x} kazı ve yüzey araştırması"
+    },
+    "start": "rund 780 (2025, Ministerangabe; 776 laut Habertürk)",
+    "rundung": "auf 10",
+    "proportional": "ja",
+    "quelle": {
+      "url": "https://www.ntv.com.tr/ntvpara/bakan-ersoy-tbmmde-2026-butcesini-anlatti-1696503",
+      "titel": "NTV: Bakan Ersoy TBMM'de 2026 bütçesini anlattı",
+      "datum": "Nov. 2025",
+      "zitat": "2025 yılı sonuna kadar gerçekleştirilen tüm kazı ve araştırma çalışmalarının sayısı yılda 780'e ulaşacak (Suchauszug)"
+    },
+    "sicherheit": "plausibel-prüfen",
+    "hinweis": "Prognose für Jahresende 2025, keine Endzahl. Grabungen hängen an Genehmigungen und Fachkräften; ein Regler auf 150 % (1.170) ist nur mit Personal plausibel.",
+    "startwert": 780
+  }
+]

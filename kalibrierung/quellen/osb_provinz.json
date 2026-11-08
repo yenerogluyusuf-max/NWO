@@ -1,0 +1,407 @@
+{
+ "1": {
+  "name": "Adana",
+  "osb_gesamt": 6,
+  "osb_faaliyette": 3
+ },
+ "2": {
+  "name": "Adıyaman",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 4
+ },
+ "3": {
+  "name": "Afyonkarahisar",
+  "osb_gesamt": 11,
+  "osb_faaliyette": 7
+ },
+ "4": {
+  "name": "Ağrı",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "5": {
+  "name": "Amasya",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 4
+ },
+ "6": {
+  "name": "Ankara",
+  "osb_gesamt": 15,
+  "osb_faaliyette": 13
+ },
+ "7": {
+  "name": "Antalya",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 1
+ },
+ "8": {
+  "name": "Artvin",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 0
+ },
+ "9": {
+  "name": "Aydın",
+  "osb_gesamt": 8,
+  "osb_faaliyette": 8
+ },
+ "10": {
+  "name": "Balıkesir",
+  "osb_gesamt": 11,
+  "osb_faaliyette": 5
+ },
+ "11": {
+  "name": "Bilecik",
+  "osb_gesamt": 8,
+  "osb_faaliyette": 6
+ },
+ "12": {
+  "name": "Bingöl",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "13": {
+  "name": "Bitlis",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "14": {
+  "name": "Bolu",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 3
+ },
+ "15": {
+  "name": "Burdur",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 3
+ },
+ "16": {
+  "name": "Bursa",
+  "osb_gesamt": 17,
+  "osb_faaliyette": 17
+ },
+ "17": {
+  "name": "Çanakkale",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 3
+ },
+ "18": {
+  "name": "Çankırı",
+  "osb_gesamt": 6,
+  "osb_faaliyette": 4
+ },
+ "19": {
+  "name": "Çorum",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "20": {
+  "name": "Denizli",
+  "osb_gesamt": 6,
+  "osb_faaliyette": 4
+ },
+ "21": {
+  "name": "Diyarbakır",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 4
+ },
+ "22": {
+  "name": "Edirne",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 1
+ },
+ "23": {
+  "name": "Elazığ",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "24": {
+  "name": "Erzincan",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "25": {
+  "name": "Erzurum",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 3
+ },
+ "26": {
+  "name": "Eskişehir",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 3
+ },
+ "27": {
+  "name": "Gaziantep",
+  "osb_gesamt": 8,
+  "osb_faaliyette": 5
+ },
+ "28": {
+  "name": "Giresun",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 2
+ },
+ "29": {
+  "name": "Gümüşhane",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "30": {
+  "name": "Hakkari",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 0
+ },
+ "31": {
+  "name": "Hatay",
+  "osb_gesamt": 9,
+  "osb_faaliyette": 5
+ },
+ "32": {
+  "name": "Isparta",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 2
+ },
+ "33": {
+  "name": "Mersin",
+  "osb_gesamt": 7,
+  "osb_faaliyette": 4
+ },
+ "34": {
+  "name": "İstanbul",
+  "osb_gesamt": 9,
+  "osb_faaliyette": 8
+ },
+ "35": {
+  "name": "İzmir",
+  "osb_gesamt": 17,
+  "osb_faaliyette": 13
+ },
+ "36": {
+  "name": "Kars",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 2
+ },
+ "37": {
+  "name": "Kastamonu",
+  "osb_gesamt": 6,
+  "osb_faaliyette": 4
+ },
+ "38": {
+  "name": "Kayseri",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "39": {
+  "name": "Kırklareli",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "40": {
+  "name": "Kırşehir",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 2
+ },
+ "41": {
+  "name": "Kocaeli",
+  "osb_gesamt": 14,
+  "osb_faaliyette": 14
+ },
+ "42": {
+  "name": "Konya",
+  "osb_gesamt": 12,
+  "osb_faaliyette": 8
+ },
+ "43": {
+  "name": "Kütahya",
+  "osb_gesamt": 7,
+  "osb_faaliyette": 6
+ },
+ "44": {
+  "name": "Malatya",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "45": {
+  "name": "Manisa",
+  "osb_gesamt": 10,
+  "osb_faaliyette": 7
+ },
+ "46": {
+  "name": "Kahramanmaraş",
+  "osb_gesamt": 8,
+  "osb_faaliyette": 4
+ },
+ "47": {
+  "name": "Mardin",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 2
+ },
+ "48": {
+  "name": "Muğla",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "49": {
+  "name": "Muş",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "50": {
+  "name": "Nevşehir",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 2
+ },
+ "51": {
+  "name": "Niğde",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 2
+ },
+ "52": {
+  "name": "Ordu",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 3
+ },
+ "53": {
+  "name": "Rize",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "54": {
+  "name": "Sakarya",
+  "osb_gesamt": 9,
+  "osb_faaliyette": 7
+ },
+ "55": {
+  "name": "Samsun",
+  "osb_gesamt": 11,
+  "osb_faaliyette": 8
+ },
+ "56": {
+  "name": "Siirt",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "57": {
+  "name": "Sinop",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 2
+ },
+ "58": {
+  "name": "Sivas",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 4
+ },
+ "59": {
+  "name": "Tekirdağ",
+  "osb_gesamt": 13,
+  "osb_faaliyette": 13
+ },
+ "60": {
+  "name": "Tokat",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 5
+ },
+ "61": {
+  "name": "Trabzon",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "62": {
+  "name": "Tunceli",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "63": {
+  "name": "Şanlıurfa",
+  "osb_gesamt": 6,
+  "osb_faaliyette": 6
+ },
+ "64": {
+  "name": "Uşak",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 4
+ },
+ "65": {
+  "name": "Van",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 2
+ },
+ "66": {
+  "name": "Yozgat",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "67": {
+  "name": "Zonguldak",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 4
+ },
+ "68": {
+  "name": "Aksaray",
+  "osb_gesamt": 7,
+  "osb_faaliyette": 2
+ },
+ "69": {
+  "name": "Bayburt",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "70": {
+  "name": "Karaman",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "71": {
+  "name": "Kırıkkale",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 3
+ },
+ "72": {
+  "name": "Batman",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 1
+ },
+ "73": {
+  "name": "Şırnak",
+  "osb_gesamt": 3,
+  "osb_faaliyette": 2
+ },
+ "74": {
+  "name": "Bartın",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "75": {
+  "name": "Ardahan",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 0
+ },
+ "76": {
+  "name": "Iğdır",
+  "osb_gesamt": 1,
+  "osb_faaliyette": 1
+ },
+ "77": {
+  "name": "Yalova",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 3
+ },
+ "78": {
+  "name": "Karabük",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 2
+ },
+ "79": {
+  "name": "Kilis",
+  "osb_gesamt": 2,
+  "osb_faaliyette": 2
+ },
+ "80": {
+  "name": "Osmaniye",
+  "osb_gesamt": 4,
+  "osb_faaliyette": 2
+ },
+ "81": {
+  "name": "Düzce",
+  "osb_gesamt": 5,
+  "osb_faaliyette": 4
+ }
+}

@@ -1,0 +1,102 @@
+== 1. Fünf Jahre ohne Eingabe (Seed 42) ==
+Start      2028-06-05 | Infl  31.5 | Wachst   2.3 | AL   8.1 | Lira   49.0 | Zins    37 | Schuld  23.8 | Risiko  250 | Vertrauen  45.0 | akute Probleme 8 | Logeinträge 2
+Jahr 1     2029-06-05 | Infl  27.9 | Wachst   3.1 | AL   8.9 | Lira   64.3 | Zins    36 | Schuld  20.0 | Risiko  297 | Vertrauen  45.0 | akute Probleme 8 | Logeinträge 38
+Jahr 2     2030-06-05 | Infl  22.2 | Wachst   3.1 | AL   9.1 | Lira   79.6 | Zins  30.5 | Schuld  17.8 | Risiko  260 | Vertrauen  45.0 | akute Probleme 8 | Logeinträge 74
+Jahr 3     2031-06-05 | Infl  16.0 | Wachst   3.5 | AL   9.4 | Lira   89.5 | Zins  22.5 | Schuld  17.1 | Risiko  225 | Vertrauen  46.4 | akute Probleme 8 | Logeinträge 110
+Jahr 4     2032-06-04 | Infl  10.5 | Wachst   5.1 | AL   9.2 | Lira   96.5 | Zins    15 | Schuld  17.2 | Risiko  180 | Vertrauen  50.8 | akute Probleme 8 | Logeinträge 147
+Jahr 5     2033-06-04 | Infl   7.5 | Wachst   5.1 | AL   8.7 | Lira  102.4 | Zins  11.5 | Schuld  17.9 | Risiko  169 | Vertrauen  57.7 | akute Probleme 8 | Logeinträge 183
+
+== 1b. Ausgaben +20 %-Punkte des BIP und gefügige Zentralbank ==
+Start      2028-06-05 | Infl  31.5 | Wachst   2.3 | AL   8.1 | Lira   52.1 | Zins    37 | Schuld  23.8 | Risiko  340 | Vertrauen  45.0 | akute Probleme 8 | Logeinträge 4
+Jahr 1     2029-06-05 | Infl  37.4 | Wachst  18.5 | AL   5.2 | Lira   74.7 | Zins  37.5 | Schuld  33.3 | Risiko  387 | Vertrauen  44.4 | akute Probleme 8 | Logeinträge 40
+Jahr 2     2030-06-05 | Infl  41.8 | Wachst   4.8 | AL   4.2 | Lira  110.4 | Zins  45.5 | Schuld  38.6 | Risiko  401 | Vertrauen  40.0 | akute Probleme 8 | Logeinträge 76
+Jahr 3     2031-06-05 | Infl  44.1 | Wachst   2.4 | AL   6.2 | Lira  158.0 | Zins  47.5 | Schuld  43.0 | Risiko  413 | Vertrauen  33.6 | akute Probleme 9 | Logeinträge 112
+Jahr 4     2032-06-04 | Infl  43.7 | Wachst   3.9 | AL   7.3 | Lira  229.7 | Zins  46.5 | Schuld  45.2 | Risiko  401 | Vertrauen  28.0 | akute Probleme 10 | Logeinträge 149
+Jahr 5     2033-06-04 | Infl  42.2 | Wachst   3.6 | AL   7.8 | Lira  341.9 | Zins  43.5 | Schuld  46.8 | Risiko  393 | Vertrauen  23.7 | akute Probleme 10 | Logeinträge 185
+
+== 1c. Alle Maßnahmen auf 100 ==
+Start      2028-06-05 | Infl  31.5 | Wachst   2.3 | AL   8.1 | Lira   49.0 | Zins    37 | Schuld  23.8 | Risiko  250 | Vertrauen  45.0 | akute Probleme 8 | Logeinträge 92
+Jahr 1     2029-06-05 | Infl  29.7 | Wachst   6.1 | AL   8.4 | Lira   64.5 | Zins  37.5 | Schuld  22.7 | Risiko  306 | Vertrauen  51.5 | akute Probleme 7 | Logeinträge 128
+Jahr 2     2030-06-05 | Infl  27.4 | Wachst   5.9 | AL   7.7 | Lira   81.8 | Zins  36.5 | Schuld  24.9 | Risiko  283 | Vertrauen  73.1 | akute Probleme 7 | Logeinträge 164
+Jahr 3     2031-06-05 | Infl  23.1 | Wachst   5.8 | AL   8.0 | Lira   95.4 | Zins  31.5 | Schuld  28.7 | Risiko  256 | Vertrauen 100.0 | akute Probleme 3 | Logeinträge 200
+Jahr 4     2032-06-04 | Infl  18.1 | Wachst   6.8 | AL   8.3 | Lira  107.3 | Zins    24 | Schuld  33.0 | Risiko  213 | Vertrauen 100.0 | akute Probleme 1 | Logeinträge 237
+Jahr 5     2033-06-04 | Infl  14.8 | Wachst   6.9 | AL   8.1 | Lira  118.9 | Zins  19.5 | Schuld  37.3 | Risiko  188 | Vertrauen 100.0 | akute Probleme 1 | Logeinträge 273
+
+== 2. Maßnahmen und Kosten ==
+Maßnahmen: 90, davon mit Kosten: 83; Kanten: 412
+Kantengewicht |w|: Median 0.030, Maximum 0.10
+Vertrauen nach 3 Jahren ohne Eingabe: 47.0. Beste Einzelmaßnahmen (Stufe 100):
+  Preiskontrollen für Lebensmittel               Vertrauen 63.9  Kosten 0.08 % BIP
+  Digitale Öffentlichkeit und Beteiligung        Vertrauen 59.6  Kosten 0.10 % BIP
+  Mietpreisbremse                                Vertrauen 58.5  Kosten 0.00 % BIP
+  Sozialhilfe                                    Vertrauen 54.7  Kosten 0.39 % BIP
+  Energiesubventionen                            Vertrauen 54.5  Kosten 0.45 % BIP
+  Staatliche Medien und Werbung                  Vertrauen 54.5  Kosten 0.04 % BIP
+  Kindergeld und Familienhilfe                   Vertrauen 52.0  Kosten 0.35 % BIP
+  Netzmodernisierung und Speicher                Vertrauen 51.1  Kosten 0.25 % BIP
+
+== 3. Gespräch: 40 natürliche Eingaben ==
+abgelehnt   „krieg“                                        -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Wir erklären Syrien den Krieg“                -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Truppen nach Syrien schicken“                 -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Verhandle mit der EU“                         -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+angenommen  „Rede an die Nation halten“                    -> Die Zeit läuft nicht (Tag 1, 5. Juni 2028).
+abgelehnt   „Neuwahlen ausrufen“                           -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Minister entlassen“                           -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Neues Kabinett bilden“                        -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Bau einen neuen Flughafen in Istanbul“        -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Kanal Istanbul bauen“                         -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+angenommen  „Erdbebenhilfe für Hatay“                      -> Beispiele: Wie hoch ist die Inflation? · Erhoehe den Mindestlohn. · Ich will mehr ausgeben
+abgelehnt   „Steuern erhöhen“                              -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Erhöhe die Steuern“                           -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+angenommen  „Senke die Mehrwertsteuer“                     -> Mehrwertsteuer: von Stufe 60 auf 85 erhöht.
+angenommen  „Mehrwertsteuer senken“                        -> Mehrwertsteuer: von Stufe 60 auf 85 erhöht.
+abgelehnt   „Rentner sollen mehr bekommen“                 -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+angenommen  „Erhöhe die Renten“                            -> Rentenerhöhungen: von Stufe 50 auf 75 erhöht.
+abgelehnt   „Mehr Geld für Bildung“                        -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Baue Schulen“                                 -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Ich möchte die Arbeitslosigkeit senken“       -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Wie ist die Stimmung im Land?“                -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Wie stehe ich in den Umfragen?“               -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Was sagt die Opposition?“                     -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Habe ich eine Mehrheit im Parlament?“         -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Lass mich mit dem Zentralbankchef sprechen“   -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Was soll ich als Nächstes tun?“               -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+abgelehnt   „Was ist das größte Problem?“                  -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+angenommen  „Hilfe“                                        -> Beispiele: Wie hoch ist die Inflation? · Erhoehe den Mindestlohn. · Ich will mehr ausgeben
+angenommen  „Erhöhe den Mindestlohn“                       -> Mindestlohn: von Stufe 50 auf 75 erhöht.
+angenommen  „Erhoehe den Mindestlohn“                      -> Mindestlohn: von Stufe 50 auf 75 erhöht.
+angenommen  „Mindestlohn auf 80“                           -> Mindestlohn: von Stufe 50 auf 80 erhöht.
+angenommen  „Mindestlohn senken“                           -> Mindestlohn: von Stufe 50 auf 25 gesenkt.
+abgelehnt   „Wasserleitungen bauen“                        -> „Wasserleitungen und Kläranlagen“ verstanden, aber in welche Richtung? Sagen Sie etwa „erh
+angenommen  „Erhöhe die Wasserleitungen“                   -> Wasserleitungen und Kläranlagen: von Stufe 40 auf 65 erhöht.
+angenommen  „Kritisiere die Zentralbank“                   -> Der Präsident kritisiert die Zinspolitik öffentlich.
+angenommen  „Entlasse den Zentralbankchef“                 -> Der Präsident entlässt die Zentralbankführung und ernennt eine neue, regierungsnahe Führun
+abgelehnt   „Zinsen senken“                                -> Den Leitzins bestimmt die Zentralbank, nicht die Regierung. Wege, die es gibt: öffentliche
+angenommen  „30 Tage weiter“                               -> 30 Tage später: 5. Juli 2028 (vorher 2028-06-05). Arbeitslosenquote April 2028: 8,1 %. Die
+abgelehnt   „ein Jahr weiter“                              -> Das habe ich nicht als Auftrag verstanden. Moeglich sind zum Beispiel: Wie hoch ist die In
+angenommen  „weiter“                                       -> 1 Tag später: 6. Juni 2028 (vorher 2028-06-05). Nichts Außergewöhnliches ist passiert.
+angenommen: 15 von 40 (die Ausführung kann trotzdem falsch sein, siehe Zeilen mit Mehrwertsteuer, Rede halten, Erdbebenhilfe)
+
+== 4. Regionale Tiefe des Politiknetzes ==
+Knoten mit regionaler Streuung > 0,5 Indexpunkte beim Start: 37 von 199
+   groesse    20 von 86
+   massnahme  0 von 90
+   problem    9 von 15
+   gruppe     8 von 8
+Knoten mit eigener Regionalformel: 29
+Wasserleitungen auf 90: Wirkung auf die Wasserversorgung nach 3 Jahren, kleinste Provinz 17.17, größte 17.17
+Akute Probleme beim Start:
+   Armut: 3 Provinzen
+   Perspektivlose Jugend: 7 Provinzen
+   Luftverschmutzung: 3 Provinzen
+   Wassermangel: 9 Provinzen
+   Verödung ländlicher Regionen: 6 Provinzen
+   Wohnungsnot: 10 Provinzen
+   Erdbebengefahr: 21 Provinzen
+   Spannungen um Migration: 6 Provinzen
+
+== 5. Leistung (Node) ==
+1 Spieljahr: 2 ms
+structuredClone(World): 15.2 ms
+Vorschau einer Entscheidung (Decisions.tsx: 4 Größen x 16 Läufe): 2200 ms

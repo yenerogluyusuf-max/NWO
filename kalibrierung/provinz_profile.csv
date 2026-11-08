@@ -1,0 +1,82 @@
+plaka,name,region,nuts2,bevoelkerung,sege_rang,sege_skor,sege_kademe,export_2025_mio_usd,export_quelle,export_klasse_0_5,export_flag,export_ueber_1mrd_2025,osb_gesamt,osb_faaliyet,geceleme_2025,geceleme_pro_kopf,migration_pro1000,migration_flag,hauptprodukte,strom_bilanz,wasserstress_1_5,deprem_risiko_1_5,kueste,grenzland,hauptsektor,cluster_id,cluster_name
+1,Adana,Akdeniz,TR62,2283609,22,0.441,3,3044,tim2025,3,teils_belegt_teils_abgeleitet,1,6,3,1507221,0.66,-7.5,geschaetzt,"Baumwolle, Zitrus, Mais",1,3,3,1,1,A,2,Industrie- und Hafen-Gürtel (2. Reihe)
+2,Adıyaman,Güneydoğu Anadolu,TRC1,617821,69,-0.944,6,,,0,abgeleitet,0,5,4,164668,0.27,-19.5,geschaetzt,"Getreide, Linsen, Wein",-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+3,Afyonkarahisar,Ege,TR33,751808,42,-0.148,4,,,1,abgeleitet,0,11,7,1707098,2.27,-12.6,geschaetzt,"Mohn, Kirsche, Eier",-1,4,4,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+4,Ağrı,Doğu Anadolu,TRA2,491489,81,-1.826,6,,,0,abgeleitet,0,2,1,469819,0.96,-32.6,belegt2024,"Viehzucht, Getreide",-1,3,4,0,1,A,8,Ost-Anatolien peripher
+5,Amasya,Karadeniz,TR83,342242,39,-0.069,4,,,0,abgeleitet,0,4,4,296982,0.87,-1.8,belegt2024,"Äpfel, Kirsche, Hopfen",-1,3,5,0,0,A,4,Anatolische Mittelstädte / Tiger
+6,Ankara,İç Anadolu,TR51,5910320,2,2.837,1,,,4,abgeleitet_von_faaliyet2025_monatswerten,1,15,13,6175718,1.04,8.9,belegt2024,"Getreide, Zuckerrüben, Wein",-1,3,3,0,0,M,1,Metropol-Industrie-Kern
+7,Antalya,Akdeniz,TR61,2777677,5,1.716,1,2100,tim2025est,2,liste_33_iller_1mrd,1,4,1,111340634,40.08,9.1,belegt2024,"Serragemüse, Zitrus, Bananen",1,4,4,1,0,T,3,Tourismus-Küste
+8,Artvin,Karadeniz,TR90,167531,41,-0.135,4,,,0,abgeleitet,0,1,0,375525,2.24,-12.5,geschaetzt,"Tee, Kiwi, Viehzucht",2,1,3,1,1,A,6,Karadeniz-Fındık-Peripherie
+9,Aydın,Ege,TR32,1172107,21,0.498,2,,,2,liste_33_iller_1mrd,1,8,8,7104919,6.06,4.2,belegt2025,"Feigen, Oliven, Baumwolle",1,3,5,1,0,T,3,Tourismus-Küste
+10,Balıkesir,Marmara,TR22,1284517,18,0.597,2,,,2,liste_33_iller_1mrd,1,11,5,3411872,2.66,-6.2,geschaetzt,"Oliven, Tomaten, Ayçiçeği",0,4,5,1,1,A,2,Industrie- und Hafen-Gürtel (2. Reihe)
+11,Bilecik,Marmara,TR41,228995,26,0.319,3,,,2,liste_33_iller_1mrd,1,8,6,242712,1.06,-8.6,geschaetzt,"Keramikrohstoffe, Getreide",-1,2,5,0,0,I,4,Anatolische Mittelstädte / Tiger
+12,Bingöl,Doğu Anadolu,TRB1,282299,70,-0.985,6,,,0,abgeleitet,0,1,1,80969,0.29,-19.8,geschaetzt,"Viehzucht, Getreide",-1,3,5,0,0,A,8,Ost-Anatolien peripher
+13,Bitlis,Doğu Anadolu,TRB2,360423,75,-1.348,6,,,0,abgeleitet,0,1,1,129060,0.36,-23.0,geschaetzt,"Viehzucht, Bienenzucht",-1,3,4,0,0,A,8,Ost-Anatolien peripher
+14,Bolu,Karadeniz,TR42,327173,16,0.622,2,,,2,liste_33_iller_1mrd,1,4,3,655770,2.0,-6.0,geschaetzt,"Getreide, Kartoffeln, Viehzucht",-1,2,5,0,0,A,4,Anatolische Mittelstädte / Tiger
+15,Burdur,Akdeniz,TR61,277226,35,0.079,3,239,tim2025,0,abgeleitet,0,3,3,219125,0.79,-10.7,geschaetzt,"Äpfel, Rosen, Viehzucht",-1,5,4,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+16,Bursa,Marmara,TR41,3263011,6,1.36,1,,,4,abgeleitet_von_faaliyet2025_monatswerten,1,17,17,2949385,0.9,0.4,geschaetzt,"Pfirsiche, Tomaten, Oliven",-1,4,5,1,0,I,1,Metropol-Industrie-Kern
+17,Çanakkale,Marmara,TR22,573976,15,0.627,2,,,2,liste_33_iller_1mrd,1,4,3,1902893,3.32,-5.9,geschaetzt,"Ayçiçeği, Weizen, Tomaten",1,4,5,1,0,A,2,Industrie- und Hafen-Gürtel (2. Reihe)
+18,Çankırı,İç Anadolu,TR82,200549,53,-0.283,5,,,0,abgeleitet,0,6,4,169681,0.85,-27.7,belegt2024,"Getreide, Reis",-1,3,5,0,0,A,8,Ost-Anatolien peripher
+19,Çorum,Karadeniz,TR83,519590,43,-0.157,4,,,3,teils_belegt_teils_abgeleitet,1,5,3,245452,0.47,-12.8,belegt2024,"Weizen, Kichererbsen",-1,3,4,0,0,I,4,Anatolische Mittelstädte / Tiger
+20,Denizli,Ege,TR32,1060975,11,0.819,2,4700,tim2025,2,liste_33_iller_1mrd,1,6,4,1780927,1.68,-0.5,belegt2025,"Baumwolle, Trauben, Marmor",1,3,5,0,0,I,4,Anatolische Mittelstädte / Tiger
+21,Diyarbakır,Güneydoğu Anadolu,TRC2,1852356,66,-0.881,6,,,1,abgeleitet,0,5,4,993187,0.54,-19.0,geschaetzt,"Getreide, Linsen, Viehzucht",2,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+22,Edirne,Marmara,TR21,422438,19,0.556,2,,,0,abgeleitet,0,5,1,1421453,3.36,-6.6,geschaetzt,"Ayçiçeği, Reis, Sonnenblumen",-1,4,3,1,1,A,2,Industrie- und Hafen-Gürtel (2. Reihe)
+23,Elazığ,Doğu Anadolu,TRB1,605678,47,-0.174,4,,,1,abgeleitet,0,5,3,448152,0.74,-12.9,geschaetzt,"Zuckerfabriken-Rüben, Kirschen, Viehzucht",2,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+24,Erzincan,Doğu Anadolu,TRA1,239625,46,-0.166,4,,,0,abgeleitet,0,2,1,310329,1.3,-12.8,geschaetzt,"Aprikosen, Weintrauben, Viehzucht",-1,3,5,0,0,A,4,Anatolische Mittelstädte / Tiger
+25,Erzurum,Doğu Anadolu,TRA1,736877,55,-0.347,5,,,0,abgeleitet,0,3,3,748694,1.02,-12.0,belegt2024,"Viehzucht, Getreide",-1,3,4,0,0,A,4,Anatolische Mittelstädte / Tiger
+26,Eskişehir,İç Anadolu,TR41,927956,7,1.295,1,,,3,teils_belegt_teils_abgeleitet,1,3,3,1137337,1.23,-0.2,geschaetzt,"Getreide, Zuckerrüben",-1,3,4,0,0,I,4,Anatolische Mittelstädte / Tiger
+27,Gaziantep,Güneydoğu Anadolu,TRC1,2222415,30,0.147,3,10400,tim2025est,3,teils_belegt_teils_abgeleitet,1,8,5,1508295,0.68,-10.1,geschaetzt,"Antepfistache, Oliven, Getreide",-1,3,3,0,1,I,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+28,Giresun,Karadeniz,TR90,455074,51,-0.259,5,,,2,liste_33_iller_1mrd,1,5,2,346264,0.76,-13.6,geschaetzt,"Haselnüsse, Kiwi",-1,2,2,1,0,A,6,Karadeniz-Fındık-Peripherie
+29,Gümüşhane,Karadeniz,TR90,138807,65,-0.873,6,,,0,abgeleitet,0,2,1,47789,0.34,-42.8,belegt2024,"Äpfel, Viehzucht",1,3,3,0,0,A,8,Ost-Anatolien peripher
+30,Hakkari,Doğu Anadolu,TRB2,279681,77,-1.471,6,,,0,abgeleitet,0,1,0,78736,0.28,-24.0,geschaetzt,"Viehzucht, Getreide",-1,3,5,0,1,A,8,Ost-Anatolien peripher
+31,Hatay,Akdeniz,TR63,1577531,50,-0.247,5,3471,tim2025,3,teils_belegt_teils_abgeleitet,1,9,5,942130,0.6,-13.5,geschaetzt,"Zitrus, Baumwolle, Weizen",2,4,5,1,1,I,2,Industrie- und Hafen-Gürtel (2. Reihe)
+32,Isparta,Akdeniz,TR61,445303,25,0.42,3,490,tim2025est,1,abgeleitet,0,3,2,363102,0.82,-7.7,geschaetzt,"Rosen, Äpfel, Trauben",-1,5,5,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+33,Mersin,Akdeniz,TR62,1956428,13,0.688,2,3630,tim2025,3,teils_belegt_teils_abgeleitet,1,7,4,2597184,1.33,-5.4,geschaetzt,"Zitrus, Bananen, Tomaten",-1,4,3,1,0,A,2,Industrie- und Hafen-Gürtel (2. Reihe)
+34,İstanbul,Marmara,TR10,15754053,1,4.419,1,57758,faaliyet2025,5,belegt2025,1,9,8,40105289,2.55,1.7,belegt2024,(urban) Dienstleistungen,-2,5,4,1,0,M,1,Metropol-Industrie-Kern
+35,İzmir,Ege,TR31,4504185,3,1.808,1,,,4,abgeleitet_von_faaliyet2025_monatswerten,1,17,13,8407203,1.87,3.5,belegt2024,"Trauben, Oliven, Baumwolle",-1,4,5,1,0,M,1,Metropol-Industrie-Kern
+36,Kars,Doğu Anadolu,TRA2,268991,71,-1.116,6,,,0,abgeleitet,0,2,2,376762,1.4,-25.3,belegt2024,"Viehzucht, Getreide",-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+37,Kastamonu,Karadeniz,TR82,379934,49,-0.191,4,463,tim2025,1,abgeleitet,0,6,4,391495,1.03,-13.0,geschaetzt,"Getreide, Hanf, Viehzucht",-1,2,3,0,0,A,4,Anatolische Mittelstädte / Tiger
+38,Kayseri,İç Anadolu,TR72,1458991,17,0.615,2,,,2,liste_33_iller_1mrd,1,5,3,1116365,0.77,-6.0,geschaetzt,"Getreide, Aprikosen, Viehzucht",-1,3,3,0,0,I,4,Anatolische Mittelstädte / Tiger
+39,Kırklareli,Marmara,TR21,379595,23,0.432,3,,,2,liste_33_iller_1mrd,1,5,3,531990,1.4,-7.6,geschaetzt,"Ayçiçeği, Weizen, Sonnenblumen",-1,4,2,1,1,A,2,Industrie- und Hafen-Gürtel (2. Reihe)
+40,Kırşehir,İç Anadolu,TR71,242777,40,-0.129,4,,,0,abgeleitet,0,3,2,103325,0.43,-12.5,geschaetzt,"Getreide, Aprikosen, Honig",-1,3,5,0,0,A,4,Anatolische Mittelstädte / Tiger
+41,Kocaeli,Marmara,TR42,2161171,4,1.777,1,35086,faaliyet2025,5,belegt2025,1,14,14,1909583,0.88,7.2,belegt2024,"(industriel) Gemüse, Blumen",-2,4,5,1,0,I,1,Metropol-Industrie-Kern
+42,Konya,İç Anadolu,TR52,2343409,14,0.681,2,,,3,teils_belegt_teils_abgeleitet,1,12,8,1512024,0.65,-5.5,geschaetzt,"Weizen, Zuckerrüben, Mais",0,5,3,0,0,I,5,Agrar-Steppe İç Ege/Zentralanatolien
+43,Kütahya,Ege,TR33,570478,31,0.126,3,,,1,abgeleitet,0,7,6,619845,1.09,-10.3,geschaetzt,"Kirschen, Getreide, Mohn",1,4,4,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+44,Malatya,Doğu Anadolu,TRB1,755854,44,-0.159,4,,,1,abgeleitet,0,5,3,331918,0.44,-12.7,geschaetzt,Aprikosen (80-90% Trockenaprikose),-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+45,Manisa,Ege,TR33,1477756,20,0.509,2,,,3,teils_belegt_teils_abgeleitet,1,10,7,798919,0.54,-7.0,geschaetzt,"Trauben (Sultaniye ~90%), Baumwolle, Oliven",1,4,5,0,0,I,5,Agrar-Steppe İç Ege/Zentralanatolien
+46,Kahramanmaraş,Akdeniz,TR63,1146278,63,-0.58,5,,,2,liste_33_iller_1mrd,1,8,4,378372,0.33,-16.4,geschaetzt,"Getreide, Baumwolle, Paprika",2,3,4,0,1,I,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+47,Mardin,Güneydoğu Anadolu,TRC3,903576,72,-1.174,6,,,1,abgeleitet,0,3,2,855339,0.95,-21.5,geschaetzt,"Linsen, Weizen, Gerste",-1,3,3,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+48,Muğla,Ege,TR32,1099547,8,1.251,1,,,2,liste_33_iller_1mrd,1,2,1,24669490,22.44,11.6,belegt2024,"Oliven, Zitrus, Tomaten",1,3,5,1,0,T,3,Tourismus-Küste
+49,Muş,Doğu Anadolu,TRB2,389127,80,-1.797,6,,,0,abgeleitet,0,1,1,267234,0.69,-27.3,belegt2024,"Viehzucht, Getreide",-1,3,5,0,0,A,8,Ost-Anatolien peripher
+50,Nevşehir,İç Anadolu,TR71,320150,33,0.112,3,,,0,abgeleitet,0,4,2,4105898,12.82,-10.4,geschaetzt,"Kartoffeln, Trauben, Äpfel",-1,3,3,0,0,T,3,Tourismus-Küste
+51,Niğde,İç Anadolu,TR71,374492,60,-0.466,5,,,1,abgeleitet,0,4,2,271862,0.73,-15.4,geschaetzt,"Kartoffeln, Äpfel, Bohnen",-1,5,3,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+52,Ordu,Karadeniz,TR90,768087,54,-0.312,5,,,1,abgeleitet,0,4,3,626387,0.82,-14.0,geschaetzt,Haselnüsse (Weltspitze),-1,2,3,1,0,A,6,Karadeniz-Fındık-Peripherie
+53,Rize,Karadeniz,TR90,346947,32,0.115,3,,,1,abgeleitet,0,2,1,478583,1.38,-10.4,geschaetzt,"Tee (Hauptproduzent), Haselnüsse",1,1,3,1,0,A,6,Karadeniz-Fındık-Peripherie
+54,Sakarya,Marmara,TR42,1123693,12,0.729,2,,,3,teils_belegt_teils_abgeleitet,1,9,7,1503679,1.34,-5.1,geschaetzt,"Getreide, Mais, Gemüse",-1,4,5,1,0,I,2,Industrie- und Hafen-Gürtel (2. Reihe)
+55,Samsun,Karadeniz,TR83,1392403,27,0.319,3,,,2,liste_33_iller_1mrd,1,11,8,1012857,0.73,2.6,belegt2024,"Haselnüsse, Reis, Tabak",1,3,4,1,0,I,2,Industrie- und Hafen-Gürtel (2. Reihe)
+56,Siirt,Güneydoğu Anadolu,TRC3,332369,76,-1.353,6,,,0,abgeleitet,0,1,1,74845,0.23,-34.0,belegt2024,"Viehzucht, Getreide",1,3,5,0,1,A,8,Ost-Anatolien peripher
+57,Sinop,Karadeniz,TR82,225848,59,-0.384,5,,,0,abgeleitet,0,2,2,272595,1.21,-14.7,geschaetzt,"Getreide, Viehzucht, Fisch",-1,2,3,1,0,A,6,Karadeniz-Fındık-Peripherie
+58,Sivas,İç Anadolu,TR72,631401,45,-0.16,4,,,0,abgeleitet,0,5,4,501938,0.79,-21.1,belegt2024,"Getreide, Zuckerrüben, Viehzucht",-1,3,3,0,0,A,4,Anatolische Mittelstädte / Tiger
+59,Tekirdağ,Marmara,TR21,1208441,10,0.88,2,,,4,abgeleitet_von_faaliyet2025_monatswerten,1,13,13,784522,0.65,13.1,belegt2024,"Ayçiçeği, Weizen, Reis",-2,4,4,1,0,I,1,Metropol-Industrie-Kern
+60,Tokat,Karadeniz,TR83,614141,61,-0.476,5,,,0,abgeleitet,0,5,5,444851,0.72,10.4,belegt2024,"Getreide, Zuckerrüben, Gemüse",-1,3,5,0,0,A,4,Anatolische Mittelstädte / Tiger
+61,Trabzon,Karadeniz,TR90,823323,24,0.421,3,,,1,abgeleitet,0,5,3,2353706,2.86,-7.7,geschaetzt,"Tee, Haselnüsse, Anchovis",-1,2,3,1,0,A,6,Karadeniz-Fındık-Peripherie
+62,Tunceli,Doğu Anadolu,TRB1,85083,58,-0.381,5,,,0,abgeleitet,0,1,1,101477,1.19,-24.3,belegt2024,"Viehzucht, Honig",1,3,5,0,0,A,8,Ost-Anatolien peripher
+63,Şanlıurfa,Güneydoğu Anadolu,TRC2,2265800,79,-1.525,6,,,1,abgeleitet,0,6,6,789610,0.35,-21.4,belegt2024,"Baumwolle (GAP), Linsen, Antepfistache",2,3,3,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+64,Uşak,Ege,TR33,374405,34,0.105,3,,,1,abgeleitet,0,5,4,233298,0.62,-10.4,geschaetzt,"Teppichwolle, Getreide, Kirschen",-1,4,5,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+65,Van,Doğu Anadolu,TRB2,1112013,74,-1.345,6,,,0,abgeleitet,0,3,2,818614,0.74,-19.6,belegt2024,"Viehzucht, Weizen, Äpfel",-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+66,Yozgat,İç Anadolu,TR72,413208,64,-0.601,5,,,0,abgeleitet,0,5,3,174612,0.42,-16.5,geschaetzt,"Getreide, Aprikosen, Viehzucht",-1,3,3,0,0,A,4,Anatolische Mittelstädte / Tiger
+67,Zonguldak,Karadeniz,TR81,585203,37,0.055,3,,,2,liste_33_iller_1mrd,1,5,4,338368,0.58,-10.9,geschaetzt,"Getreide, Kastanien, Fisch",2,3,4,1,0,I,2,Industrie- und Hafen-Gürtel (2. Reihe)
+68,Aksaray,İç Anadolu,TR71,441136,48,-0.184,4,,,2,liste_33_iller_1mrd,1,7,2,234723,0.53,-12.9,geschaetzt,"Getreide, Kirschen, Viehzucht",-1,5,3,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+69,Bayburt,Karadeniz,TRA1,82836,62,-0.524,5,,,0,abgeleitet,0,1,1,63978,0.77,-35.2,belegt2024,"Viehzucht, Getreide",-1,3,3,0,0,A,8,Ost-Anatolien peripher
+70,Karaman,İç Anadolu,TR52,262355,36,0.062,3,,,1,abgeleitet,0,2,1,148166,0.56,-10.8,geschaetzt,"Äpfel, Getreide, Viehzucht",1,5,3,0,0,A,5,Agrar-Steppe İç Ege/Zentralanatolien
+71,Kırıkkale,İç Anadolu,TR71,282830,38,-0.034,3,,,1,abgeleitet,0,4,3,75846,0.27,-11.6,geschaetzt,"Getreide, Viehzucht",-1,3,5,0,0,A,4,Anatolische Mittelstädte / Tiger
+72,Batman,Güneydoğu Anadolu,TRC3,662626,67,-0.929,6,,,1,abgeleitet,0,2,1,284750,0.43,-19.4,geschaetzt,"Viehzucht, Tabak, Getreide",-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+73,Şırnak,Güneydoğu Anadolu,TRC3,573666,78,-1.497,6,,,1,abgeleitet,0,3,2,301084,0.52,-24.3,geschaetzt,"Viehzucht, Getreide",-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+74,Bartın,Karadeniz,TR81,206663,56,-0.36,5,,,0,abgeleitet,0,1,1,314626,1.52,-14.5,geschaetzt,"Getreide, Fisch, Viehzucht",-1,2,5,1,1,A,6,Karadeniz-Fındık-Peripherie
+75,Ardahan,Doğu Anadolu,TRA2,90392,68,-0.937,6,,,0,abgeleitet,0,1,0,156444,1.73,-20.3,belegt2024,"Viehzucht, Käse",-1,3,4,0,1,A,8,Ost-Anatolien peripher
+76,Iğdır,Doğu Anadolu,TRA2,205071,73,-1.182,6,,,1,abgeleitet,0,1,1,82732,0.4,-21.5,geschaetzt,"Aprikosen, Baumwolle, Viehzucht",-1,3,4,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+77,Yalova,Marmara,TR42,311635,9,0.983,2,,,2,liste_33_iller_1mrd,1,5,3,796265,2.56,15.6,belegt2024,"Kiwi, Blumen, Gemüse",-2,4,5,1,0,I,2,Industrie- und Hafen-Gürtel (2. Reihe)
+78,Karabük,Karadeniz,TR81,249614,28,0.183,3,,,1,abgeleitet,0,2,2,272317,1.09,-9.8,geschaetzt,"Getreide, Stahlrohstoffe",-1,2,5,0,0,I,4,Anatolische Mittelstädte / Tiger
+79,Kilis,Güneydoğu Anadolu,TRC1,157363,52,-0.28,5,,,0,abgeleitet,0,2,2,23217,0.15,-13.8,geschaetzt,"Getreide, Baumwolle, Oliven",-1,3,3,0,1,A,7,Südost/GAP: Grenz-Industrie & Trockenlandwirtschaft
+80,Osmaniye,Akdeniz,TR63,564123,57,-0.38,5,155,tim2025,2,liste_33_iller_1mrd,1,4,2,93104,0.17,-14.6,geschaetzt,"Erdnüsse, Baumwolle, Oliven",-1,3,5,0,0,I,4,Anatolische Mittelstädte / Tiger
+81,Düzce,Karadeniz,TR42,415622,29,0.165,3,,,2,liste_33_iller_1mrd,1,5,4,340294,0.82,-9.9,geschaetzt,"Haselnüsse, Gemüse",-2,4,5,1,0,I,2,Industrie- und Hafen-Gürtel (2. Reihe)

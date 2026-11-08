@@ -1,0 +1,106 @@
+monat,tuefe_yoy,tuefe_est,enag_yoy,enag_est,leitzins,leitzins_est,usdtry,usdtry_est,rendite_10j,rendite_est,cds_5y,cds_est,reserven_mrd_usd,reserven_est,bip_yoy_quartal,bip_est,arbeitslosigkeit,alq_est,mindestlohn_netto,ml_est,quelle_haupt,notiz
+2018-01,10.35,false,,,12.75,false,3.78,true,11.5,true,152,false,84.0,true,7.4,true,10.8,true,1603.12,false,TÜİK; TCMB; worldgovernmentbonds/Presse,
+2018-02,10.26,false,,,12.75,false,3.8,true,11.8,true,160,true,83.0,true,7.4,true,10.6,true,1603.12,false,TÜİK; TCMB,
+2018-03,10.23,false,,,12.75,false,3.95,true,12.4,true,180,true,83.0,true,7.4,true,10.1,true,1603.12,false,TÜİK; TCMB,
+2018-04,10.85,false,,,13.5,false,4.07,true,13.2,true,200,true,83.0,true,5.7,true,9.6,true,1603.12,false,TÜİK; TCMB,
+2018-05,12.15,false,,,16.5,false,4.84,true,14.6,true,235,true,82.0,true,5.7,true,9.7,true,1603.12,false,TÜİK; TCMB,"Notfall-PPK 23.05. (+300 bp, LLW); ab 01.06. 1W-Repo Leitzins"
+2018-06,15.39,false,,,17.75,false,4.61,true,14.0,true,270,true,81.0,true,5.7,true,10.2,true,1603.12,false,TÜİK; TCMB,
+2018-07,15.85,false,,,17.75,false,4.9,true,15.5,true,300,true,83.0,true,0.9,true,10.8,true,1603.12,false,TÜİK; TCMB,
+2018-08,17.9,false,,,17.75,false,6.92,true,21.0,true,570,true,88.0,true,0.9,true,11.1,true,1603.12,false,TÜİK; TCMB,Lira-Krise (Brunson/Stahlzölle); CDS-Spitze; 10J >20 %
+2018-09,24.52,false,,,24.0,false,6.06,true,18.0,true,450,true,92.0,true,0.9,true,11.3,true,1603.12,false,TÜİK; TCMB,TCMB +625 bp auf 24 % (13.09.)
+2018-10,25.24,false,,,24.0,false,5.6,true,17.2,true,390,true,93.0,true,-3.0,true,11.6,true,1603.12,false,TÜİK; TCMB,
+2018-11,21.62,false,,,24.0,false,5.32,true,16.8,true,350,true,92.0,true,-3.0,true,12.3,true,1603.12,false,TÜİK; TCMB,
+2018-12,20.3,false,,,24.0,false,5.29,true,16.4,true,330,true,93.0,true,-3.0,true,13.5,true,1603.12,false,TÜİK; TCMB,
+2019-01,20.35,false,,,24,false,5.32,true,16.0,true,320,true,92.0,true,-2.3,true,14.7,true,2020.9,false,TÜİK; TCMB,
+2019-02,19.67,false,,,24,false,5.32,true,15.5,true,300,true,93.0,true,-2.3,true,14.7,true,2020.9,false,TÜİK; TCMB,
+2019-03,19.71,false,,,24,false,5.64,true,15.0,true,360,true,95.0,true,-2.3,true,14.1,true,2020.9,false,TÜİK; TCMB,
+2019-04,19.5,false,,,24,false,5.95,true,14.5,true,420,true,87.0,true,-1.6,true,14.0,true,2020.9,false,TÜİK; TCMB,
+2019-05,18.71,false,,,24,false,6.09,true,15.5,true,470,true,90.0,true,-1.6,true,12.8,true,2020.9,false,TÜİK; TCMB,
+2019-06,15.72,false,,,24,false,5.78,true,15.0,true,430,true,98.0,true,-1.6,true,13.0,true,2020.9,false,TÜİK; TCMB,
+2019-07,16.65,false,,,19.75,false,5.57,true,14.0,true,370,true,100.0,true,1.0,true,13.9,true,2020.9,false,TÜİK; TCMB,Gouverneur Çetinkaya entlassen (06.07.); Zinssenkung 26.07.
+2019-08,15.01,false,,,19.75,false,5.85,true,13.5,true,320,true,96.0,true,1.0,true,14.0,true,2020.9,false,TÜİK; TCMB,
+2019-09,9.26,false,,,16.5,false,5.66,true,13.0,true,300,true,100.0,true,1.0,true,13.8,true,2020.9,false,TÜİK; TCMB,
+2019-10,8.55,false,,,14.0,false,5.76,true,12.8,true,330,true,102.0,true,6.0,true,13.4,true,2020.9,false,TÜİK; TCMB,
+2019-11,10.56,false,,,14.0,false,5.75,true,12.2,true,300,true,105.0,true,6.0,true,13.3,true,2020.9,false,TÜİK; TCMB,
+2019-12,11.84,false,,,12.0,false,5.95,true,12.0,true,280,true,105.7,true,6.0,true,13.1,true,2020.9,false,TÜİK; TCMB,
+2020-01,12.37,false,,,11.25,false,5.98,true,11.8,true,240,true,106.0,true,4.4,true,13.1,true,2324.7,false,TÜİK; TCMB,
+2020-02,12.37,false,,,10.75,false,6.23,true,11.5,true,220,true,103.0,true,4.4,true,13.6,true,2324.7,false,TÜİK; TCMB,
+2020-03,11.86,false,,,9.75,false,6.6,true,12.5,true,450,true,90.0,true,4.4,true,13.2,true,2324.7,false,TÜİK; TCMB,COVID-19 erreicht die Türkei
+2020-04,10.94,false,,,8.75,false,6.99,true,13.6,true,600,true,89.0,true,-10.3,true,12.8,true,2324.7,false,TÜİK; TCMB,
+2020-05,11.39,false,,,8.25,false,6.81,true,12.0,true,550,true,92.0,true,-10.3,true,12.9,true,2324.7,false,TÜİK; TCMB,
+2020-06,12.62,false,,,8.25,false,6.85,true,11.4,true,480,true,90.0,true,-10.3,true,13.4,true,2324.7,false,TÜİK; TCMB,
+2020-07,11.76,false,,,8.25,false,6.91,true,11.3,true,500,true,89.0,true,6.3,true,13.5,true,2324.7,false,TÜİK; TCMB,
+2020-08,11.77,false,,,8.25,false,7.36,true,12.4,true,590,true,86.0,true,6.3,true,13.2,true,2324.7,false,TÜİK; TCMB,
+2020-09,11.75,false,,,10.25,false,7.72,true,13.2,true,600,true,84.0,true,6.3,true,12.7,true,2324.7,false,TÜİK; TCMB,
+2020-10,11.89,false,,,10.25,false,8.34,true,14.0,true,620,true,85.0,true,5.9,true,12.7,true,2324.7,false,TÜİK; TCMB,
+2020-11,14.03,false,,,15.0,false,7.81,true,14.2,true,480,true,87.0,true,5.9,true,12.9,true,2324.7,false,TÜİK; TCMB,"Ağbal Gouverneur, Albayrak-Rücktritt (07.11.)"
+2020-12,14.6,false,,,17.0,false,7.44,true,12.7,true,350,true,93.3,true,5.9,true,13.1,true,2324.7,false,TÜİK; TCMB,
+2021-01,14.97,false,,,17,false,7.35,true,12.4,true,320,true,94.0,true,7.5,true,12.2,true,2825.9,false,TÜİK; TCMB,
+2021-02,15.61,false,,,17,false,7.48,true,12.6,true,300,true,95.0,true,7.5,true,12.6,true,2825.9,false,TÜİK; TCMB,
+2021-03,16.19,false,,,19,false,8.09,true,18.5,true,420,true,94.0,true,7.5,true,13.1,true,2825.9,false,TÜİK; TCMB,"Ağbal entlassen (20.03.), Kavcıoğlu; Lira -15 %"
+2021-04,17.14,false,,,19,false,8.32,true,17.8,true,400,true,92.0,true,22.0,true,13.9,true,2825.9,false,TÜİK; TCMB,
+2021-05,16.59,false,,,19,false,8.6,true,17.2,true,380,true,94.0,true,22.0,true,13.2,true,2825.9,false,TÜİK; TCMB,
+2021-06,17.53,false,,,19,false,8.7,true,16.9,true,360,true,97.0,true,22.0,true,10.6,false,2825.9,false,TÜİK; TCMB,
+2021-07,18.95,false,,,19,false,8.52,true,16.6,true,350,true,101.0,true,7.5,true,12.0,true,2825.9,false,TÜİK; TCMB,
+2021-08,19.25,false,,,19,false,8.3,true,16.7,true,340,true,105.0,true,7.5,true,12.1,true,2825.9,false,TÜİK; TCMB,
+2021-09,19.58,false,,,18,false,8.88,true,17.8,true,350,true,108.0,true,7.5,true,11.4,true,2825.9,false,TÜİK; TCMB,
+2021-10,19.89,false,49.9,false,16,false,9.6,true,19.5,true,400,true,110.0,true,9.1,true,11.2,true,2825.9,false,TÜİK; TCMB,
+2021-11,21.31,false,58.7,false,15,false,13.36,true,21.5,true,520,true,112.0,true,9.1,true,11.2,true,2825.9,false,TÜİK; TCMB,
+2021-12,36.08,false,82.8,false,14,false,13.3,true,23.0,true,550,true,111.1,false,9.1,true,11.2,true,2825.9,false,TÜİK; TCMB; TCMB-Wochendaten,"KKM eingeführt (20.12.); USD/TRY 18,4 -> ~11 -> 13,3"
+2022-01,48.69,false,114.9,false,14,false,13.42,true,22.5,true,530,true,109.0,true,7.8,true,11.1,true,4253.4,false,TÜİK; TCMB,
+2022-02,54.44,false,123.8,false,14,false,13.86,true,23.0,true,560,true,110.0,true,7.8,true,10.7,true,4253.4,false,TÜİK; TCMB,Ukraine-Krieg beginnt (24.02.)
+2022-03,61.14,false,142.6,false,14,false,14.66,true,26.0,true,590,true,105.0,true,7.8,true,10.9,true,4253.4,false,TÜİK; TCMB,
+2022-04,69.97,false,158.9,false,14,false,14.87,true,25.0,true,550,true,102.0,true,7.6,true,11.3,true,4253.4,false,TÜİK; TCMB,
+2022-05,73.5,false,160.8,false,14,false,16.44,true,24.0,true,620,true,100.0,true,7.6,true,10.9,true,4253.4,false,TÜİK; TCMB,
+2022-06,78.62,false,175.6,false,14,false,16.7,true,20.5,true,736,false,101.0,true,7.6,true,10.6,true,4253.4,false,TÜİK; TCMB; worldgovernmentbonds/Presse,
+2022-07,79.6,false,176.0,false,14,false,17.94,true,17.5,true,908,false,100.0,true,3.9,true,10.1,true,5500.35,false,TÜİK; TCMB; worldgovernmentbonds/Presse,CDS-Allzeithoch 908 bp (18.07.)
+2022-08,80.21,false,181.4,false,13,false,18.2,true,14.5,true,750,true,108.0,true,3.9,true,9.9,true,5500.35,false,TÜİK; TCMB,
+2022-09,83.45,false,186.3,false,12,false,18.51,true,12.0,true,720,true,108.0,true,3.9,true,10.1,true,5500.35,false,TÜİK; TCMB,
+2022-10,85.51,false,185.3,false,10.5,false,18.63,true,14.0,true,680,true,112.0,true,3.3,true,10.2,true,5500.35,false,TÜİK; TCMB,"TÜFE-Spitze 85,5 %"
+2022-11,84.39,false,170.7,false,9,false,18.64,true,10.5,true,620,true,117.0,true,3.3,true,10.2,true,5500.35,false,TÜİK; TCMB,
+2022-12,64.27,false,137.6,false,9,false,18.72,true,9.9,true,560,true,128.2,true,3.3,true,10.2,true,5500.35,false,TÜİK; TCMB,
+2023-01,57.68,false,121.6,false,9,false,18.8,true,10.2,true,540,true,126.0,true,4.0,true,9.7,false,8506.8,false,TÜİK; TCMB,
+2023-02,55.18,false,126.9,false,8.5,false,18.86,true,10.5,true,560,true,122.0,true,4.0,true,10.0,false,8506.8,false,TÜİK; TCMB,Erdbeben Kahramanmaraş (06.02.)
+2023-03,50.51,false,112.5,false,8.5,false,19.08,true,10.4,true,530,true,120.0,true,4.0,true,9.9,true,8506.8,false,TÜİK; TCMB,
+2023-04,43.68,false,105.2,false,8.5,false,19.43,true,10.3,true,600,true,114.0,true,3.9,true,10.0,true,8506.8,false,TÜİK; TCMB,
+2023-05,39.59,false,105.5,false,8.5,false,20.47,true,9.9,true,700,true,102.0,true,3.9,true,9.5,true,8506.8,false,TÜİK; TCMB,Wahl (14./28.05.); danach Lira-Aufgabe
+2023-06,38.21,false,108.6,false,15,false,25.95,true,15.5,true,550,true,108.0,true,3.9,true,9.6,true,8506.8,false,TÜİK; TCMB,Erkan/Şimşek übernehmen; Kurswende 23.06.
+2023-07,47.83,false,122.9,false,17.5,false,26.89,true,17.0,true,480,true,115.0,true,6.1,true,9.4,false,11402.32,false,TÜİK; TCMB,
+2023-08,58.94,false,128.1,false,25,false,26.72,true,18.5,true,450,true,117.0,true,6.1,true,9.2,true,11402.32,false,TÜİK; TCMB,
+2023-09,61.53,false,130.1,false,30,false,27.42,true,23.5,true,430,true,118.0,true,6.1,true,9.1,true,11402.32,false,TÜİK; TCMB,
+2023-10,61.36,false,129.1,true,35,false,28.32,true,28.0,true,480,true,126.0,true,4.7,true,8.9,true,11402.32,false,TÜİK; TCMB,
+2023-11,61.98,false,128.2,true,40,false,28.88,true,27.0,true,365,false,134.0,true,4.7,true,9.0,false,11402.32,false,TÜİK; TCMB; worldgovernmentbonds/Presse,
+2023-12,64.77,false,127.21,false,42.5,false,29.53,true,24.7,true,340,true,141.4,true,4.7,true,8.8,true,11402.32,false,TÜİK; TCMB,
+2024-01,64.86,false,129.0,true,45,false,30.34,true,24.0,true,320,true,136.0,true,5.3,false,9.1,true,17002.12,false,TÜİK; TCMB,
+2024-02,67.07,false,126.0,true,45,false,31.09,true,23.5,true,300,true,134.0,true,5.3,false,8.8,true,17002.12,false,TÜİK; TCMB,
+2024-03,68.5,false,124.0,true,50,false,32.33,true,26.5,true,280,true,140.0,true,5.3,false,8.7,true,17002.12,false,TÜİK; TCMB,Leitzins 50 %; Kommunalwahl CHP-Sieg (31.03.)
+2024-04,69.8,false,121.0,true,50,false,32.43,true,26.0,true,270,true,131.0,true,2.2,false,8.5,false,17002.12,false,TÜİK; TCMB,
+2024-05,75.45,false,118.0,true,50,false,32.24,true,27.5,true,260,true,133.0,true,2.2,false,8.4,true,17002.12,false,TÜİK; TCMB,
+2024-06,71.6,false,113.0,true,50,false,32.84,true,27.0,true,265,true,141.0,true,2.2,false,7.9,true,17002.12,false,TÜİK; TCMB,
+2024-07,61.78,false,108.0,true,50,false,33.05,true,26.5,true,250,true,147.0,true,2.0,false,8.8,true,17002.12,false,TÜİK; TCMB,
+2024-08,51.97,false,104.0,true,50,false,34.0,true,26.0,true,260,true,150.0,true,2.0,false,8.5,true,17002.12,false,TÜİK; TCMB,
+2024-09,49.38,false,108.0,true,50,false,34.19,true,26.5,true,255,true,148.0,true,2.0,false,8.6,true,17002.12,false,TÜİK; TCMB,
+2024-10,48.58,false,106.0,true,50,false,34.29,true,26.8,true,260,true,146.0,true,2.7,false,8.8,true,17002.12,false,TÜİK; TCMB,
+2024-11,47.09,false,98.0,true,50,false,34.66,true,26.2,true,255,true,153.0,true,2.7,false,8.6,true,17002.12,false,TÜİK; TCMB,
+2024-12,44.38,false,89.0,true,47.5,false,35.28,true,26.4,true,250,true,159.0,true,2.7,false,8.4,true,17002.12,false,TÜİK; TCMB,
+2025-01,42.12,false,82.0,true,45,false,35.75,true,27.0,true,260,true,160.0,true,2.6,false,8.5,false,22104.67,false,TÜİK; TCMB,
+2025-02,39.05,false,79.0,true,45,false,36.4,true,27.5,true,280,true,158.0,true,2.6,false,8.2,false,22104.67,false,TÜİK; TCMB,
+2025-03,38.1,false,75.5,true,42.5,false,37.97,true,31.5,true,350,true,138.0,true,2.6,false,8.0,false,22104.67,false,TÜİK; TCMB,İmamoğlu verhaftet (19.03.); Repo-Funding später ausgesetzt
+2025-04,37.86,false,73.0,true,46,false,38.4,true,31.0,true,370,false,141.0,true,4.0,false,8.6,false,22104.67,false,TÜİK; TCMB; worldgovernmentbonds/Presse,
+2025-05,35.41,false,71.23,false,46,false,39.22,true,30.5,true,330,true,147.0,true,4.0,false,8.4,false,22104.67,false,TÜİK; TCMB,
+2025-06,35.05,false,68.0,true,46,false,39.78,true,29.5,true,300,true,155.0,true,4.0,false,8.5,false,22104.67,false,TÜİK; TCMB,
+2025-07,33.52,false,66.0,true,43,false,40.58,true,29.0,true,280,true,162.0,true,4.4,false,8.1,false,22104.67,false,TÜİK; TCMB,
+2025-08,32.95,false,64.0,true,43,false,41.04,true,28.8,true,260,true,172.0,true,4.4,false,8.5,false,22104.67,false,TÜİK; TCMB,
+2025-09,33.29,false,62.0,true,40.5,false,41.59,false,29.3,false,240,false,180.0,false,4.4,false,8.6,true,22104.67,false,TÜİK; TCMB; ECB/Markt; worldgovernmentbonds/Presse; TCMB-Wochendaten,
+2025-10,32.87,false,60.0,false,39.5,false,42.1,true,29.5,true,235,true,184.0,false,3.5,false,8.5,true,22104.67,false,TÜİK; TCMB; TCMB-Wochendaten,
+2025-11,31.07,false,56.82,false,39.5,false,42.45,true,30.0,true,220,true,187.0,true,3.5,false,8.5,true,22104.67,false,TÜİK; TCMB,
+2025-12,30.89,false,56.14,false,38,false,43.03,false,30.5,true,205,false,190.0,true,3.5,false,8.4,true,22104.67,false,TÜİK; TCMB; ECB/Markt; worldgovernmentbonds/Presse,
+2026-01,30.65,false,53.42,false,37,false,43.03,false,30.5,true,205,false,195.0,true,2.6,false,8.1,false,28075.5,false,TÜİK; TCMB; ECB/Markt; worldgovernmentbonds/Presse,100-bp-Schnitt auf 37 % (22./23.01.)
+2026-02,31.53,false,55.2,true,37,false,43.6,true,30.0,true,215,false,208.0,false,2.6,false,8.4,false,28075.5,false,TÜİK; TCMB; worldgovernmentbonds/Presse; TCMB-Wochendaten,US/Israel-Iran-Krieg ab 28.02.
+2026-03,30.87,false,54.62,false,37,false,44.3,true,33.0,true,327,false,185.0,true,2.6,false,8.1,false,28075.5,false,TÜİK; TCMB; worldgovernmentbonds/Presse,Repo-Ausschreibungen ausgesetzt (01.03.); Finanzierung ~40 %
+2026-04,32.37,false,56.6,true,37,false,45.0,true,31.0,true,280,true,172.0,true,2.3,false,8.2,false,28075.5,false,TÜİK; TCMB,Effektive Finanzierungskosten 40 % (O/N)
+2026-05,32.61,false,57.1,true,37,false,45.7,true,29.0,true,300,true,168.0,true,2.3,false,8.1,false,28075.5,false,TÜİK; TCMB,Effektive Finanzierungskosten 40 % (O/N)
+2026-06,32.11,false,56.2,true,37,false,46.5,true,27.0,false,205,true,165.0,true,2.3,false,7.6,false,28075.5,false,TÜİK; TCMB,"Waffenruhe US-Iran; Q1-BIP 2,5/2,6 %"
+2026-07,31.75,false,55.6,true,37,false,47.53,false,30.5,true,237.8,false,163.3,false,,,8.1,false,28075.5,false,TÜİK; TCMB; ECB/Markt; worldgovernmentbonds/Presse; TCMB-Wochendaten,Interimsabkommen USA-Iran; Brent <80 USD
+2026-08,31.51,false,55.1,true,37,false,48.25,false,31.9,true,217.3,false,188.2,false,,,,,28075.5,false,TÜİK; TCMB; ECB/Markt; worldgovernmentbonds/Presse; TCMB-Wochendaten,Repo-Ausschreibungen wieder aufgenommen (23.08.)
+2026-09,30.1,true,52.7,true,37,false,49.03,false,32.84,false,250,false,190.0,true,,,,,28075.5,false,TÜİK; TCMB; ECB/Markt; worldgovernmentbonds/Presse,PPK 10.09.: 37 % gehalten; globaler Zinsschub (Fed/ECB)

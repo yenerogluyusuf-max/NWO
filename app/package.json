@@ -1,0 +1,8 @@
+{
+  "name": "staatsraeson",
+  "productName": "Staatsräson",
+  "version": "0.1.0",
+  "description": "Staatsräson — politische Strategiesimulation (lokale Mac-App)",
+  "main": "main.cjs",
+  "private": true
+}

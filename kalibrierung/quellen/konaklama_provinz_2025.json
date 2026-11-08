@@ -1,0 +1,634 @@
+{
+ "Adana": {
+  "gelis_yabanci": 74201,
+  "gelis_yerli": 839976,
+  "gelis_toplam": 914177,
+  "gec_yabanci": 145949,
+  "gec_yerli": 1361272,
+  "gec_toplam": 1507221
+ },
+ "Adıyaman": {
+  "gelis_yabanci": 3739,
+  "gelis_yerli": 110690,
+  "gelis_toplam": 114429,
+  "gec_yabanci": 5238,
+  "gec_yerli": 159430,
+  "gec_toplam": 164668
+ },
+ "Afyonkarahisar": {
+  "gelis_yabanci": 37332,
+  "gelis_yerli": 790080,
+  "gelis_toplam": 827412,
+  "gec_yabanci": 62051,
+  "gec_yerli": 1645047,
+  "gec_toplam": 1707098
+ },
+ "Ağrı": {
+  "gelis_yabanci": 20519,
+  "gelis_yerli": 187047,
+  "gelis_toplam": 207566,
+  "gec_yabanci": 25154,
+  "gec_yerli": 444665,
+  "gec_toplam": 469819
+ },
+ "Amasya": {
+  "gelis_yabanci": 12516,
+  "gelis_yerli": 221338,
+  "gelis_toplam": 233854,
+  "gec_yabanci": 16468,
+  "gec_yerli": 280514,
+  "gec_toplam": 296982
+ },
+ "Ankara": {
+  "gelis_yabanci": 530688,
+  "gelis_yerli": 3131203,
+  "gelis_toplam": 3661891,
+  "gec_yabanci": 1109072,
+  "gec_yerli": 5066646,
+  "gec_toplam": 6175718
+ },
+ "Antalya": {
+  "gelis_yabanci": 24156588,
+  "gelis_yerli": 6607043,
+  "gelis_toplam": 30763631,
+  "gec_yabanci": 93951453,
+  "gec_yerli": 17389181,
+  "gec_toplam": 111340634
+ },
+ "Artvin": {
+  "gelis_yabanci": 22434,
+  "gelis_yerli": 210143,
+  "gelis_toplam": 232577,
+  "gec_yabanci": 34600,
+  "gec_yerli": 340925,
+  "gec_toplam": 375525
+ },
+ "Aydın": {
+  "gelis_yabanci": 1179829,
+  "gelis_yerli": 1326351,
+  "gelis_toplam": 2506180,
+  "gec_yabanci": 4152301,
+  "gec_yerli": 2952618,
+  "gec_toplam": 7104919
+ },
+ "Balıkesir": {
+  "gelis_yabanci": 105689,
+  "gelis_yerli": 1464214,
+  "gelis_toplam": 1569903,
+  "gec_yabanci": 247753,
+  "gec_yerli": 3164119,
+  "gec_toplam": 3411872
+ },
+ "Bilecik": {
+  "gelis_yabanci": 3337,
+  "gelis_yerli": 105138,
+  "gelis_toplam": 108475,
+  "gec_yabanci": 7562,
+  "gec_yerli": 235150,
+  "gec_toplam": 242712
+ },
+ "Bingöl": {
+  "gelis_yabanci": 2029,
+  "gelis_yerli": 53460,
+  "gelis_toplam": 55489,
+  "gec_yabanci": 2401,
+  "gec_yerli": 78568,
+  "gec_toplam": 80969
+ },
+ "Bitlis": {
+  "gelis_yabanci": 3262,
+  "gelis_yerli": 87728,
+  "gelis_toplam": 90990,
+  "gec_yabanci": 4216,
+  "gec_yerli": 124844,
+  "gec_toplam": 129060
+ },
+ "Bolu": {
+  "gelis_yabanci": 55051,
+  "gelis_yerli": 340771,
+  "gelis_toplam": 395822,
+  "gec_yabanci": 80189,
+  "gec_yerli": 575581,
+  "gec_toplam": 655770
+ },
+ "Burdur": {
+  "gelis_yabanci": 6187,
+  "gelis_yerli": 135423,
+  "gelis_toplam": 141610,
+  "gec_yabanci": 9489,
+  "gec_yerli": 209636,
+  "gec_toplam": 219125
+ },
+ "Bursa": {
+  "gelis_yabanci": 365078,
+  "gelis_yerli": 1395975,
+  "gelis_toplam": 1761053,
+  "gec_yabanci": 648985,
+  "gec_yerli": 2300400,
+  "gec_toplam": 2949385
+ },
+ "Çanakkale": {
+  "gelis_yabanci": 185068,
+  "gelis_yerli": 875266,
+  "gelis_toplam": 1060334,
+  "gec_yabanci": 293274,
+  "gec_yerli": 1609619,
+  "gec_toplam": 1902893
+ },
+ "Çankırı": {
+  "gelis_yabanci": 2876,
+  "gelis_yerli": 83975,
+  "gelis_toplam": 86851,
+  "gec_yabanci": 3544,
+  "gec_yerli": 166137,
+  "gec_toplam": 169681
+ },
+ "Çorum": {
+  "gelis_yabanci": 7857,
+  "gelis_yerli": 146569,
+  "gelis_toplam": 154426,
+  "gec_yabanci": 14004,
+  "gec_yerli": 231448,
+  "gec_toplam": 245452
+ },
+ "Denizli": {
+  "gelis_yabanci": 654404,
+  "gelis_yerli": 558627,
+  "gelis_toplam": 1213031,
+  "gec_yabanci": 839775,
+  "gec_yerli": 941152,
+  "gec_toplam": 1780927
+ },
+ "Diyarbakır": {
+  "gelis_yabanci": 36954,
+  "gelis_yerli": 571915,
+  "gelis_toplam": 608869,
+  "gec_yabanci": 63088,
+  "gec_yerli": 930099,
+  "gec_toplam": 993187
+ },
+ "Edirne": {
+  "gelis_yabanci": 213910,
+  "gelis_yerli": 578466,
+  "gelis_toplam": 792376,
+  "gec_yabanci": 372774,
+  "gec_yerli": 1048679,
+  "gec_toplam": 1421453
+ },
+ "Elazığ": {
+  "gelis_yabanci": 10958,
+  "gelis_yerli": 251545,
+  "gelis_toplam": 262503,
+  "gec_yabanci": 17936,
+  "gec_yerli": 430216,
+  "gec_toplam": 448152
+ },
+ "Erzincan": {
+  "gelis_yabanci": 8876,
+  "gelis_yerli": 157121,
+  "gelis_toplam": 165997,
+  "gec_yabanci": 14573,
+  "gec_yerli": 295756,
+  "gec_toplam": 310329
+ },
+ "Erzurum": {
+  "gelis_yabanci": 38728,
+  "gelis_yerli": 356314,
+  "gelis_toplam": 395042,
+  "gec_yabanci": 65445,
+  "gec_yerli": 683249,
+  "gec_toplam": 748694
+ },
+ "Eskişehir": {
+  "gelis_yabanci": 37307,
+  "gelis_yerli": 655065,
+  "gelis_toplam": 692372,
+  "gec_yabanci": 80366,
+  "gec_yerli": 1056971,
+  "gec_toplam": 1137337
+ },
+ "Gaziantep": {
+  "gelis_yabanci": 114297,
+  "gelis_yerli": 928547,
+  "gelis_toplam": 1042844,
+  "gec_yabanci": 193159,
+  "gec_yerli": 1315136,
+  "gec_toplam": 1508295
+ },
+ "Giresun": {
+  "gelis_yabanci": 6102,
+  "gelis_yerli": 198877,
+  "gelis_toplam": 204979,
+  "gec_yabanci": 11829,
+  "gec_yerli": 334435,
+  "gec_toplam": 346264
+ },
+ "Gümüşhane": {
+  "gelis_yabanci": 501,
+  "gelis_yerli": 32608,
+  "gelis_toplam": 33109,
+  "gec_yabanci": 540,
+  "gec_yerli": 47249,
+  "gec_toplam": 47789
+ },
+ "Hakkari": {
+  "gelis_yabanci": 4428,
+  "gelis_yerli": 52601,
+  "gelis_toplam": 57029,
+  "gec_yabanci": 6715,
+  "gec_yerli": 72021,
+  "gec_toplam": 78736
+ },
+ "Hatay": {
+  "gelis_yabanci": 19144,
+  "gelis_yerli": 453855,
+  "gelis_toplam": 472999,
+  "gec_yabanci": 40392,
+  "gec_yerli": 901738,
+  "gec_toplam": 942130
+ },
+ "Isparta": {
+  "gelis_yabanci": 16011,
+  "gelis_yerli": 241070,
+  "gelis_toplam": 257081,
+  "gec_yabanci": 24791,
+  "gec_yerli": 338311,
+  "gec_toplam": 363102
+ },
+ "Mersin": {
+  "gelis_yabanci": 112363,
+  "gelis_yerli": 1165013,
+  "gelis_toplam": 1277376,
+  "gec_yabanci": 290370,
+  "gec_yerli": 2306814,
+  "gec_toplam": 2597184
+ },
+ "İstanbul": {
+  "gelis_yabanci": 11946575,
+  "gelis_yerli": 6148771,
+  "gelis_toplam": 18095346,
+  "gec_yabanci": 28811281,
+  "gec_yerli": 11294008,
+  "gec_toplam": 40105289
+ },
+ "İzmir": {
+  "gelis_yabanci": 1223168,
+  "gelis_yerli": 2974885,
+  "gelis_toplam": 4198053,
+  "gec_yabanci": 2879701,
+  "gec_yerli": 5527502,
+  "gec_toplam": 8407203
+ },
+ "Kars": {
+  "gelis_yabanci": 8311,
+  "gelis_yerli": 208015,
+  "gelis_toplam": 216326,
+  "gec_yabanci": 11808,
+  "gec_yerli": 364954,
+  "gec_toplam": 376762
+ },
+ "Kastamonu": {
+  "gelis_yabanci": 5453,
+  "gelis_yerli": 240998,
+  "gelis_toplam": 246451,
+  "gec_yabanci": 10533,
+  "gec_yerli": 380962,
+  "gec_toplam": 391495
+ },
+ "Kayseri": {
+  "gelis_yabanci": 57465,
+  "gelis_yerli": 565432,
+  "gelis_toplam": 622897,
+  "gec_yabanci": 123869,
+  "gec_yerli": 992496,
+  "gec_toplam": 1116365
+ },
+ "Kırklareli": {
+  "gelis_yabanci": 18098,
+  "gelis_yerli": 259268,
+  "gelis_toplam": 277366,
+  "gec_yabanci": 37200,
+  "gec_yerli": 494790,
+  "gec_toplam": 531990
+ },
+ "Kırşehir": {
+  "gelis_yabanci": 1450,
+  "gelis_yerli": 63065,
+  "gelis_toplam": 64515,
+  "gec_yabanci": 2504,
+  "gec_yerli": 100821,
+  "gec_toplam": 103325
+ },
+ "Kocaeli": {
+  "gelis_yabanci": 180685,
+  "gelis_yerli": 893980,
+  "gelis_toplam": 1074665,
+  "gec_yabanci": 393915,
+  "gec_yerli": 1515668,
+  "gec_toplam": 1909583
+ },
+ "Konya": {
+  "gelis_yabanci": 196790,
+  "gelis_yerli": 833435,
+  "gelis_toplam": 1030225,
+  "gec_yabanci": 288428,
+  "gec_yerli": 1223596,
+  "gec_toplam": 1512024
+ },
+ "Kütahya": {
+  "gelis_yabanci": 6307,
+  "gelis_yerli": 305087,
+  "gelis_toplam": 311394,
+  "gec_yabanci": 15755,
+  "gec_yerli": 604090,
+  "gec_toplam": 619845
+ },
+ "Malatya": {
+  "gelis_yabanci": 6952,
+  "gelis_yerli": 204937,
+  "gelis_toplam": 211889,
+  "gec_yabanci": 10716,
+  "gec_yerli": 321202,
+  "gec_toplam": 331918
+ },
+ "Manisa": {
+  "gelis_yabanci": 51499,
+  "gelis_yerli": 405655,
+  "gelis_toplam": 457154,
+  "gec_yabanci": 80231,
+  "gec_yerli": 718688,
+  "gec_toplam": 798919
+ },
+ "Kahramanmaraş": {
+  "gelis_yabanci": 3762,
+  "gelis_yerli": 191780,
+  "gelis_toplam": 195542,
+  "gec_yabanci": 9393,
+  "gec_yerli": 368979,
+  "gec_toplam": 378372
+ },
+ "Mardin": {
+  "gelis_yabanci": 34928,
+  "gelis_yerli": 478617,
+  "gelis_toplam": 513545,
+  "gec_yabanci": 57510,
+  "gec_yerli": 797829,
+  "gec_toplam": 855339
+ },
+ "Muğla": {
+  "gelis_yabanci": 4682848,
+  "gelis_yerli": 4447019,
+  "gelis_toplam": 9129867,
+  "gec_yabanci": 14273394,
+  "gec_yerli": 10396096,
+  "gec_toplam": 24669490
+ },
+ "Muş": {
+  "gelis_yabanci": 1658,
+  "gelis_yerli": 76636,
+  "gelis_toplam": 78294,
+  "gec_yabanci": 3021,
+  "gec_yerli": 264213,
+  "gec_toplam": 267234
+ },
+ "Nevşehir": {
+  "gelis_yabanci": 1156359,
+  "gelis_yerli": 953987,
+  "gelis_toplam": 2110346,
+  "gec_yabanci": 2322745,
+  "gec_yerli": 1783153,
+  "gec_toplam": 4105898
+ },
+ "Niğde": {
+  "gelis_yabanci": 4381,
+  "gelis_yerli": 148922,
+  "gelis_toplam": 153303,
+  "gec_yabanci": 11211,
+  "gec_yerli": 260651,
+  "gec_toplam": 271862
+ },
+ "Ordu": {
+  "gelis_yabanci": 21293,
+  "gelis_yerli": 400948,
+  "gelis_toplam": 422241,
+  "gec_yabanci": 35208,
+  "gec_yerli": 591179,
+  "gec_toplam": 626387
+ },
+ "Rize": {
+  "gelis_yabanci": 50762,
+  "gelis_yerli": 233963,
+  "gelis_toplam": 284725,
+  "gec_yabanci": 92730,
+  "gec_yerli": 385853,
+  "gec_toplam": 478583
+ },
+ "Sakarya": {
+  "gelis_yabanci": 47197,
+  "gelis_yerli": 747530,
+  "gelis_toplam": 794727,
+  "gec_yabanci": 102801,
+  "gec_yerli": 1400878,
+  "gec_toplam": 1503679
+ },
+ "Samsun": {
+  "gelis_yabanci": 43194,
+  "gelis_yerli": 588948,
+  "gelis_toplam": 632142,
+  "gec_yabanci": 77821,
+  "gec_yerli": 935036,
+  "gec_toplam": 1012857
+ },
+ "Siirt": {
+  "gelis_yabanci": 72,
+  "gelis_yerli": 44671,
+  "gelis_toplam": 44743,
+  "gec_yabanci": 126,
+  "gec_yerli": 74719,
+  "gec_toplam": 74845
+ },
+ "Sinop": {
+  "gelis_yabanci": 1394,
+  "gelis_yerli": 133028,
+  "gelis_toplam": 134422,
+  "gec_yabanci": 2412,
+  "gec_yerli": 270183,
+  "gec_toplam": 272595
+ },
+ "Sivas": {
+  "gelis_yabanci": 9888,
+  "gelis_yerli": 310276,
+  "gelis_toplam": 320164,
+  "gec_yabanci": 25809,
+  "gec_yerli": 476129,
+  "gec_toplam": 501938
+ },
+ "Tekirdağ": {
+  "gelis_yabanci": 51908,
+  "gelis_yerli": 337002,
+  "gelis_toplam": 388910,
+  "gec_yabanci": 121396,
+  "gec_yerli": 663126,
+  "gec_toplam": 784522
+ },
+ "Tokat": {
+  "gelis_yabanci": 4159,
+  "gelis_yerli": 245776,
+  "gelis_toplam": 249935,
+  "gec_yabanci": 11313,
+  "gec_yerli": 433538,
+  "gec_toplam": 444851
+ },
+ "Trabzon": {
+  "gelis_yabanci": 564115,
+  "gelis_yerli": 546542,
+  "gelis_toplam": 1110657,
+  "gec_yabanci": 1350647,
+  "gec_yerli": 1003059,
+  "gec_toplam": 2353706
+ },
+ "Tunceli": {
+  "gelis_yabanci": 1156,
+  "gelis_yerli": 37759,
+  "gelis_toplam": 38915,
+  "gec_yabanci": 2779,
+  "gec_yerli": 98698,
+  "gec_toplam": 101477
+ },
+ "Şanlıurfa": {
+  "gelis_yabanci": 25110,
+  "gelis_yerli": 497481,
+  "gelis_toplam": 522591,
+  "gec_yabanci": 42918,
+  "gec_yerli": 746692,
+  "gec_toplam": 789610
+ },
+ "Uşak": {
+  "gelis_yabanci": 3260,
+  "gelis_yerli": 143832,
+  "gelis_toplam": 147092,
+  "gec_yabanci": 6639,
+  "gec_yerli": 226659,
+  "gec_toplam": 233298
+ },
+ "Van": {
+  "gelis_yabanci": 156287,
+  "gelis_yerli": 264438,
+  "gelis_toplam": 420725,
+  "gec_yabanci": 328500,
+  "gec_yerli": 490114,
+  "gec_toplam": 818614
+ },
+ "Yozgat": {
+  "gelis_yabanci": 2159,
+  "gelis_yerli": 91709,
+  "gelis_toplam": 93868,
+  "gec_yabanci": 3336,
+  "gec_yerli": 171276,
+  "gec_toplam": 174612
+ },
+ "Zonguldak": {
+  "gelis_yabanci": 13601,
+  "gelis_yerli": 199760,
+  "gelis_toplam": 213361,
+  "gec_yabanci": 31323,
+  "gec_yerli": 307045,
+  "gec_toplam": 338368
+ },
+ "Aksaray": {
+  "gelis_yabanci": 7134,
+  "gelis_yerli": 128919,
+  "gelis_toplam": 136053,
+  "gec_yabanci": 13656,
+  "gec_yerli": 221067,
+  "gec_toplam": 234723
+ },
+ "Bayburt": {
+  "gelis_yabanci": 600,
+  "gelis_yerli": 31811,
+  "gelis_toplam": 32411,
+  "gec_yabanci": 2379,
+  "gec_yerli": 61599,
+  "gec_toplam": 63978
+ },
+ "Karaman": {
+  "gelis_yabanci": 3960,
+  "gelis_yerli": 91112,
+  "gelis_toplam": 95072,
+  "gec_yabanci": 6416,
+  "gec_yerli": 141750,
+  "gec_toplam": 148166
+ },
+ "Kırıkkale": {
+  "gelis_yabanci": 1521,
+  "gelis_yerli": 54138,
+  "gelis_toplam": 55659,
+  "gec_yabanci": 2768,
+  "gec_yerli": 73078,
+  "gec_toplam": 75846
+ },
+ "Batman": {
+  "gelis_yabanci": 12355,
+  "gelis_yerli": 110412,
+  "gelis_toplam": 122767,
+  "gec_yabanci": 23226,
+  "gec_yerli": 261524,
+  "gec_toplam": 284750
+ },
+ "Şırnak": {
+  "gelis_yabanci": 7042,
+  "gelis_yerli": 210559,
+  "gelis_toplam": 217601,
+  "gec_yabanci": 9276,
+  "gec_yerli": 291808,
+  "gec_toplam": 301084
+ },
+ "Bartın": {
+  "gelis_yabanci": 3898,
+  "gelis_yerli": 188643,
+  "gelis_toplam": 192541,
+  "gec_yabanci": 7694,
+  "gec_yerli": 306932,
+  "gec_toplam": 314626
+ },
+ "Ardahan": {
+  "gelis_yabanci": 1692,
+  "gelis_yerli": 51218,
+  "gelis_toplam": 52910,
+  "gec_yabanci": 3591,
+  "gec_yerli": 152853,
+  "gec_toplam": 156444
+ },
+ "Yalova": {
+  "gelis_yabanci": 79077,
+  "gelis_yerli": 290548,
+  "gelis_toplam": 369625,
+  "gec_yabanci": 223418,
+  "gec_yerli": 572847,
+  "gec_toplam": 796265
+ },
+ "Karabük": {
+  "gelis_yabanci": 49402,
+  "gelis_yerli": 153767,
+  "gelis_toplam": 203169,
+  "gec_yabanci": 59348,
+  "gec_yerli": 212969,
+  "gec_toplam": 272317
+ },
+ "Osmaniye": {
+  "gelis_yabanci": 1592,
+  "gelis_yerli": 59235,
+  "gelis_toplam": 60827,
+  "gec_yabanci": 4006,
+  "gec_yerli": 89098,
+  "gec_toplam": 93104
+ },
+ "Düzce": {
+  "gelis_yabanci": 6644,
+  "gelis_yerli": 187562,
+  "gelis_toplam": 194206,
+  "gec_yabanci": 11869,
+  "gec_yerli": 328425,
+  "gec_toplam": 340294
+ }
+}

@@ -1,0 +1,12 @@
+{
+  "datum": "2026-10-30",
+  "umfang": "Containerabhängige Layouts für Versorgung, Verhandlungen und Tagesordnung; gestaltete Monatsbericht-Leeransicht",
+  "typescript": true,
+  "produktionsbuild": true,
+  "buildprotokoll": "/private/tmp/nwo-versorgung-container-build-20261030.log",
+  "simulationVeraendert": false,
+  "erneuterSimulationstest": false,
+  "visuellerSichttest": false,
+  "screenshots": [],
+  "veroeffentlicht": false
+}

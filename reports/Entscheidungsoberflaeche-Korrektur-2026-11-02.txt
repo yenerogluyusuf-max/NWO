@@ -1,0 +1,21 @@
+
+> staatsraeson@0.1.0 test
+> vitest run --run test/entscheidungsoberflaeche.test.tsx test/haushaltshilfe.test.tsx --reporter=default --reporter=json --outputFile=/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Entscheidungsoberflaeche-Korrektur-2026-11-02.json
+
+
+ RUN  v5.0.2 /Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game
+
+ ✓ test/entscheidungsoberflaeche.test.tsx (19 tests) 1010ms
+ ✓ test/haushaltshilfe.test.tsx (9 tests) 1340ms
+   ✓ Gegenmaßnahmen auf en erklären Preise, Votum und neue Auflagen 364ms
+
+ Test Files  2 passed (2)
+      Tests  28 passed (28)
+   Start at  15:00:47
+   Duration  2.78s (transform 45%, tests 45%, import 10%)
+
+  Transform  transforming modules took 2.35s · 45% of tracked time, re-done on every run
+             persist transforms across runs with fsModuleCache: true
+             learn more: https://vitest.dev/guide/improving-performance#caching-between-reruns
+
+JSON report written to /Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Entscheidungsoberflaeche-Korrektur-2026-11-02.json

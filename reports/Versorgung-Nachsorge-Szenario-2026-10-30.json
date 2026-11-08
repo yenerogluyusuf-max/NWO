@@ -1,0 +1,183 @@
+{
+  "art": "Lokale Simulation, keine Browserprüfung",
+  "seed": 17,
+  "sitze": {
+    "AP": 200,
+    "YENİ": 120,
+    "CHP": 200,
+    "MHP": 50,
+    "DEM": 30
+  },
+  "ausgang": {
+    "loyalitaetVorVotum": 23,
+    "loyalitaetNachVotum": 19,
+    "regierungssitze": 320,
+    "sitzeNachAustritt": 200,
+    "beschluss": {
+      "ab": 7,
+      "bis": 97,
+      "bip": 0.07
+    },
+    "unzufrieden": [
+      {
+        "partei": "YENİ",
+        "sitze": 120,
+        "ja": 66,
+        "rolle": "koalition",
+        "forderung": "haushalt",
+        "erfuellt": false,
+        "bereitschaft": 50,
+        "reaktion": {
+          "partei": "YENİ",
+          "bereitschaft": -4,
+          "personen": [
+            {
+              "name": "Burak Kaplan",
+              "loyalitaet": -4
+            }
+          ]
+        },
+        "konflikt": "sozial",
+        "jetztKoalition": true
+      },
+      {
+        "partei": "MHP",
+        "sitze": 50,
+        "ja": 6,
+        "rolle": "opposition",
+        "forderung": "haushalt",
+        "erfuellt": false,
+        "bereitschaft": 50,
+        "reaktion": {
+          "partei": "MHP",
+          "bereitschaft": -1,
+          "personen": []
+        },
+        "konflikt": "sozial",
+        "jetztKoalition": false
+      },
+      {
+        "partei": "DEM",
+        "sitze": 30,
+        "ja": 6,
+        "rolle": "opposition",
+        "forderung": "zivil",
+        "erfuellt": false,
+        "bereitschaft": 50,
+        "reaktion": {
+          "partei": "DEM",
+          "bereitschaft": -1,
+          "personen": []
+        },
+        "jetztKoalition": false
+      }
+    ]
+  },
+  "prognosen": [
+    {
+      "programm": "schutz",
+      "vorlage": "versorgung-schutz-0",
+      "partei": "YENİ",
+      "art": "fraktion",
+      "figur": "partner",
+      "tag": 7,
+      "pk": 1,
+      "aufmerksamkeit": 2,
+      "moeglich": true,
+      "bereitschaft": 8,
+      "kapitalDanach": 145,
+      "aufmerksamkeitDanach": 78,
+      "personen": [
+        {
+          "id": "partner",
+          "name": "Burak Kaplan",
+          "vorher": 19,
+          "nachher": 24
+        }
+      ],
+      "vertrauen": 0,
+      "groll": 0,
+      "ehrgeiz": 0
+    },
+    {
+      "programm": "schutz",
+      "vorlage": "versorgung-schutz-0",
+      "partei": "YENİ",
+      "art": "vertrauen",
+      "figur": "partner",
+      "tag": 7,
+      "pk": 1,
+      "aufmerksamkeit": 4,
+      "moeglich": true,
+      "bereitschaft": 0,
+      "kapitalDanach": 145,
+      "aufmerksamkeitDanach": 76,
+      "personen": [
+        {
+          "id": "partner",
+          "name": "Burak Kaplan",
+          "vorher": 19,
+          "nachher": 29
+        }
+      ],
+      "vertrauen": 0,
+      "groll": 0,
+      "ehrgeiz": 0
+    },
+    {
+      "programm": "schutz",
+      "vorlage": "versorgung-schutz-0",
+      "partei": "YENİ",
+      "art": "rueckendeckung",
+      "figur": "partner",
+      "tag": 7,
+      "pk": 1,
+      "aufmerksamkeit": 4,
+      "moeglich": true,
+      "bereitschaft": 0,
+      "kapitalDanach": 145,
+      "aufmerksamkeitDanach": 76,
+      "personen": [
+        {
+          "id": "partner",
+          "name": "Burak Kaplan",
+          "vorher": 19,
+          "nachher": 28
+        }
+      ],
+      "vertrauen": -0.09999999999998721,
+      "groll": 0,
+      "ehrgeiz": 1
+    }
+  ],
+  "nachGespräch": {
+    "loyalitaet": 24,
+    "kapital": 145,
+    "buchung": [
+      {
+        "tag": 7,
+        "partei": "YENİ",
+        "art": "fraktion",
+        "pk": 1,
+        "bereitschaft": 8,
+        "personen": [
+          {
+            "id": "partner",
+            "name": "Burak Kaplan",
+            "vorher": 19,
+            "nachher": 24
+          }
+        ],
+        "vertrauen": 0
+      }
+    ]
+  },
+  "monat": {
+    "datum": "2028-07-01",
+    "mitGespräch": [
+      "YENİ"
+    ],
+    "ohneGespräch": [],
+    "loyalitaetMitGespräch": 24
+  }
+}

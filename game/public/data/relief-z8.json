@@ -1,0 +1,12 @@
+{
+ "width": 5643,
+ "height": 3512,
+ "lon0": 19.5,
+ "lon1": 50.5,
+ "lat0": 31.0,
+ "lat1": 46.0,
+ "projection": "web-mercator",
+ "einheit": "Meter, Int16 little-endian, Zeilen von Nord nach Süd",
+ "quelle": "AWS Terrain Tiles (Terrarium, Zoom 8), aus SRTM, GMTED, ETOPO1 u. a.; https://registry.opendata.aws/terrain-tiles/",
+ "zoom": 8
+}

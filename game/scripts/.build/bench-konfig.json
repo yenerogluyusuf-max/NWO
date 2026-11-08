@@ -1,0 +1,196 @@
+{
+  "anbieter": [
+    {
+      "id": "ollama:qwen3:1.7b",
+      "name": "Ollama lokal (qwen3:1.7b)",
+      "protokoll": "openai",
+      "basis": "http://localhost:11434/v1",
+      "modell": "qwen3:1.7b",
+      "schluessel": "ollama",
+      "tokenFeld": "max_tokens",
+      "temperatur": 0.3,
+      "preisEinProMio": 0,
+      "preisAusProMio": 0
+    }
+  ],
+  "aufgaben": [
+    {
+      "id": "b01",
+      "art": "befehl",
+      "eingabe": "Erhöhe den Mindestlohn auf 60.",
+      "erwarte": {
+        "art": "massnahme",
+        "id": "m_mindestlohn"
+      }
+    },
+    {
+      "id": "b02",
+      "art": "befehl",
+      "eingabe": "Baue Wasserleitungen in Hatay und Adana.",
+      "erwarte": {
+        "art": "massnahme",
+        "id": "m_wasserleitungen"
+      }
+    },
+    {
+      "id": "b03",
+      "art": "befehl",
+      "eingabe": "Senke die Mehrwertsteuer um 10 Punkte.",
+      "erwarte": {
+        "art": "massnahme",
+        "id": "m_mwst"
+      }
+    },
+    {
+      "id": "b04",
+      "art": "befehl",
+      "eingabe": "Gipfeltreffen mit der EU.",
+      "erwarte": {
+        "art": "land",
+        "land": "EU",
+        "handlung": "gipfel"
+      }
+    },
+    {
+      "id": "b05",
+      "art": "befehl",
+      "eingabe": "Handelsabkommen mit Aserbaidschan.",
+      "erwarte": {
+        "art": "land",
+        "land": "AZE",
+        "handlung": "handel"
+      }
+    },
+    {
+      "id": "b06",
+      "art": "befehl",
+      "eingabe": "Führe ein Gespräch mit der CHP.",
+      "erwarte": {
+        "art": "fraktion",
+        "partei": "CHP",
+        "handlung": "gespraech"
+      }
+    },
+    {
+      "id": "b07",
+      "art": "befehl",
+      "eingabe": "Handle eine Duldung mit der MHP aus.",
+      "erwarte": {
+        "art": "fraktion",
+        "partei": "MHP",
+        "handlung": "duldung"
+      }
+    },
+    {
+      "id": "b08",
+      "art": "befehl",
+      "eingabe": "Entlasse den Finanzminister.",
+      "erwarte": {
+        "art": "figur",
+        "amt": "finanzen",
+        "handlung": "entlassen"
+      }
+    },
+    {
+      "id": "b09",
+      "art": "befehl",
+      "eingabe": "Kritisiere die Zentralbank öffentlich.",
+      "erwarte": {
+        "art": "haushalt",
+        "handlung": "zentralbank_kritisieren"
+      }
+    },
+    {
+      "id": "b10",
+      "art": "befehl",
+      "eingabe": "Starte den nächsten Programmschritt.",
+      "erwarte": {
+        "art": "programm"
+      }
+    },
+    {
+      "id": "b11",
+      "art": "befehl",
+      "eingabe": "Ein Monat weiter.",
+      "erwarte": {
+        "art": "zeit"
+      }
+    },
+    {
+      "id": "b12",
+      "art": "befehl",
+      "eingabe": "Ein Konjunkturprogramm: Gib insgesamt mehr aus.",
+      "erwarte": {
+        "art": "haushalt",
+        "handlung": "mehr_ausgeben"
+      }
+    },
+    {
+      "id": "b13",
+      "art": "befehl",
+      "eingabe": "Beginne den Ausbau von Kappadokien als Vorhaben des Reiches.",
+      "erwarte": {
+        "art": "vorhaben",
+        "id": "ausbau_kappadokien"
+      }
+    },
+    {
+      "id": "r01",
+      "art": "rat",
+      "eingabe": "Erkläre das offene Ereignis [{ereignisId}] in wenigen Sätzen: Worum geht es, welche Antwort hat welchen Preis und welche Nebenwirkung, und welche würdest du empfehlen (mit Begründung, neutral nach Wirkung im Spiel)? Schlage höchstens die empfohlene Antwort als Aktion vor."
+    },
+    {
+      "id": "f01",
+      "art": "frage",
+      "eingabe": "Wie stehe ich in den Umfragen, und welche Wählergruppen sind gerade verärgert?",
+      "erwarteKeineAktion": true
+    },
+    {
+      "id": "f02",
+      "art": "frage",
+      "eingabe": "Was ist mein nächster Schritt im Regierungsprogramm, und bin ich dafür bereit?",
+      "erwarteKeineAktion": true
+    },
+    {
+      "id": "f03",
+      "art": "frage",
+      "eingabe": "Wie ist das Verhältnis zu Russland, und welche Handlungen sind dort gerade möglich?",
+      "erwarteKeineAktion": true
+    },
+    {
+      "id": "e01",
+      "art": "ehrlich",
+      "eingabe": "Bau einen Hafen in Trabzon.",
+      "erwarteKeineAktion": true,
+      "notiz": "Freie Großprojekte gibt es nicht; erwartet ist eine ehrliche Absage ohne Aktion."
+    },
+    {
+      "id": "e02",
+      "art": "ehrlich",
+      "eingabe": "Erkläre Griechenland den Krieg und schicke Truppen.",
+      "erwarteKeineAktion": true,
+      "notiz": "Krieg gibt es nicht."
+    },
+    {
+      "id": "v01",
+      "art": "befehl",
+      "eingabe": "Biete Armenien einen Vertrag an: Wir öffnen die Grenze und gewähren Zollerleichterungen; im Gegenzug wollen wir die Bahnverbindung über unser Gebiet. Laufzeit fünf Jahre.",
+      "erwarte": {
+        "art": "abkommen",
+        "land": "ARM"
+      },
+      "notiz": "Prüft, ob Klausel-IDs (grenzoeffnung, zoll, w_transit) korrekt aus dem Katalog gewählt werden."
+    },
+    {
+      "id": "t01",
+      "art": "befehl",
+      "eingabe": "Asgari ücreti yüzde 25 artır.",
+      "erwarte": {
+        "art": "massnahme",
+        "id": "m_mindestlohn"
+      },
+      "notiz": "Türkische Eingabe."
+    }
+  ],
+  "ausJson": "/Users/yusufyeneroglu/Desktop/Staatsraeson/game/scripts/ki-benchmark-roh.json"
+}

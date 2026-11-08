@@ -1,0 +1,1091 @@
+{
+  "scope": "Drei Finanzlücken: aktuelle BIP-Basis, Ressort-/Behördenetats, Schuldenbestand und Zinsdienst",
+  "baselineCommit": "3e3153da06aa40c75db1bfef27f0c5dbe407b52b",
+  "uniqueTests": 242,
+  "newTests": 28,
+  "allLatestPassed": true,
+  "resultsByFile": {
+    "game/test/behoerden.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Pruefung-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Jede Behörde startet mit ihren Startstufen; der Zustand ist deterministisch über den Seed",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Der Ertrag nimmt ab: Jede weitere Stufe bringt weniger als die vorige",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Ausbau kostet Kapital und Zeit, wird erst nach der Bauzeit wirksam und verschiebt die Zielgröße",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Kürzen senkt die Stufe sofort, bricht einen laufenden Ausbau derselben Achse ab",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Das Sonderinstrument steht erst ab seiner Stufe bereit und hat eine Abkühlzeit",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Alte Spielstände ohne Behörden-Feld bekommen die Startstufen beim Laden (Migration)",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden: Ausbau, Kosten, Ertrag Die Bereichszuordnung deckt alle Behörden ab; der MİT liegt im Bereich Sicherheit",
+          "status": "passed"
+        },
+        {
+          "name": "MİT: erweiterte Operationen Der Ausbau des Dienstes hebt Kapazität und freigeschaltete Operationen",
+          "status": "passed"
+        },
+        {
+          "name": "MİT: erweiterte Operationen Inlandsaufklärung liefert ein Lagebild; Überwachung kostet sofort Pressefreiheit",
+          "status": "passed"
+        },
+        {
+          "name": "MİT: erweiterte Operationen Schutz des Präsidenten wirkt sofort und senkt die Putschgefahr-Schutzfrist",
+          "status": "passed"
+        },
+        {
+          "name": "MİT: erweiterte Operationen Die Lagebildqualität steigt mit Technik und Reichweite",
+          "status": "passed"
+        },
+        {
+          "name": "Mess-Tor: maximaler Ausbau gewinnt nicht von selbst Alles auf Stufe 5 kostet laufenden Unterhalt, der das Defizit über zwei Jahre deutlich treibt",
+          "status": "passed"
+        },
+        {
+          "name": "Mess-Tor: maximaler Ausbau gewinnt nicht von selbst Der Sicherheits-Sektor bleibt endlich: Operationen binden Kapazität, auch bei Stufe 5",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden und Haushalt: Der Ressortetat bezahlt den Ausbau Mehr Geld für die Innere Sicherheit trägt den Polizeiausbau ohne neue Schulden; ohne Mehretat geht er aufs Defizit",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden und Haushalt: Der Ressortetat bezahlt den Ausbau Ein unter das Gesetz gekürztes Ressort macht den Ausbau teurer und langsamer",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden und Haushalt: Der Ressortetat bezahlt den Ausbau Alter Spielstand ohne Etatbuchführung: wird beim ersten Zugriff angelegt und läuft weiter",
+          "status": "passed"
+        },
+        {
+          "name": "Behörden und Haushalt: Der Ressortetat bezahlt den Ausbau Der Haushalt zeigt, was die Behörden je Ressort verbraucht haben: aus dem Mehretat und aufs Defizit",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/devisen.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Pruefung-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Leistungsbilanz: Treiber und J-Kurve EU-Nachfrage bessert, Energiepreis verschlechtert, Tourismus stützt; Gold/Sonstiges ist pauschal negativ",
+          "status": "passed"
+        },
+        {
+          "name": "Leistungsbilanz: Treiber und J-Kurve J-Kurve: frische Abwertung wirkt zunächst negativ, nach sechs Monaten positiv",
+          "status": "passed"
+        },
+        {
+          "name": "Reserven: Saldo, Flüsse und Intervention Reserven folgen Leistungsbilanz plus Kapitalflüssen; Ölpreis-Schock verschärft den Abfluss",
+          "status": "passed"
+        },
+        {
+          "name": "Reserven: Saldo, Flüsse und Intervention Intervention: kostet Reserven, stützt den Kurs sofort und legt einen Puffer; bei komfortablen Reserven ohne Glaubwürdigkeitsabzug",
+          "status": "passed"
+        },
+        {
+          "name": "Reserven: Saldo, Flüsse und Intervention Intervention bei knappen Reserven: ehrliche Warnung, Glaubwürdigkeits- und Risikoaufschlag-Abzug (zweischneidig)",
+          "status": "passed"
+        },
+        {
+          "name": "Reserven: Saldo, Flüsse und Intervention Intervention ist begrenzt: Höchstbetrag und vorhandene Reserven",
+          "status": "passed"
+        },
+        {
+          "name": "Schwellen mit Hysterese und Krisen-Modul Reserven-Druck: an unter 25, klebt bis 30, aus darüber (Hysterese) — und treibt CDS und Abwertung",
+          "status": "passed"
+        },
+        {
+          "name": "Schwellen mit Hysterese und Krisen-Modul Zahlungsbilanzkrise: aktiv unter 10 Mrd. mit Blockern, endet erst über 14 (Hysterese)",
+          "status": "passed"
+        },
+        {
+          "name": "Schwellen mit Hysterese und Krisen-Modul Kapitalflucht verschärft die Krise: aktiver Zustand senkt die Flüsse",
+          "status": "passed"
+        },
+        {
+          "name": "IWF-Stand-by mit drei Review-Raten Unterzeichnung: Devisen-Zufluss, Rating-Stützung, Auflagen sichtbar; Anfrage nur in ernster Lage",
+          "status": "passed"
+        },
+        {
+          "name": "IWF-Stand-by mit drei Review-Raten Bestandene Review bringt die nächste Tranche; nach drei Reviews endet das Programm sauber",
+          "status": "passed"
+        },
+        {
+          "name": "IWF-Stand-by mit drei Review-Raten Verfehlte Auflagen brechen das Programm: Tranchen eingefroren, Märkte strafen den Bruch",
+          "status": "passed"
+        },
+        {
+          "name": "IWF-Stand-by mit drei Review-Raten Vorzeitige Kündigung kostet wie ein Bruch",
+          "status": "passed"
+        },
+        {
+          "name": "Migration und Determinismus Ein Spielstand ohne Devisen-Felder lädt mit den Szenario-Startwerten und läuft weiter",
+          "status": "passed"
+        },
+        {
+          "name": "Migration und Determinismus Zwei identische Partien sind bitgleich (Determinismus trotz eigener Zufallsströme)",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/finanz-konsistenz.test.tsx": {
+      "source": "reports/Finanz-Konsistenz-Abschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Devisen verwenden dieselbe gewachsene und inflationierte BIP-Basis wie der Haushalt",
+          "status": "passed"
+        },
+        {
+          "name": "justiz bezahlt die eigene Behörde ohne doppelte Verschuldung",
+          "status": "passed"
+        },
+        {
+          "name": "diplomatie bezahlt die eigene Behörde ohne doppelte Verschuldung",
+          "status": "passed"
+        },
+        {
+          "name": "Wachstum und Inflation allein tilgen keine nominalen Schulden",
+          "status": "passed"
+        },
+        {
+          "name": "fehlend: alle Geldleser verwenden denselben migrationsfreien Ersatz",
+          "status": "passed"
+        },
+        {
+          "name": "defekt: alle Geldleser verwenden denselben migrationsfreien Ersatz",
+          "status": "passed"
+        },
+        {
+          "name": "ohne Szenario-BIP: alle Geldleser verwenden denselben migrationsfreien Ersatz",
+          "status": "passed"
+        },
+        {
+          "name": "Reservekauf behält bei größerem BIP seinen Geldpreis und bucht ihn einmal",
+          "status": "passed"
+        },
+        {
+          "name": "Devisenabrechnung und Kennzahl rechnen die tatsächlichen Dollarflüsse mit aktuellem BIP",
+          "status": "passed"
+        },
+        {
+          "name": "justiz: eigener Etat, Unterhalt, Kürzung und Jahresetat hängen zusammen",
+          "status": "passed"
+        },
+        {
+          "name": "diplomatie: eigener Etat, Unterhalt, Kürzung und Jahresetat hängen zusammen",
+          "status": "passed"
+        },
+        {
+          "name": "justiz: Teilfinanzierung bucht ausschließlich die fehlende Summe",
+          "status": "passed"
+        },
+        {
+          "name": "diplomatie: Teilfinanzierung bucht ausschließlich die fehlende Summe",
+          "status": "passed"
+        },
+        {
+          "name": "alte Personalausgaben und laufende Bauten bleiben beim Laden erhalten, ohne Erstattung oder erneuten Baupreis",
+          "status": "passed"
+        },
+        {
+          "name": "Bestandsidentität bei Wachstum 0, Inflation 0, Defizit 0 und FX 0",
+          "status": "passed"
+        },
+        {
+          "name": "Bestandsidentität bei Wachstum 12, Inflation 50, Defizit 6 und FX 0.2",
+          "status": "passed"
+        },
+        {
+          "name": "Bestandsidentität bei Wachstum -8, Inflation -2, Defizit 3 und FX -0.1",
+          "status": "passed"
+        },
+        {
+          "name": "Bestandsidentität bei Wachstum 3, Inflation 200, Defizit -6 und FX 0.5",
+          "status": "passed"
+        },
+        {
+          "name": "Bestandsidentität bei Wachstum 0, Inflation 0, Defizit -600 und FX 0",
+          "status": "passed"
+        },
+        {
+          "name": "alle Teile des Gesamtdefizits gehen einmal ein, FX bewertet keinen neuen Kredit rückwirkend",
+          "status": "passed"
+        },
+        {
+          "name": "Zinsdienst bei 0 % undefined Schuldenquote ist in Haushalt, Anzeige und Defizit identisch",
+          "status": "passed"
+        },
+        {
+          "name": "Zinsdienst bei 23.8 % undefined Schuldenquote ist in Haushalt, Anzeige und Defizit identisch",
+          "status": "passed"
+        },
+        {
+          "name": "Zinsdienst bei 47.6 % undefined Schuldenquote ist in Haushalt, Anzeige und Defizit identisch",
+          "status": "passed"
+        },
+        {
+          "name": "Schuldenkennzahl zerlegt dieselbe Monatsrechnung einschließlich vollständiger Tilgung",
+          "status": "passed"
+        },
+        {
+          "name": "echter Monatswechsel speichert die Bestandsrechnung; Tageskosten schreiben den Beleg nicht um",
+          "status": "passed"
+        },
+        {
+          "name": "de: Finanzanzeige erklärt Bestand und Monatsfluss ohne rückwirkend erfundene Belege",
+          "status": "passed"
+        },
+        {
+          "name": "en: Finanzanzeige erklärt Bestand und Monatsfluss ohne rückwirkend erfundene Belege",
+          "status": "passed"
+        },
+        {
+          "name": "tr: Finanzanzeige erklärt Bestand und Monatsfluss ohne rückwirkend erfundene Belege",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/haushaltsbericht.test.tsx": {
+      "source": "reports/Finanz-Konsistenz-Pruefung-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Abkommen halten ihre tatsächlichen Kosten und konkreten Zusagen fest; Vorschau legt keine Belege an",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Annahme speichert reale Posten, Finanzierung und Ministerreaktion ohne erfundene Fraktionsbelohnung",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Ablehnung lässt die neue Duldungszusage verbindlich und den bisherigen Etat unverändert",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen ein höherer Forschungsetat erfüllt ein zugesagtes Forschungsgesetz nicht automatisch",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen bestehende andere Zusagen bleiben klar vom Preis der Haushaltsmehrheit getrennt",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Live-Nachsorge liest Erfüllung, Bruch und neue Frist, ohne den Beschlussbeleg umzuschreiben",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen der zusätzliche Reifungsschritt verbessert Verkehr; reine Vergleichsläufe buchen keine Waren oder politischen Folgen",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Kürzung des Agraransatzes zeigt einen negativen Reifungsbeitrag zur Ernte",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen neu bewilligter Etat ist vor der ersten Monatsabrechnung noch nicht wirksam",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen nachträglich geänderter Posten wird nicht mehr als Reifungsbeitrag des alten Beschlusses ausgegeben",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Monatsbericht verwendet gebuchte Waren und identische Belege in Wirtschafts- und Parlamentsbericht",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Monatsstände bleiben historisch, während heutige Zusagen und Parteien sich ändern",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen echter Tageslauf über den Monatswechsel hält einen Koalitionsaustritt nach dem Haushaltsvotum fest",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Votum am Monatsersten nach der Etatabrechnung erhält keine vorzeitige Reifungswirkung",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Speichern und Laden erhalten Beschluss, zugeordnete Verträge und Monatsbelege",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Altstand ohne Beleg wird nicht nachträglich mit erfundenen Haushaltsfolgen ergänzt",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf de erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf en erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+          "status": "passed"
+        },
+        {
+          "name": "Haushaltsbeschluss und Monatsfolgen Berichte und Nachsorge auf tr erklären Ursache, Frist und Grenzen ohne den Spielstand zu verändern",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/lernfaelle.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Pruefung-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Inflation: Spitze im Herbst 2018, dann Rückgang auf einstellige bis niedrige zweistellige Werte",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Leitzins: 24 % bis Sommer 2019, dann Senkungszyklus (Vorgabe-Pfad)",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) USD/TRY: Rücklauf vom Krisenhoch, 2019 seitwärts",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) CDS: Spitze in der Krise, dann deutliche Entspannung",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Arbeitslosigkeit: steigt mit Lag auf 13–15 und bleibt erhöht",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2019 — Rezession und späte Straffung (Start 2018-08, 18 Monate) Schuldenquote: bleibt im niedrigen dreißiger Bereich",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Leitzins: Senkungsserie 19 → 14 trotz steigender Inflation (Vorgabe-Pfad)",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Taylor-Diagnose: Die Regel hätte im Zinsstreit deutlich gestrafft (Prüfstein Z3)",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Inflation: beschleunigt über 36 % (12/2021) Richtung 80 %",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) USD/TRY: Lira-Sturz auf 13+, danach weiter Abwertung",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) CDS: steigt über 500 Richtung Allzeithoch",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Glaubwürdigkeit: fällt im Zinsstreit deutlich",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Arbeitslosigkeit: fällt im Boom — Realwirtschaft entkoppelt vom Preiskanal",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2021 — Zinsstreit und Lira-Sturz (Start 2021-03, 15 Monate) Schuldenquote: struktureller Sonderfall (FX-Bewertung fehlt in Z7, siehe Log)",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Inflation: Talsohle um die Wahl, dann Wiederanstieg auf 65–75 %",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Leitzins: Erkan-Wende 8,5 → 50 (Vorgabe-Pfad)",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) USD/TRY: diskreter Sprung um ~25 % im Juni 2023, dann gemanagte Abwertung",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) CDS: Wahl-Spitze ~700, dann Halbierung unter der orthodoxen Wende",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Arbeitslosigkeit: fällt trotz Straffung unter 10",
+          "status": "passed"
+        },
+        {
+          "name": "Lernfall 2023 — Erdbeben, Wahl und Kurswechsel (Start 2023-01, 18 Monate) Schuldenquote: struktureller Sonderfall (FX-Bewertung fehlt in Z7, siehe Log)",
+          "status": "passed"
+        },
+        {
+          "name": "Rahmenbedingungen des Harness Zeitreihen-CSV: 105 Monate und harte Anker unverändert",
+          "status": "passed"
+        },
+        {
+          "name": "Rahmenbedingungen des Harness Jeder Schock ist an ein Ereignis der Ereignis-CSV rückgebunden",
+          "status": "passed"
+        },
+        {
+          "name": "Rahmenbedingungen des Harness Replay ist deterministisch (gleicher Seed, gleiche Reihe)",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/sim.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Pruefung-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Reproduzierbarkeit (M1) gleicher Seed ergibt denselben Verlauf",
+          "status": "passed"
+        },
+        {
+          "name": "Reproduzierbarkeit (M1) Speichern und Laden setzt den Verlauf exakt fort",
+          "status": "passed"
+        },
+        {
+          "name": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) eine gefügige Zentralbankführung bringt nach zwei Jahren mehr Inflation und eine schwächere Lira",
+          "status": "passed"
+        },
+        {
+          "name": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) der Eingriff lässt die Lira sofort fallen",
+          "status": "passed"
+        },
+        {
+          "name": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) mehr Staatsausgaben erhöhen zuerst das Wachstum und später die Inflation",
+          "status": "passed"
+        },
+        {
+          "name": "Stilisierte Fakten (Wirtschaftsmodell, Abschnitt 7) ohne Eingriff sinkt die Inflation über fünf Jahre",
+          "status": "passed"
+        },
+        {
+          "name": "Plausibilität zehn Jahre bleiben in plausiblen Grenzen, auch nach Eingriffen",
+          "status": "passed"
+        },
+        {
+          "name": "Veröffentlichungen mit Verzögerung die Inflation des Vormonats erscheint am 3. des Folgemonats",
+          "status": "passed"
+        },
+        {
+          "name": "Folgen im Voraus die Vorschau zeigt für eine gefügige Führung eher höhere Inflation",
+          "status": "passed"
+        },
+        {
+          "name": "Folgen im Voraus die Vorschau verändert den Spielstand nicht",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/staatsfinanzen.test.tsx": {
+      "source": "reports/Finanz-Konsistenz-Pruefung-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Einnahmen, Ausgaben und Finanzierung stammen aus derselben Rechnung",
+          "status": "passed"
+        },
+        {
+          "name": "Steuern, Ressorts, Programme, Reformsaldo 0.8 und Zinsen gehen genau einmal ein",
+          "status": "passed"
+        },
+        {
+          "name": "Steuern, Ressorts, Programme, Reformsaldo -0.8 und Zinsen gehen genau einmal ein",
+          "status": "passed"
+        },
+        {
+          "name": "Überschuss ist negative Finanzierung und kein zusätzlicher Punktestand",
+          "status": "passed"
+        },
+        {
+          "name": "Öffnen einer Finanzrechnung verändert einen roh Haushalt nicht",
+          "status": "passed"
+        },
+        {
+          "name": "Öffnen einer Finanzrechnung verändert einen alt Haushalt nicht",
+          "status": "passed"
+        },
+        {
+          "name": "reales Wachstum vergrößert Einnahmen und unveränderte Ressortetats ohne Punktbonus",
+          "status": "passed"
+        },
+        {
+          "name": "Inflation schafft keinen realen Spielraum",
+          "status": "passed"
+        },
+        {
+          "name": "Rezession senkt den realen Etat; Preissteigerung wird getrennt gespeichert",
+          "status": "passed"
+        },
+        {
+          "name": "Monatsfortschreibung belastet weder Schulden noch Punkte ein zweites Mal und ist idempotent",
+          "status": "passed"
+        },
+        {
+          "name": "Speichern und Laden erhält die Preis- und Wachstumsbasis",
+          "status": "passed"
+        },
+        {
+          "name": "Migration fehlend erfindet keine vergangenen Erträge und ändert keine Beschlüsse",
+          "status": "passed"
+        },
+        {
+          "name": "Migration defekt erfindet keine vergangenen Erträge und ändert keine Beschlüsse",
+          "status": "passed"
+        },
+        {
+          "name": "echter Monatswechsel schreibt Volumen fort, die Tagesrechnung nicht",
+          "status": "passed"
+        },
+        {
+          "name": "viele Vorhaben verlängern die Umsetzung, aber verteuern dieselbe Reform nicht",
+          "status": "passed"
+        },
+        {
+          "name": "m_oepp_garantien kostet Haushaltsgeld, aber keine monatliche politische Gebühr",
+          "status": "passed"
+        },
+        {
+          "name": "m_energiesubventionen kostet Haushaltsgeld, aber keine monatliche politische Gebühr",
+          "status": "passed"
+        },
+        {
+          "name": "m_verteidigung kostet Haushaltsgeld, aber keine monatliche politische Gebühr",
+          "status": "passed"
+        },
+        {
+          "name": "Ausnahmebefugnisse bleiben eine ausdrücklich politische Dauerbelastung",
+          "status": "passed"
+        },
+        {
+          "name": "alle sieben Kabinettsbereiche haben Ausgabenposten",
+          "status": "passed"
+        },
+        {
+          "name": "justiz hat echte Finanzierung und verzögerte Ressortwirkung",
+          "status": "passed"
+        },
+        {
+          "name": "diplomatie hat echte Finanzierung und verzögerte Ressortwirkung",
+          "status": "passed"
+        },
+        {
+          "name": "neue Etats gehen durch das echte Haushaltsgesetz und kosten bei der Einbringung keine PK",
+          "status": "passed"
+        },
+        {
+          "name": "Geldbetrag der Entscheidung folgt der Wirtschaftsleistung; veraltete Beträge buchen nichts",
+          "status": "passed"
+        },
+        {
+          "name": "de: Beträge, Einheiten, neue Ressorts und Ressourcentrennung sind vollständig übersetzt",
+          "status": "passed"
+        },
+        {
+          "name": "en: Beträge, Einheiten, neue Ressorts und Ressourcentrennung sind vollständig übersetzt",
+          "status": "passed"
+        },
+        {
+          "name": "tr: Beträge, Einheiten, neue Ressorts und Ressourcentrennung sind vollständig übersetzt",
+          "status": "passed"
+        },
+        {
+          "name": "gespeicherter Monatsbericht behält damalige Geldbeträge bei späterem Wachstum und Inflation",
+          "status": "passed"
+        },
+        {
+          "name": "Altbericht bekommt keine rückwirkend erfundenen Geldbeträge",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/wirtschaft.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Abschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Kennzahlen und Verläufe Jede Kennzahl hat einen endlichen Wert, einen Verlauf, eine gültige Prognosegröße und Treiber",
+          "status": "passed"
+        },
+        {
+          "name": "Kennzahlen und Verläufe Die Reihen wachsen monatlich, mit der Achse im Gleichschritt, und bleiben begrenzt",
+          "status": "passed"
+        },
+        {
+          "name": "Kennzahlen und Verläufe Ein Spielstand ohne Wirtschaftsakte legt sie beim Laden neu an und läuft weiter",
+          "status": "passed"
+        },
+        {
+          "name": "Kennzahlen und Verläufe Marken auf der Zeitachse: Eingriffe und Zinsentscheide erscheinen",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Ohne Einfluss folgt die Bank ihrer Regel",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Eine gefügige Führung folgt dem Druck, eine strenge Führung kaum",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Druck wird auf der nächsten Sitzung verbraucht, weicht ab und kostet Glaubwürdigkeit und Märkte",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Öffentliche Kritik setzt die nächste Sitzung unter Druck und wirkt wiederholt stärker",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Weisungsgebunden legt der Präsident den Zins fest; das kostet die Glaubwürdigkeit",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Die Unabhängigkeit ändert sich stufenweise, kostet Kapital und braucht die Mehrheit; geschützt lässt sich die Führung nicht entlassen",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Die Führung neu besetzen ändert die Haltung; eine strenge Führung beruhigt die Märkte teilweise",
+          "status": "passed"
+        },
+        {
+          "name": "Zinssitzungen Die Optionen vor der Sitzung nennen den Beschluss der Bank und die Kosten",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Ein Posten ändert den Impuls, kostet Kapital und wirkt dauerhaft auf die Politikfelder",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Steuern anheben senkt Impuls und Defizit, trifft Gruppen und kostet doppelt",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Die Vorschau nennt Kapital, Defizit vorher und nachher; ohne Kapital geht es nicht",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Kürzen in die unbeliebte Richtung kostet doppelt; Stufen bleiben in der Spanne des Ressorts",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Pakete des Haushaltsjahres setzen mehrere Regler ohne Kapitalkosten",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Jeder Posten nennt Gewinner, Verlierer, Kehrseite und wirkt auf bekannte Größen",
+          "status": "passed"
+        },
+        {
+          "name": "Haushalt Zinsdienst: Steigende Marktzinsen verteuern die Staatsschuld langsam, sinkende entlasten",
+          "status": "passed"
+        },
+        {
+          "name": "Folgeketten und Prognose Die Kette einer Zinserhöhung nennt Währung, Auslastung, Inflation, Beschäftigung und Zinsdienst mit Verzögerung",
+          "status": "passed"
+        },
+        {
+          "name": "Folgeketten und Prognose Aus dem Politiknetz: Ein höherer Leitzins verteuert Kredite und Wohnungsbau, jede Stufe mit Verzögerung",
+          "status": "passed"
+        },
+        {
+          "name": "Folgeketten und Prognose Ein Ausgabenimpuls stützt Nachfrage und Wachstum und vergrößert das Defizit",
+          "status": "passed"
+        },
+        {
+          "name": "Folgeketten und Prognose Das Prognoseband je Monat: mit mehr Investitionen wächst das Defizit",
+          "status": "passed"
+        },
+        {
+          "name": "Folgeketten und Prognose Kennzahl-Suche und Namen",
+          "status": "passed"
+        },
+        {
+          "name": "Schutz der Bank gilt auf allen Wegen Auch der direkte Befehl entlässt die Führung nicht, solange die Bank gesetzlich geschützt ist",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/gueter.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Anschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Daten 16 Warengruppen, eindeutig, mit Quelle; Lieferanteile höchstens 100 %",
+          "status": "passed"
+        },
+        {
+          "name": "Daten Jedes Land ist ein Akteur des Weltmodells, jeder Knoten steht im Politiknetz",
+          "status": "passed"
+        },
+        {
+          "name": "Daten Vorkommen und Orte: Provinz 1 bis 81 oder Ausland, Lage im Kartenausschnitt, eindeutige Kennung",
+          "status": "passed"
+        },
+        {
+          "name": "Bilanz Ausgangslage: Bor und Strom autark, Erdgas fast ganz Einfuhr, Lager aus den Lagermonaten",
+          "status": "passed"
+        },
+        {
+          "name": "Bilanz Kriegsampel: Reichweite des Lagers in Tagen; Strom und Wasser ohne Ampel, Krieg macht sie rot",
+          "status": "passed"
+        },
+        {
+          "name": "Bilanz Ruhige Welt: der erste Monat setzt die Ausgangslage, das Netz bleibt unberührt",
+          "status": "passed"
+        },
+        {
+          "name": "Bilanz Krieg mit Russland: Reserven puffern, danach wird zuerst die Ausfuhr gekürzt",
+          "status": "passed"
+        },
+        {
+          "name": "Bilanz Ein Ausfall verschwindet ohne neue Lieferverträge nicht von selbst",
+          "status": "passed"
+        },
+        {
+          "name": "Bilanz Hormus trifft Energie; CAATSA trifft Elektronik, nicht die Gasversorgung",
+          "status": "passed"
+        },
+        {
+          "name": "Instrumente Reserveauftrag kostet Kapital und BIP; die Ware wird erst später geliefert",
+          "status": "passed"
+        },
+        {
+          "name": "Instrumente Ausfuhrstopp senkt Ausfuhr auf null und lässt sich aufheben; Quellenwechsel halbiert den Ausfall",
+          "status": "passed"
+        },
+        {
+          "name": "Instrumente Ohne Kapital (auch nach Überziehung) ist nichts möglich; Reserve gibt es nur für lagerfähige Güter",
+          "status": "passed"
+        },
+        {
+          "name": "Spielstand Alter Stand ohne Inventar: wird beim ersten Zugriff angelegt und läuft 24 Monate",
+          "status": "passed"
+        },
+        {
+          "name": "Linsen Ressourcen und Strategie färben Provinzen mit Vorkommen und Orten und haben Legende und Marken",
+          "status": "passed"
+        },
+        {
+          "name": "Katalog gueter.json hat in allen drei Sprachen dieselben Schlüssel und deckt alle Gruppen",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/haushalt-ressorts.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Anschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Ressorts und Spannen Alle verlangten Ressorts gibt es, mit Texten aus dem Katalog und weiter Spanne nach oben",
+          "status": "passed"
+        },
+        {
+          "name": "Ressorts und Spannen Massiv ins Militär: +10 Stufen kosten 2 % des BIP Impuls; die Schnittstelle meldet den Etat",
+          "status": "passed"
+        },
+        {
+          "name": "Ressorts und Spannen Renten: Niveau und Eintrittsalter sind eigene Stellgrößen; ein höheres Alter spart, ein höheres Niveau kostet",
+          "status": "passed"
+        },
+        {
+          "name": "Wirkung mit Verzug und abnehmendem Ertrag Abnehmender Ertrag über +2, Kürzungen wirken voll",
+          "status": "passed"
+        },
+        {
+          "name": "Wirkung mit Verzug und abnehmendem Ertrag Bildung reift über Jahre: nach einem Jahr wirkt erst ein Teil, Fachkräfte steigen erst später deutlich",
+          "status": "passed"
+        },
+        {
+          "name": "Wissensbasis: Bildung hebt die Innovationsgrenze, Forschung wirkt nur bis dorthin voll Über der Grenze verpufft Forschung größtenteils",
+          "status": "passed"
+        },
+        {
+          "name": "Wissensbasis: Bildung hebt die Innovationsgrenze, Forschung wirkt nur bis dorthin voll Nur Forschung ohne Bildung bringt weniger als Forschung mit Bildung (nach Jahren)",
+          "status": "passed"
+        },
+        {
+          "name": "Wissensbasis: Bildung hebt die Innovationsgrenze, Forschung wirkt nur bis dorthin voll Bildung ohne Forschung lässt Fachkräfte abwandern",
+          "status": "passed"
+        },
+        {
+          "name": "Migration der alten Bündel-Posten Alte Stufen, Entwurf und Gesetz landen auf den Ressorts; der Impuls bleibt gleich; alte Kennungen bleiben bedienbar",
+          "status": "passed"
+        },
+        {
+          "name": "Migration der alten Bündel-Posten Ein alter Spielstand mit Bündel-Stufen lädt und läuft weiter",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/haushaltshilfe.test.tsx": {
+      "source": "reports/Finanz-Konsistenz-Anschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Nachtrag nennt realen Preis und Legitimität; doppelte und veraltete Klicks buchen nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Korrektur greift nicht auf beliebige Posten zu und überschreibt keine alte Entscheidung",
+          "status": "passed"
+        },
+        {
+          "name": "neuer Versorgungsauftrag zeigt reale Mehrheit, Kompromisse und Kosten; keine vorzeitige Aktivierung",
+          "status": "passed"
+        },
+        {
+          "name": "neue Sperre nach Vorschau verursacht keine Teilbuchung",
+          "status": "passed"
+        },
+        {
+          "name": "Gespräch bei gefährdetem Partner setzt reale Loyalität um, Zusage bleibt offen",
+          "status": "passed"
+        },
+        {
+          "name": "gespeicherte Belege und heutige Hilfe funktionieren nach Laden; keine Hilfe für alten Beschluss",
+          "status": "passed"
+        },
+        {
+          "name": "Gegenmaßnahmen auf de erklären Preise, Votum und neue Auflagen",
+          "status": "passed"
+        },
+        {
+          "name": "Gegenmaßnahmen auf en erklären Preise, Votum und neue Auflagen",
+          "status": "passed"
+        },
+        {
+          "name": "Gegenmaßnahmen auf tr erklären Preise, Votum und neue Auflagen",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/spielschleife.test.ts": {
+      "source": "reports/Finanz-Konsistenz-Anschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Ortsbezug: Bau vor Ort Eine regionale Maßnahme bewegt nur die genannten Provinzen",
+          "status": "passed"
+        },
+        {
+          "name": "Ortsbezug: Bau vor Ort Die Wirkung ist vor Ort größer als anderswo",
+          "status": "passed"
+        },
+        {
+          "name": "Ortsbezug: Bau vor Ort Ein Landesziel und ein Ortsziel für dieselbe Maßnahme kämpfen nicht gegeneinander",
+          "status": "passed"
+        },
+        {
+          "name": "Ortsbezug: Bau vor Ort Ein landesweiter Beschluss überschreibt Ortsziele",
+          "status": "passed"
+        },
+        {
+          "name": "Ortsbezug: Bau vor Ort Kosten und Kapital eines kleinen Ortes sind kleiner als die des ganzen Landes",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Ein Gesetz kostet Kapital und wird nach 21 Tagen abgestimmt",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Ohne Mehrheit scheitert das Gesetz, das Kapital ist verloren",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Stimmen lassen sich kaufen und machen das Gesetz mehrheitsfähig",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Alte Spielstände: Zusagen an „Fraktionen“ und ihre Ereignisse verschwinden",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Ohne genug Kapital wird nichts eingebracht",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Erlass nur in Sicherheit und Außenbeziehungen, sofort wirksam, teurer",
+          "status": "passed"
+        },
+        {
+          "name": "Politisches Kapital und Parlament Doppeltes Einbringen derselben Maßnahme wird abgelehnt",
+          "status": "passed"
+        },
+        {
+          "name": "Verwaltungskapazität Viele laufende Vorhaben verlangsamen jedes weitere ohne pauschalen Preisaufschlag",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Ein Erdbeben entsteht aus dem Zustand, hat einen Ort und mehrere Antworten",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Eine Antwort kostet Kapital, schließt das Ereignis und landet in der Chronik",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Ohne genug Kapital ist eine Antwort nicht möglich",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Wer nicht antwortet, bekommt nach der Frist die Standardfolge und verliert Zustimmung",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Die erste Woche hat drei Vorgänge (Entscheidungen E)",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Zusagen aus dem Wahlkampf werden fällig und als Ereignis eingefordert",
+          "status": "passed"
+        },
+        {
+          "name": "Ereignisse Ein Ereignis entsteht im Lauf der Zeit ganz von selbst",
+          "status": "passed"
+        },
+        {
+          "name": "Zustimmung, Wahl und Ende Die Zustimmung startet beim Wahlergebnis",
+          "status": "passed"
+        },
+        {
+          "name": "Zustimmung, Wahl und Ende Am Wahltag mit guter Zustimmung: Wiederwahl, zweite und letzte Amtszeit",
+          "status": "passed"
+        },
+        {
+          "name": "Zustimmung, Wahl und Ende Am Wahltag mit schlechter Zustimmung: Abwahl und Bilanz",
+          "status": "passed"
+        },
+        {
+          "name": "Zustimmung, Wahl und Ende Monate unter der Sturzschwelle beenden die Amtszeit vorzeitig, mit Warnung nach drei Monaten",
+          "status": "passed"
+        },
+        {
+          "name": "Zustimmung, Wahl und Ende Nach dem Ende gibt es keine Ereignisse und keine Gesetze mehr",
+          "status": "passed"
+        },
+        {
+          "name": "Speichern und Determinismus mit Spielschleife Gleicher Seed und gleiche Eingaben ergeben denselben Zustand",
+          "status": "passed"
+        },
+        {
+          "name": "Speichern und Determinismus mit Spielschleife Laden und Fortsetzen ist identisch mit Durchlaufen",
+          "status": "passed"
+        },
+        {
+          "name": "Speichern und Determinismus mit Spielschleife Alte Spielstände ohne Spielschleife laufen weiter",
+          "status": "passed"
+        }
+      ]
+    },
+    "game/test/versorgung.test.tsx": {
+      "source": "reports/Finanz-Konsistenz-Abschluss-2026-11-02.json",
+      "tests": [
+        {
+          "name": "Durchgehende Versorgung jede Menge hat eine Herkunft und Verwendung, auch im Krieg; Abschluss ist einmalig",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Reserveauftrag ist keine Sofortware; Teillieferung braucht Kapazität, kein zweiter Kauf bei offenem Auftrag",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Hafenkapazität begrenzt Lieferungen, Entlastung hilft, Strom wird nicht gelagert",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Umleitung wirkt erst nach Vorlauf und verursacht tatsächliche Mehrkosten",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Zivil- und Militärpriorität verteilen dieselbe knappe Ware mit unterschiedlichen Folgen",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Gasengpass drosselt Strom und Dünger im Folgemonat",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung ein beendeter Lieferkonflikt heilt Versorgung und Produktion mit zeitlichem Nachlauf",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Güterrechnung geht vollständig einmal in Devisen ein; Ausgangshandel wird nicht nochmals bezahlt",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Materialmangel verzögert laufende Fertigung; Treibstoffmangel wirkt in realer Kriegsstärke",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Speichern erhält Bestände, Aufträge, Verteilung und Abrechnung; alter Stand bekommt keine Gratisware",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Echter Monatswechsel schließt Waren vor Devisen ab",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Warenakte und Kriegsdossier rendern dieselbe Versorgung (de)",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Warenakte und Kriegsdossier rendern dieselbe Versorgung (en)",
+          "status": "passed"
+        },
+        {
+          "name": "Durchgehende Versorgung Warenakte und Kriegsdossier rendern dieselbe Versorgung (tr)",
+          "status": "passed"
+        }
+      ]
+    }
+  },
+  "sourceSha256": {
+    "game/src/data/behoerden.ts": "287f013493297cf7bd5a11c3dbe429eb3e03ccd2a847bb1f2a36e0bc11a6c2c5",
+    "game/src/i18n/katalog/de/kennzahlen.json": "6b916508606b49bee2c2f803dbb30f407aae3fa8554744c93d3442849a71fd17",
+    "game/src/i18n/katalog/de/staatsfinanzen.json": "81d5fcc6b262c704d66b2493aee42497a5243b66d2a520306752de06404f8306",
+    "game/src/i18n/katalog/en/kennzahlen.json": "4a0bface4d533e25eadc8c0de22328428d266f8b641458f8e8973deb873aeb42",
+    "game/src/i18n/katalog/en/staatsfinanzen.json": "2e2e63245a103d55055cc17cc58a9124c016a2de7e719444900ecd56f3b090b0",
+    "game/src/i18n/katalog/tr/kennzahlen.json": "518773e07195909d67e3db42fd3d55464a9a72fba9a64089550b9608b2e9d07e",
+    "game/src/i18n/katalog/tr/staatsfinanzen.json": "6132d4b72fdfac7f2ad38c6adb525f3fe9d70e72b170657902ad83262d7a8486",
+    "game/src/sim/behoerden.ts": "f663208c7c74768765e1428b17a7eac64b74af19edb88ee26d35988dff6b3e54",
+    "game/src/sim/devisen.ts": "d27269846df798ee4cd94fb9b47eae0a89ca6955a9a3ad54f13bbd6c1ddada4a",
+    "game/src/sim/economy.ts": "b5925c092de939a57b1415826ad95e94432e2b441f2d25ce3aa4924ef06c2a4f",
+    "game/src/sim/gueter.ts": "8baeff2011ffd5e5e7b2c9b7ba773aca0382c60b0cb51d374c4c83541a53ad12",
+    "game/src/sim/haushalt.ts": "c71eabf045d982a6e166717bb2e6fe635f7bf6365f66801297474b420b7a3924",
+    "game/src/sim/staatsfinanzen.ts": "a36c8742a3e411a08ced76262b521ceafa0e15985b3f441d6faa2875400f5119",
+    "game/src/sim/staatsgeld.ts": "1a9754571a91f630d0d8517e77a3d825372c2269105a1141738577f129c2a1b4",
+    "game/src/sim/types.ts": "03f36d7f2d9083a8fa0544d352462e1100018815809bd1a4279494f9e958912b",
+    "game/src/sim/wirtschaft-kennzahlen.ts": "07547f2f52630631ceb04d88ad15a0f21ae41136c5ff4d557f484db43af35b87",
+    "game/src/sim/wirtschaft.ts": "98fb698c435200c3b2ab0ddca5c0e8e8f78386094ee7bc0ca5751cd9e3302a4b",
+    "game/src/sim/world.ts": "506ad2c7c6dee1d95ca88b986d9293cc1ad3e29523c04166466394097561c8d8",
+    "game/src/ui/wirtschaft/Staatsfinanzen.tsx": "cf521941c26334888da934c5b661e9de73d987a2fdceda75e5521d0656c6330c",
+    "game/src/ui/wirtschaft/staatsfinanzen.css": "fb29cd30538a46d7d93f638a5d8b6043dea741301fd4516e1ffe49af33b1b29a",
+    "game/test/versorgung.test.tsx": "67f94a44cab36d97bb76242f18acc8e457dd2dd875e76c30f114125a1667df30",
+    "game/test/finanz-konsistenz.test.tsx": "b3c915053921e5e8c690d0e47d65d69097ef248d05ed3f7255ed23dc52312fd9"
+  },
+  "build": {
+    "passed": true,
+    "includesTypeScript": true,
+    "log": "reports/Finanz-Konsistenz-Build-2026-11-02.log",
+    "remainingWarnings": [
+      "optional infrastrukturEtat export uses existing fallback",
+      "large bundled chunks"
+    ]
+  },
+  "browserChecked": false,
+  "newScreenshots": false,
+  "reproducedBefore": [
+    "USD GDP omitted growth/prices",
+    "justice ignored own budget",
+    "diplomacy ignored own budget",
+    "20 nominal debt became 19.804632373262464 without repayment"
+  ],
+  "limitations": [
+    "Inflation proxies GDP deflator",
+    "Existing 40 percent foreign currency share retained",
+    "Annual flow divided by twelve at closing monthly GDP",
+    "No treasury asset account after full gross-debt repayment",
+    "Agency annual usage remains in GDP shares",
+    "No full-game balance or visual acceptance"
+  ]
+}

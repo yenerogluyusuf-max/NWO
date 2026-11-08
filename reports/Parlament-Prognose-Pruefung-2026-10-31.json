@@ -1,0 +1,479 @@
+{
+  "title": "Laufende Gesetze: gemeinsame Votumsprognose, Fristen und Halbrund",
+  "createdAtUtc": "2026-10-31T11:01:17.831Z",
+  "before": {
+    "passed": 0,
+    "failed": 4,
+    "cases": [
+      "Gesetzesprognose im Parlament die laufende Gesetzeskarte berücksichtigt Duldungsende vor dem Votum",
+      "Gesetzesprognose im Parlament Halbrund und tatsächliche Rechnung stimmen auch bei Bonus 17 überein",
+      "Gesetzesprognose im Parlament Halbrund und tatsächliche Rechnung stimmen auch bei Bonus -80 überein",
+      "Gesetzesprognose im Parlament Halbrund und tatsächliche Rechnung stimmen auch bei Bonus 1200 überein"
+    ]
+  },
+  "verification": {
+    "distinctPassed": 64,
+    "newCases": 21,
+    "existingCases": 43,
+    "failed": 0,
+    "runs": [
+      {
+        "source": "kern",
+        "passed": 29,
+        "failed": 0
+      },
+      {
+        "source": "erweitert",
+        "passed": 37,
+        "failed": 0
+      },
+      {
+        "source": "final",
+        "passed": 21,
+        "failed": 0
+      }
+    ],
+    "tests": [
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Daten 20 bis 30 Vorhaben, jede Maßnahme im Netz, jeder Akteur bekannt",
+        "status": "passed",
+        "durationMs": 3.8355830000000424
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Daten Texte in allen drei Sprachen",
+        "status": "passed",
+        "durationMs": 3.83791599999995
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Karten Fassungen gestaffelt: scharf kostet mehr und holt weniger Stimmen als verwässert",
+        "status": "passed",
+        "durationMs": 75.97079200000007
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Karten Lager: Parteien nach Linie, Verbände aus den Daten; Partner, die dagegen sind, springen bei scharf ab",
+        "status": "passed",
+        "durationMs": 18.98195799999985
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Karten ohne Lager fehlt die Mehrheit: die Karte sagt es vorher",
+        "status": "passed",
+        "durationMs": 19.228791
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Ablauf Gesetz einbringen, Abstimmung, Folgen, Ruhezeit",
+        "status": "passed",
+        "durationMs": 49.67162499999995
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Ablauf verlorene Abstimmung: Kapital weg, kurze Ruhezeit",
+        "status": "passed",
+        "durationMs": 29.816666999999597
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Ablauf Erlass nur, wo das Recht ihn zulässt (Art. 104 Abs. 17): nie bei Steuern, nie bei Grundrechten",
+        "status": "passed",
+        "durationMs": 41.71012500000006
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Ablauf Klagen dürfen nur die beiden größten Fraktionen oder ein Fünftel der Abgeordneten (Art. 150); sonst bleibt der Erlass unangefochten",
+        "status": "passed",
+        "durationMs": 34.3181669999999
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Ablauf Verfassungsgericht: hebt auf und setzt die alte Stufe zurück, oder bestätigt",
+        "status": "passed",
+        "durationMs": 53.9872919999998
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Spielstände ältere Stände ohne Gesetzgebung laden und spielen weiter",
+        "status": "passed",
+        "durationMs": 56.088500000000295
+      },
+      {
+        "file": "test/gesetzgebung.test.ts",
+        "name": "Spielstände Spielstand mit laufender Prüfung übersteht Speichern und Laden",
+        "status": "passed",
+        "durationMs": 27.315791999999874
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Halbrund-Geometrie 600 Sitze, von links nach rechts nach Winkel geordnet, alle im Bild",
+        "status": "passed",
+        "durationMs": 20.053415999999743
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Halbrund-Geometrie Sitze überlappen nicht: kleinster Abstand ist mindestens ein Sitzdurchmesser",
+        "status": "passed",
+        "durationMs": 8.562875000000076
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Halbrund-Geometrie auch andere Sitzzahlen gehen auf",
+        "status": "passed",
+        "durationMs": 1.6088330000002316
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Halbrund-Geometrie Fraktionen belegen zusammenhängende Keile und die Mehrheitslinie liegt zwischen Sitz 301 und 302",
+        "status": "passed",
+        "durationMs": 0.42658399999982066
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "proportional verteilt die Summe genau und respektiert Obergrenzen",
+        "status": "passed",
+        "durationMs": 0.3714159999999538
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Stimmen auf Fraktionen Lage: Fraktionen ergeben 600 Sitze, Lager zuerst",
+        "status": "passed",
+        "durationMs": 0.2804580000001806
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Stimmen auf Fraktionen Ergebnis: Summe der Ja-Stimmen ist genau das Ergebnis, das Lager stimmt zuerst",
+        "status": "passed",
+        "durationMs": 1.3452919999999722
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Stimmen auf Fraktionen Stimmzettel: je Fraktion so viele Ja wie zugeteilt, insgesamt 600 Sitze",
+        "status": "passed",
+        "durationMs": 0.9062919999996666
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Stimmen auf Fraktionen Erwartung entspricht der Rechnung der Simulation",
+        "status": "passed",
+        "durationMs": 0.6670420000000377
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Stimmen auf Fraktionen Erwartung eines Gesetzes mit Absprachen zählt sie als Zusagen",
+        "status": "passed",
+        "durationMs": 1.8465839999998934
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Abstimmungen im Protokoll liest angenommene und abgelehnte Abstimmungen, sonst nichts",
+        "status": "passed",
+        "durationMs": 0.6210829999999987
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Abstimmungen im Protokoll eine echte Abstimmung der Simulation wird gelesen und liefert einen Stimmzettel mit genau dem Ergebnis",
+        "status": "passed",
+        "durationMs": 64.36729100000002
+      },
+      {
+        "file": "test/parlament.test.ts",
+        "name": "Verbindungen der Oberfläche Wiederholen einer Abstimmung und Sprung zum Gesetz erreichen ihre Beobachter, und sie lassen sich abmelden",
+        "status": "passed",
+        "durationMs": 0.22695900000007896
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein inaktiver ehemaliger Vorsitz löst weder Warnung noch Mentor-Bruchhinweis aus",
+        "status": "passed",
+        "durationMs": 70.00412499999993
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein der gefährdetste aktive Vorsitz erhält Vorrang vor einem nur unzufriedenen Partner",
+        "status": "passed",
+        "durationMs": 51.85016599999972
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein der Zusagensprung verwendet das vereinbarte Landesziel statt weiterer zwanzig Punkte",
+        "status": "passed",
+        "durationMs": 11.097166000000016
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein die Terminzeile berücksichtigt Stimmenabsprachen und Duldungsende zum Votum",
+        "status": "passed",
+        "durationMs": 11.636374999999589
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 19.9999 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 24.50500000000011
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 20 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 19.353624999999738
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 34.9999 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 25.939542000000074
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Loyalität 35 verwendet die gemeinsame Warn- und Bruchschwelle",
+        "status": "passed",
+        "durationMs": 21.36999999999989
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein echtes Gespräch entfernt die akute Bruchwarnung, aber lässt die Frühwarnung bestehen",
+        "status": "passed",
+        "durationMs": 72.96479199999976
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Opposition, eigene Partei und inaktive Personen erzeugen keine Koalitionsbruchwarnung",
+        "status": "passed",
+        "durationMs": 2.3105829999999514
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein gleicher Tag und gleiche Anzahlen dürfen andere Duldung, Frist und Zwangspause zeigen",
+        "status": "passed",
+        "durationMs": 41.919666000000234
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein gleiche Weltkennzahlen beim Laden verwechseln keine anderen Sitzverhältnisse und Vorsitzenden",
+        "status": "passed",
+        "durationMs": 71.56600000000026
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein ein festes niedrigeres Ziel bleibt auch nach späterem Umsetzungsfortschritt dasselbe",
+        "status": "passed",
+        "durationMs": 3.455583999999817
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein die parlamentarische Frist wird nach einer geänderten Mehrheit sofort als dringend eingestuft",
+        "status": "passed",
+        "durationMs": 9.26516700000002
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf de",
+        "status": "passed",
+        "durationMs": 532.0515
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf en",
+        "status": "passed",
+        "durationMs": 245.61979199999996
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein Lage und Mentorin folgen dem Sprachwechsel am selben Tag auf tr",
+        "status": "passed",
+        "durationMs": 432.5599579999998
+      },
+      {
+        "file": "test/schreibtisch-lage-aktuell.test.tsx",
+        "name": "Politische Lage auf dem Schreibtisch stimmt mit der Entscheidung überein wiederholtes Lesen der aktuellen Lage verändert weder laufende Zusagen noch Gesetze oder den Spielstand",
+        "status": "passed",
+        "durationMs": 283.3831250000003
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament die laufende Gesetzeskarte berücksichtigt Duldungsende vor dem Votum",
+        "status": "passed",
+        "durationMs": 63.506417000000056
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Halbrund und tatsächliche Rechnung stimmen auch bei Bonus 17 überein",
+        "status": "passed",
+        "durationMs": 10.292291999999634
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Halbrund und tatsächliche Rechnung stimmen auch bei Bonus -80 überein",
+        "status": "passed",
+        "durationMs": 6.802874999999858
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Halbrund und tatsächliche Rechnung stimmen auch bei Bonus 1200 überein",
+        "status": "passed",
+        "durationMs": 3.6104999999997744
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament die Duldung endet -1 Tage relativ zum Votum",
+        "status": "passed",
+        "durationMs": 3.1963330000003225
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament die Duldung endet 0 Tage relativ zum Votum",
+        "status": "passed",
+        "durationMs": 5.167124999999942
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament die Duldung endet 1 Tage relativ zum Votum",
+        "status": "passed",
+        "durationMs": 2.035624999999982
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament ein heute gezeichneter Sitzplan zählt nach Ende der Duldung nicht doppelt",
+        "status": "passed",
+        "durationMs": 2.185874999999669
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament mehrere Fristen werden geordnet, Koalitionspartner und bereits beendete Duldungen ausgeschlossen",
+        "status": "passed",
+        "durationMs": 3.9978329999999005
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament ein verlegtes Votum aktualisiert die bekannten Fristverluste am selben Tag",
+        "status": "passed",
+        "durationMs": 6.936833000000206
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament überfällige Voten rechnen von heute statt eine bereits beendete Duldung wiederzubeleben",
+        "status": "passed",
+        "durationMs": 2.507959000000028
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Beschlussbuch, Schreibtisch und laufende Gesetzesvorhaben teilen dieselbe Prognose",
+        "status": "passed",
+        "durationMs": 5.917291000000205
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament das Halbrund hält seine Grenzen auch bei starken Fassungseffekten und großen Absprachen ein",
+        "status": "passed",
+        "durationMs": 5.617041999999856
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Prognose und Abstimmung verwenden dieselbe Grundlage einschließlich tatsächlicher Streuung",
+        "status": "passed",
+        "durationMs": 2.5143749999997453
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament die empfohlene Absprache erreicht den Puffer und bucht den gezeigten Preis",
+        "status": "passed",
+        "durationMs": 1.8104160000002594
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Prognosekarte erklärt Fristen und Grenzen auf de",
+        "status": "passed",
+        "durationMs": 2.578457999999955
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Prognosekarte erklärt Fristen und Grenzen auf en",
+        "status": "passed",
+        "durationMs": 158.77729200000022
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Prognosekarte erklärt Fristen und Grenzen auf tr",
+        "status": "passed",
+        "durationMs": 174.37545799999998
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament Lesen und Speichern erhalten die heutige Fraktionsrolle und die laufenden Gesetze",
+        "status": "passed",
+        "durationMs": 29.7509170000003
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament die Übersichtskachel zeigt das eingebrachte Gesetz statt einer neuen Kompromissfassung",
+        "status": "passed",
+        "durationMs": 52.95695800000021
+      },
+      {
+        "file": "test/parlament-prognose.test.tsx",
+        "name": "Gesetzesprognose im Parlament ein unbezahlbarer Stimmenpuffer bleibt als gesperrte Handlung mit Preis sichtbar",
+        "status": "passed",
+        "durationMs": 25.01608299999998
+      }
+    ]
+  },
+  "scenarios": [
+    {
+      "description": "Duldung endet vor dem Votum; Absprachen und Bonus bleiben erhalten",
+      "forecastAtVote": 433,
+      "previousCardUsedToday": true
+    },
+    {
+      "description": "Halbrund ohne Bonus: 475 statt korrekter 492 bei Bonus 17; mit negativem Bonus -80: 475 statt 395; Bonus 1200 wird bei 600 gedeckelt",
+      "nowMatchesSimulation": true
+    },
+    {
+      "description": "Empfohlene Absprache verwendet Fristenprognose, erreicht 309 Ja-Stimmen und bucht den angezeigten Kapitalpreis sowie 3 Aufmerksamkeit",
+      "actualAction": "stimmenKaufen",
+      "verified": true
+    },
+    {
+      "description": "Echter gesetzeAbstimmen-Aufruf am geplanten Tag mit deterministischem Rng 91 stimmt mit Prognose plus tatsächlicher Streuung überein",
+      "fullMonthlyAdvance": false,
+      "verified": true
+    }
+  ],
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "typescript": "passed",
+    "production": "passed",
+    "log": "/private/tmp/nwo-parlamentsprognose-build-20261031.log",
+    "knownWarnings": [
+      "optionaler Import infrastrukturEtat",
+      "Paketgroessen"
+    ]
+  },
+  "limits": {
+    "localOnly": true,
+    "published": false,
+    "browserVerified": false,
+    "visualLayoutVerified": false,
+    "screenshots": [],
+    "fullSuiteRun": false,
+    "note": "Serverseitige React-Ausgabe und Simulation sind keine Browserpruefung. Prognose schreibt nur bekannte Duldungsfristen fort, keine zukuenftigen Monatsfolgen. Fraktionsverteilung von Fassungseffekten bleibt eine gekennzeichnete Illustration, kein gespeichertes individuelles Abstimmungsverhalten."
+  },
+  "sourceSha256": {
+    "src/sim/handeln.ts": "0667632e9908b094bbeca72bb30d132bc1b64f62c828cc1475598ae33b327e4f",
+    "src/sim/gesetzgebung.ts": "a7df82db81c2efc7d17e9753794773fba3d2c8e3218be5e7bc451bd24e56a133",
+    "src/ui/Beschlussbuch.tsx": "70e6b89a3931c2b0e85f1c0859c6bad73cba756c9a58f8d3412012c03f931a7b",
+    "src/ui/gesetze/Gesetzesvorhaben.tsx": "34ab5bef417a6c5abb8f5ee7a691252278d698d44934e17ab60f0d8f09c3dc5e",
+    "src/ui/schreibtisch/briefing.ts": "8ce472acb64a20d7f2bf7313e109287e0fa46a4e69d8d8526b69e8f0a5df5184",
+    "src/ui/parlament/stimmen.ts": "f41e5c84e6bc359dc5de513c5b7705ce70d5bdf4056de1fcafe6a8e6c6bf816f",
+    "src/ui/parlament/ParlamentKopf.tsx": "6ff6f93edc252045e45f0d9763a06357b40ba3f9bd2e06be7518c716e7a0b80f",
+    "src/ui/parlament/GesetzesPrognoseHinweis.tsx": "3f7822563248b8d62b3685aaab04bb00d8d96f85fe788fb390cb32526c7f57eb",
+    "src/ui/parlament/prognose.css": "60ecc74beb4cf2e7c7421489b9fba0c0b8cd1ba75d9ff2d96ef9a108868960fa",
+    "test/parlament-prognose.test.tsx": "48daeb689c37934c793ef18cc8255ad1a0db7d90fa487be0f91d56dc83237450",
+    "src/i18n/katalog/de/gesetzprognose.json": "2c0095ea9d629ba6d844320f1eadcf16e45c5cb6c99836e91da6f6d477856211",
+    "src/i18n/katalog/en/gesetzprognose.json": "89ddf85e5f28c9dcb4d4b35f992fafded128191b6677e7210c272155fa2ff079",
+    "src/i18n/katalog/tr/gesetzprognose.json": "bd4fca13ad71bd22cf7b0dbc2947912f2c2913abb58591bdf724e05812d4fdc4"
+  }
+}

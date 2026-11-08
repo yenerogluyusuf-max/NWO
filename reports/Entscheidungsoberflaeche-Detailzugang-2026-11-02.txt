@@ -1,0 +1,15 @@
+
+> staatsraeson@0.1.0 test
+> vitest run --run test/entscheidungsoberflaeche.test.tsx -t geöffnete Fachübersicht --reporter=default --reporter=json --outputFile=/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Entscheidungsoberflaeche-Detailzugang-2026-11-02.json
+
+
+ RUN  v5.0.2 /Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game
+
+ ✓ test/entscheidungsoberflaeche.test.tsx (22 tests | 21 skipped) 7ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed | 21 skipped (22)
+   Start at  15:08:56
+   Duration  2.01s (transform 84%, import 16%)
+
+JSON report written to /Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/reports/Entscheidungsoberflaeche-Detailzugang-2026-11-02.json

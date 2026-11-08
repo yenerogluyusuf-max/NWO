@@ -1,0 +1,58 @@
+datum,ereignis,kategorie,kurzbeschreibung,quelle
+2018-01-01,Mindestlohn 2018: 1.603 TL netto,sozial,Festlegung durch Kommission,ÇSGB
+2018-04-25,"TCMB hebt LLW auf 13,5 %",zins,Späte Liquiditätsfazilität +75 bp; damaliges effektives Funding,TCMB Pressemitteilung
+2018-05-23,"Notfallsitzung: +300 bp auf 16,5 %",zins,Nach Lira-Verfall und Erdogan-Zinsäußerungen in London,TCMB
+2018-06-07,"Leitzins 17,75 %",zins,1W-Repo wird offizieller Leitzins (Vereinfachung 01.06.),TCMB
+2018-06-24,Präsidentschafts- und Parlamentswahl,wahl,Erdoğan in erster Runde wiedergewählt; Präsidialsystem startet,YSK
+2018-08-01,US-Sanktionen im Brunson-Streit,aussen,Sanktionen gegen zwei türkische Minister,US Treasury
+2018-08-10,Lira-Crash nach US-Stahlzöllen,krise,"USD/TRY von ~5,5 auf >6,9; Intraday-Spitze 13.08. ~7,2",Reuters
+2018-09-13,TCMB hebt Leitzins auf 24 %,zins,+625 bp entgegen öffentlichem Druck Erdoğans,TCMB
+2018-10-12,Pastor Brunson freigelassen,aussen,Entspannung im US-Verhältnis; Lira erholt sich,Reuters
+2019-03-31,Kommunalwahlen,wahl,CHP gewinnt Istanbul und Ankara; Istanbul annulliert,YSK
+2019-06-23,Wiederholungswahl Istanbul,wahl,İmamoğlu gewinnt mit großem Vorsprung,YSK
+2019-07-06,Gouverneur Çetinkaya per Dekret entlassen,gouverneur,Uysal wird Gouverneur; Beginn der Dekret-Wechsel-Ära,Resmî Gazete
+2019-07-25,"Zinssenkungszyklus beginnt (24→19,75 %)",zins,-425 bp; bis Dezember 2019 auf 12 %,TCMB
+2019-10-09,Militäroperation 'Friedensquelle' in Nordsyrien,aussen,US-Sanktionsdrohungen; CDS-Anstieg,Reuters
+2020-03-11,Erster COVID-19-Fall in der Türkei,katastrophe,Pandemie; Lockdown-Maßnahmen ab Frühjahr,WHO/Ministerium
+2020-03-17,COVID-Paket und Zinssenkungen,zins,"Leitzins bis Mai 2020 auf 8,25 %; Kreditexpansion",TCMB
+2020-08-06,Verdeckte FX-Interventionen eskalieren,krise,"Reservenverkäufe über Staatsbanken ('128-Mrd.-Frage'); USD/TRY 6,9→7,4",Bloomberg
+2020-09-24,"Wende: TCMB +200 bp auf 10,25 %",zins,Erste Anhebung seit September 2018,TCMB
+2020-11-07,Ağbal Gouverneur; Albayrak tritt zurück,gouverneur,Markt-Rally; 20.11. +475 bp auf 15 %,Resmî Gazete
+2020-12-24,Leitzins 17 %,zins,+200 bp; Straffungsausblick,TCMB
+2021-03-20,Ağbal nach vier Monaten entlassen,gouverneur,Kavcıoğlu übernimmt; USD/TRY +15 % binnen Tagen,Resmî Gazete
+2021-09-23,"Zinssenkung trotz 19,6 % Inflation (19→18 %)",zins,Beginn des 'Zinsstreits'; Kerninflation als neue Leitgröße,TCMB
+2021-11-18,Leitzins 15 %; Lira im freien Fall,krise,"USD/TRY von 9,6 (Okt.) auf 13,4; Dezembertief 18,4",TCMB/ECB
+2021-12-20,KKM eingeführt,zins,"Kurgeschützte TL-Einlagen; Lira springt von 18,4 auf ~11",Hazine ve Maliye Bakanlığı
+2022-02-24,Russland überfällt die Ukraine,aussen,Energie- und Getreideschock; Inflationsbeschleunigung,Reuters
+2022-07-18,CDS-Allzeithoch 908 bp,krise,5Y-Prämie bei globaler Risikoaversion und Negativreserven,worldgovernmentbonds
+2022-08-18,Zinssenkung auf 13 % trotz ~80 % Inflation,zins,"Weitere Schnitte Sep. 12 %, Okt. 10,5 %, Nov. 9 %",TCMB
+2022-10-03,"TÜFE-Spitze 85,5 %",krise,Höchste offizielle Inflation seit 1998; ENAG: 185 %,TÜİK/ENAG
+2023-02-06,"Erdbeben Kahramanmaraş (M 7,8 / 7,5)",katastrophe,>50.000 Tote; Wiederaufbaukosten ~100-120 Mrd. USD,AFAD/US State Dept.
+2023-02-24,"Leitzins 8,5 %",zins,Letzter Schnitt vor der Wahl; Erdbeben-Begründung,TCMB
+2023-05-14,"Parlaments-/Präsidentschaftswahl, 1. Runde",wahl,"Stichwahl 28.05.: Erdoğan 52,2 %",YSK
+2023-05-22,Lira bricht nach der Wahl ein,krise,USD/TRY 20→26 bis Ende Juni; Aufgabe der Kursverteidigung,ECB-Referenzkurse
+2023-06-09,Erkan Gouverneurin; Şimşek Finanzminister,gouverneur,Rückkehr zur orthodoxen Politik,Resmî Gazete
+2023-06-22,Leitzins 15 % (+650 bp),zins,Start des Straffungszyklus (bis 50 % im März 2024),TCMB
+2023-08-24,Leitzins 25 % (+750 bp),zins,Überraschend großer Schritt; Normalisierung beschleunigt,TCMB
+2024-02-02,Erkan tritt zurück; Karahan Gouverneur,gouverneur,Kontinuität des Kurses betont,Resmî Gazete
+2024-03-22,Leitzins 50 %,zins,Letzte Anhebung des Zyklus,TCMB
+2024-03-31,Kommunalwahlen: CHP landesweit vorn,wahl,Erstmals CHP stimmenstärkste Partei seit 1977,YSK
+2024-05-03,"TÜFE-Höhepunkt 75,45 % (Mai-Daten)",krise,Wendepunkt der Dezinflation,TÜİK
+2024-12-26,"Erste Zinssenkung (50→47,5 %)",zins,Start des Lockerungszyklus,TCMB
+2025-03-19,İmamoğlu festgenommen,krise,"Lira-Crash; CDS 240→370 bp; TCMB verkauft zehn Mrd. USD; Repo-Funding später ausgesetzt, O/N 46 %",Reuters/turkiyetoday
+2025-04-17,Gegen-Anhebung auf 46 %,zins,Antwort auf die Marktturbulenzen,TCMB
+2025-07-24,Lockerung geht weiter (46→43 %),zins,"Schritte Sep. 40,5 %, Okt. 39,5 %, Dez. 38 %",TCMB
+2025-09-17,CDS fällt auf 240 bp,krise,Tiefster Stand seit Februar 2020,turkiyetoday
+2025-12-11,Leitzins 38 %,zins,Jahresendstand 2025,TCMB
+2025-12-23,Mindestlohn 2026: 28.075 TL (+27 %),sozial,TÜRK-İŞ boykottiert die Kommission,ÇSGB
+2026-01-22,Leitzins 37 % (-100 bp),zins,'Begrenzter Schritt' trotz Jan.-Inflationsschub,TCMB/BIS-Rede Karahan
+2026-02-28,Beginn US/Israel-Iran-Krieg,aussen,Energieschock; Hormus-Risiko; Brent zeitweise >110 USD,AA/Reuters
+2026-03-01,Repo-Ausschreibungen ausgesetzt,zins,Bankenfinanzierung über 40-%-O/N-Fazilität = faktische Straffung,TCMB/AA
+2026-03-31,CDS-Spitze 327 bp,krise,Kriegs-Risikoprämie; danach Rückgang,AA/ekonomi365
+2026-06-01,"Q1-BIP +2,5 %; Exporte -12,7 %",krise,"Kriegseffekt auf Außenhandel; Industrie -0,8 %",TÜİK/turkiyetoday
+2026-06-18,US-Iran-Waffenruhe/Vereinbarung,aussen,Ölpreis auf 3-Monats-Tief; Hormus wieder offen,Ahlatcı Yatırım/AA
+2026-07-31,Interimsabkommen USA-Iran unterzeichnet,aussen,Brent unter 80 USD; Risikoaufschläge fallen,Ahlatcı Yatırım
+2026-08-23,Repo-Ausschreibungen wieder aufgenommen,zins,Effektive Finanzierungskosten zurück Richtung 37 %,TCMB/AA
+2026-08-26,CDS fällt auf 217 bp,krise,"6,5-Monats-Tief nach Kriegsende und Normalisierung",AA
+2026-09-10,PPK hält 37 %,zins,5. Sitzung in Folge unverändert; Energie-Risiken betont,TCMB
+2026-09-16,"Fed +25 bp (3,75-4,00 %); EZB 10.09. +25 bp",aussen,"Globaler Zinsschub; 10J-Rendite TR steigt auf 32,8 %",kagels-trading/SNB

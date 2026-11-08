@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-02",
+  "scope": "Regierungsschreibtisch: Entscheiden, In Arbeit, Rückblick",
+  "uniqueTargetedTestsPassed": 177,
+  "checks": [
+    {
+      "file": "Regierungsschreibtisch-Oberflaeche-Pruefung-2026-11-02.json",
+      "passed": 177
+    },
+    {
+      "file": "Regierungsschreibtisch-Fokus-Pruefung-2026-11-02.json",
+      "passed": 31
+    },
+    {
+      "file": "Regierungsschreibtisch-Navigation-Pruefung-2026-11-02.json",
+      "passed": 32
+    }
+  ],
+  "build": "passed, includes TypeScript",
+  "knownWarnings": [
+    "optional infrastrukturEtat import is undefined",
+    "chunks exceed 500 kB"
+  ],
+  "browserVerified": false,
+  "screenshots": [],
+  "fileSha256": {
+    "game/src/ui/schreibtisch/Schreibtisch.tsx": "db1188e6dbb9e24a78ced16e0f10aa110fcb3c5a82c2fd74fbe2cf7ef38624b0",
+    "game/src/ui/schreibtisch/arbeitsplatz.ts": "d7e5a8b86f27ebdd4b270ba929f230a5ab557636c866d2d322f13e2702b91424",
+    "game/src/ui/schreibtisch/schreibtisch.css": "37df476b7e5239eba6cfd182b8f9102f63e87e270aaca93bea6b63631169536e",
+    "game/src/ui/schreibtisch/ZusagenWache.tsx": "ed258ede19e748e25a5652699eedb793802be97412cc92e6e8c4fbd6c8b56b9a",
+    "game/src/ui/schreibtisch/briefing.ts": "d7d6b16d5373d4d9797e84d704feda4d8ee8e1338a4d595ec5d5452b31fb64cd",
+    "game/src/ui/minister/Mappe.tsx": "9188d3e4b04b17f87ce8605d58f7191187ff4c39b7e88dc30096e73a4bfb084c",
+    "game/src/ui/minister/RessortAnliegen.tsx": "a45fd4418ffd0244f963ecb2a62405fc540816279907857408312f8659a49f91",
+    "game/src/ui/minister/RessortVerantwortung.tsx": "c669fb415b3da0fee9c7c661b90865ffee51bb2e9747a939dc8145eafb7318fa",
+    "game/src/ui/Stage.tsx": "77b788cc66d423e8bb006a4747a25531cda8badf90007006981c5b25ae62d969",
+    "game/test/schreibtisch-arbeitsplatz.test.tsx": "982d5a6ce26aa1dee2cea6d12003ed154345021840c107ec035ba827950008ab",
+    "game/src/i18n/katalog/de/schreibtischarbeit.json": "2ac90e0e8679fd8e2809a6fc5d0be8dc13453751bf83ce5d11fcce1ead7f3d93",
+    "game/src/i18n/katalog/en/schreibtischarbeit.json": "4d5517770261dd3c0876fe348fc2180fcdaabf902bcc255cbcd672e5bdc49943",
+    "game/src/i18n/katalog/tr/schreibtischarbeit.json": "0cbdb23534ae2309a49c2cebc77c72c4f6e160d6ead9cd78858692fe031f6397"
+  }
+}

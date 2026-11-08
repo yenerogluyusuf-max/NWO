@@ -1,0 +1,506 @@
+{
+  "datum": "2026-10-30",
+  "aufgabe": "Koalitionsbruch vor, am und nach dem Versorgungsvotum rechtzeitig vorhersagen",
+  "nurLokal": true,
+  "gezielteTests": 106,
+  "bestanden": 106,
+  "fehler": 0,
+  "neueTests": 10,
+  "ergebnisseJeDatei": [
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/versorgungs-bruchwarnung.test.tsx",
+      "tests": 10,
+      "bestanden": 10,
+      "pruefungen": [
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum Votum am Ersten kann den Partner im selben Tageslauf kosten; Warnung steht vorher fest",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum auch Ablehnung kann die Bruchschwelle unterschreiten",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum bereits akuter Partner kann vor dem Votum gehen, selbst wenn das spätere Paket ihn besänftigen würde",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum Votum nach dem Ersten nennt den nächsten Prüfmonat; Loyalität genau 20 ist kein unmittelbarer Bruch",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum Monatsprüfung behandelt Jahreswechsel, Schaltjahr und denselben Monatsersten korrekt",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum späte Klauseländerung kann das Votum erst auf den Monatsersten verschieben",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum verschlechterte Bruchprognose verwirft ein veraltetes Paket trotz gleicher nominaler Loyalitätskosten",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum sichtbare Warnung in Entwurf und Kompromissen ist in de vollständig",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum sichtbare Warnung in Entwurf und Kompromissen ist in en vollständig",
+          "status": "passed"
+        },
+        {
+          "name": "Bruchwarnung vor dem Versorgungsvotum sichtbare Warnung in Entwurf und Kompromissen ist in tr vollständig",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/versorgungsberatung.test.tsx",
+      "tests": 23,
+      "bestanden": 23,
+      "pruefungen": [
+        {
+          "name": "Konkrete Verhandlungswege gefährdete Mehrheit erhält ausführbare, unterschiedliche Kompromisse mit ehrlichen Fraktionsgewinnen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege Übernahme, spätere Abstimmung und gebuchte Parteifolgen entsprechen jedem angebotenen Weg",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege Loyalität und Bereitschaft zeigen tatsächliche begrenzte politische Kosten",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege keine erfundene Mehrheit bei unvereinbaren Forderungen und aufgebrauchtem Kapital",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege Gespräch allein sichert eine knappe Mehrheit ohne Klausel oder Fristverschiebung",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege Haushaltsdeckel wird atomar gegen Sozialausgleich getauscht",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von kapital wird ohne Teilbuchung verworfen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von sitze wird ohne Teilbuchung verworfen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von bereitschaft wird ohne Teilbuchung verworfen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von termin wird ohne Teilbuchung verworfen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von tag wird ohne Teilbuchung verworfen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege veralteter Weg bei Änderung von kurs wird ohne Teilbuchung verworfen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege manipulierter Klauselsatz und doppelte Gespräche werden nicht teilweise übernommen",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege nach Fristablauf oder Abschluss gibt es keine nachträgliche Verhandlung",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege späte Klauseln berücksichtigen Beratungstage und die dadurch auslaufende Duldung",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege Einsatzgarantie und gebundene Gegenkurse werden nicht als vermeintliche Lösung angeboten",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege ungültig gewordene Garantie kann durch einen gültigen Weg entfernt werden",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege keine Verhandlung beseitigt eine Sanktion gegen den Energielieferanten",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege Vorschau initialisiert keine Fraktionen und zeigt keine fiktive Reaktion der eigenen Partei",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege beide Ansichten zeigen ausführbare Wege; Vorschau und Übernahme überstehen Speichern und Laden",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege vollständiger Katalog und verständliche Verhandlung in de",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege vollständiger Katalog und verständliche Verhandlung in en",
+          "status": "passed"
+        },
+        {
+          "name": "Konkrete Verhandlungswege vollständiger Katalog und verständliche Verhandlung in tr",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/versorgungsmandat.test.tsx",
+      "tests": 41,
+      "bestanden": 41,
+      "pruefungen": [
+        {
+          "name": "Versorgung im bestehenden Parlament Einbringen bezahlt nur Initiative; sieben Tage Debatte, keine Güter und keine Schulden",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Koalition folgt nicht blind; sozialer Kompromiss gewinnt Opposition und Mehrheitswechsel",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Scheitern kostet Vertrauen und Zeit, aber kein Haushaltsgeld; erneutes Tick bucht nichts doppelt",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Kompromisse schließen einander aus; späte Änderungen lassen drei Tage Beratung",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Vorschau vor dem Klick ist zustandsneutral und entspricht den tatsächlichen Stimmen und Kosten",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Abstimmungsbericht zeigt gebuchte, begrenzte Bereitschaft und wirkliche Partnerloyalität",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Gespräch kostet einmal 1 PK, holt Stimmen aber ist keine wiederholbare Loyalitätsbelohnung",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Rückzug erstattet halbe Initiative, keine Gespräche; nach Fälligkeit kein Rückzug",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Aktuelle Sitze und Koalition am Abstimmungstag zählen, auch nach einer Wahl",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Bestehende Duldung und Fraktionsbereitschaft beeinflussen dieselbe Vorlage",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Prognose entfernt eine am Abstimmungstag auslaufende Duldung vorab und entspricht dem Votum",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Späte Klausel zeigt Terminverschiebung und dadurch verlorene Duldungsstimmen vor dem Klick",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Fristwarnung betrifft nur noch laufende Duldungen parlamentarischer Parteien außerhalb der Koalition",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Zeitplan vor dem Beschluss entspricht tatsächlichem Vorlauf und Vertragsende",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Termin- und Duldungshinweise sind übersetzt: de",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Termin- und Duldungshinweise sind übersetzt: en",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Termin- und Duldungshinweise sind übersetzt: tr",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Haushaltsdeckel reduziert echte Kosten und Laufzeit; Vorlauf beginnt nach dem Votum",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Verschlechterte Außenbeziehung vor dem Votum verhindert Vertrag und Kosten",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Blockade trotz Mehrheit vorab sichtbar, Grund bleibt nach Laden und Entspannung erhalten: de",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Blockade trotz Mehrheit vorab sichtbar, Grund bleibt nach Laden und Entspannung erhalten: en",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Blockade trotz Mehrheit vorab sichtbar, Grund bleibt nach Laden und Entspannung erhalten: tr",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Vor dem Stichtag aufgehobene Sanktionen erlauben das tatsächliche Votum",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Energie-Vorschau migriert fehlende Länder- und Außenstände nicht: Teilstand false",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Energie-Vorschau migriert fehlende Länder- und Außenstände nicht: Teilstand true",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Nach Kriegsende lässt sich die ungültige Einsatzgarantie vor dem Votum entfernen",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Zivilgarantie bindet tatsächlichen Verteilungskurs bis Programmende",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Einsatzgarantie braucht Krieg und widerspricht Zivilgarantie",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Andere laufende Kursbindung kann nicht durch Garantie übergangen werden",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Garantie wird beim Votum erneut geprüft, falls inzwischen ein anderer Kurs beschlossen wurde",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Sozialausgleich wirkt auf Armut und Belastung, nicht auf die Menge vorhandener Waren",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Schlechte Versorgung führt zu realer Oppositionsanfrage und Verlust an Kooperationsbereitschaft, einmal pro Monat",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Kursentscheidung verändert die bestehende Koalitionsloyalität und Fraktionsbereitschaft",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Kurswechsel hin und zurück erzeugen keinen zusätzlichen Fraktionsrückhalt",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Ausgeschiedene Partner reagieren als Fraktion, erhalten aber keine Koalitionsloyalität",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Laden erhält Entwurf und Kompromisse; Tageslauf vollzieht nach Frist genau einmal",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Alte Aufträge werden nicht rückwirkend zur Abstimmung gestellt",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Parlamentssequenz und Historie verwenden echte Fraktionsstimmen auch nach Wahl und Sprachwechsel",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Gemeinsame UI übersetzt und ohne Zustandsänderung: de",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Gemeinsame UI übersetzt und ohne Zustandsänderung: en",
+          "status": "passed"
+        },
+        {
+          "name": "Versorgung im bestehenden Parlament Gemeinsame UI übersetzt und ohne Zustandsänderung: tr",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "datei": "/Users/yusufyeneroglu/Desktop/NWO NEW WORLD ORDER/Spielentwicklung/game/test/versorgungsnachsorge.test.tsx",
+      "tests": 32,
+      "bestanden": 32,
+      "pruefungen": [
+        {
+          "name": "Nach dem Versorgungsvotum Beschluss speichert Budget und Laufzeit, benennt offene Forderung und tatsächliche Kosten",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum jüngste Nachsorge öffnet nach dem Votum und bei akuter Gefahr, ohne alle alten Vorlagen aufzuklappen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum abgelehnte Vorlage begründet Verstimmung, erzeugt aber keine Bindung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Zivilgarantie bindet bereits in der Vorbereitung; Kontrolle beginnt mit dem Auftrag",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum reguläres Ende ist kein Zusagenbruch und fehlender Auftrag wird nicht als erfüllt ausgegeben",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum alte Spielstände ohne Beschlusssnapshot behalten nachvollziehbare Bedingungen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum aktueller Monatsbeleg gehört zum konkreten Auftrag, nicht zu einer alten gleichnamigen Maßnahme",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum aktuelle Sanktion wird nach beschlossenem Energieabkommen als Vollzugshindernis gezeigt",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum historische Verstimmung bleibt nach Koalitionswechsel richtig; Rückkehr braucht ein neues Bündnis",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Risiko verwendet echte aktive Vorsitzende und zählt Sitze ohne Doppelzählung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum fraktion nutzt die echte Aktion: Vorschau, Preis und gebuchte Personenfolgen stimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum vertrauen nutzt die echte Aktion: Vorschau, Preis und gebuchte Personenfolgen stimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum rueckendeckung nutzt die echte Aktion: Vorschau, Preis und gebuchte Personenfolgen stimmen",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Fraktionsgespräch stärkt den Vorsitz statt eines vorher einsortierten Ministers",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Rückendeckung zeigt auch Mitbegünstigte und Vertrauenspreis, ohne vorhandene Zusagen zu ändern",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum bei Loyalität null reicht ein einzelnes Gespräch nicht; Oberfläche behauptet keine Rettung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum keine wiederholbare Gratisloyalität: Sperre gilt auch über eine zweite Vorlage hinweg",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum persönliche Termine teilen ihre Sperre, Fraktionsgespräch bleibt eine eigene Handlung",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei kapital bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei loyalitaet bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei tag bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei ausgetreten bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei vorlage bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum veralteter Stabilisierungsplan bei pause bucht nichts",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum ausgeschöpfte Kapitalüberziehung und vier Termine zeigen echte Hindernisse",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Kapital auf Kredit und knappe Aufmerksamkeit sind vor dem Eingriff sichtbar",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum tatsächlicher Monatswechsel: Gespräch verhindert den sonst eintretenden Koalitionsbruch",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum inaktiver früherer Vorsitz verursacht beim Monatswechsel keinen Bruch",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum beide Ansichten und Laden bewahren Buchungen; reine Anzeige verändert keine alten Profile",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Nachsorge ist in de vollständig beschriftet",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Nachsorge ist in en vollständig beschriftet",
+          "status": "passed"
+        },
+        {
+          "name": "Nach dem Versorgungsvotum Nachsorge ist in tr vollständig beschriftet",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "produktionsbuild": {
+    "erfolg": true,
+    "log": "/private/tmp/nwo-bruch-votum-build-20261030.log",
+    "bekannteWarnungen": [
+      "infrastrukturEtat: fehlender optionaler Export",
+      "große Build-Chunks"
+    ]
+  },
+  "nachweis": {
+    "echterTageslaufAmMonatsersten": true,
+    "beispiel": {
+      "votum": "2028-07-01",
+      "partei": "YENİ",
+      "loyalitaetVorher": 23,
+      "loyalitaetNachVotum": 19,
+      "sitzeVerlust": 120,
+      "regierungVorher": 320,
+      "regierungNachher": 200
+    },
+    "ablehnungBeruecksichtigt": true,
+    "bruchVorVotumTrotzSpaetererVerbesserung": true,
+    "spaeteVerschiebungAufMonatsersten": true,
+    "veralteteVorschauAbgewiesen": true,
+    "keineVorschauMutation": true,
+    "deEnTr": true,
+    "browser": false,
+    "screenshots": false
+  },
+  "testLog": "/private/tmp/nwo-bruch-votum-20261030.json",
+  "sourceHashes": {
+    "src/sim/koalitionslage.ts": "f77771d2f5ab4f5e531e748f84558a1b81434e37717abbce7eba4646ddaa5bb9",
+    "src/sim/versorgungsmehrheit.ts": "b4296dd538ee22b9a206e40b8f50af8db7b13ce5344a333ac25cfd12847e584d",
+    "src/sim/versorgungsberatung.ts": "3d22a36131e423020cb722b28ab1f10e90f03bee6515b011b45398df1e001072",
+    "src/sim/versorgungsnachsorge.ts": "fb9ed764b0ea649017069c1750f71c0a0e260173450338960d1b11ae31df47bc",
+    "src/ui/gueter/VersorgungsBruchwarnung.tsx": "f72b33456c0ac14312918e6fddcd9cdb052b0e6ac0448e4a2fbd3ecabd04fb1c",
+    "src/ui/gueter/VersorgungsMandat.tsx": "424f52b819d255deb40da30ab465ce89446c1795183fee4554e813331c578a7f",
+    "src/ui/gueter/VersorgungsMehrheitsWege.tsx": "16b6d3b964708e1a2435152602c96b5e65399a3948a2d734681725990f2b41d1",
+    "src/ui/gueter/regierung.css": "c9977aa510c94147bf1d53e25089131651e6686fe6cbac382dd7a9662acb0492",
+    "test/versorgungs-bruchwarnung.test.tsx": "74fa56810ecb346257e9542baf4a60b55e195fa4f2a5c6b52b7786317b898a6c",
+    "src/i18n/katalog/de/versorgungsmandat.json": "47747538f6841198ba9eacc0a72fd8913551f21cd9042d7b2ce75b1cf191edcc",
+    "src/i18n/katalog/en/versorgungsmandat.json": "74367fcbfabc624e9414daa9d7bd87c6a7bec1a585f49c8f3686939553d021e8",
+    "src/i18n/katalog/tr/versorgungsmandat.json": "ef2ea53d9cb155b0e1703d3740b08b51389d0df6228c600ce06753e2945fabb5"
+  }
+}
