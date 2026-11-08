@@ -52,6 +52,8 @@ import { tischMoeglich } from "../../sim/friedenstisch";
 import { Fernkonflikt } from "../krieg/Fernkonflikt";
 import { Lagekarte } from "../krieg/Lagekarte";
 import { Operation } from "../krieg/Operation";
+// Welle 4, K7: Mandat der Nationalversammlung (Fraktionen, Zusagen, Vollmacht) und Heimatfront (Reservisten, Kritik)
+import { Heimatfront, Mandat } from "../krieg/Mandat";
 import { istFernkonflikt } from "../../sim/fernkonflikt";
 import { VersorgungsLage } from "../gueter/VersorgungsLage";
 import { UbVerweis } from "../akte/Uebersicht";
@@ -192,7 +194,8 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
 
   // Befehle ordnen: das Kriegsziel als eine Reihe, dann bis zu vier Hauptschritte nach Vorrang, der Rest zugeklappt
   const ziele = handlungen.filter((h) => h.id.startsWith("ziel_"));
-  const uebrig = handlungen.filter((h) => !h.id.startsWith("ziel_") && !h.id.startsWith("paket_"));
+  // Zusagen an Fraktionen stehen in der Mandatskarte bei ihrer Fraktion (Welle 4, K7)
+  const uebrig = handlungen.filter((h) => !h.id.startsWith("ziel_") && !h.id.startsWith("paket_") && !h.id.startsWith("zusage_"));
   const vorrang = VORRANG[k.phase] ?? [];
   const haupt = [...uebrig].filter((h) => vorrang.includes(h.id)).sort((a, b) => vorrang.indexOf(a.id) - vorrang.indexOf(b.id)).slice(0, 4);
   const weitere = uebrig.filter((h) => !haupt.includes(h));
@@ -225,6 +228,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
       {streifen}
 
       {vorKrieg && <Leiter world={world} k={k} />}
+      {vorKrieg && <Mandat world={world} k={k} handlungen={handlungen} tun={tun} />}
 
       {vorKrieg && (
         <div className="kd-zeile" title={t("ui.welt.KriegDossier.c4f3a82")}>
@@ -249,6 +253,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
 
       {/* Welle 3, K3: die Lage als Karte mit Kennzahlen (ENTSCHEIDUNGEN Z) statt dreier Balken und eines Satzes */}
       {imKrieg && <Lagekarte k={k} />}
+      {imKrieg && <Heimatfront world={world} k={k} />}
 
       {k.phase !== "frieden" && k.phase !== "beendet" && <Kriegsziel world={world} k={k} ziele={ziele} tun={tun} onTat={(text) => melde({ ok: true, text })} />}
       {/* Welle 3, K3: die Operationsform (Luftschlag, begrenzte Bodenoperation, Großoffensive, Landung) mit der Wahl der Verbündeten */}

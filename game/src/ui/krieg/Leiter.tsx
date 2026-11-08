@@ -9,8 +9,8 @@ import { vollmachtFuer } from "../../sim/krieg-recht";
 import { FERN, FERN_ZIELE, fernZielStand, fernZielVon, istFernkonflikt, waehleFernZiel } from "../../sim/fernkonflikt";
 import { zielRegionen } from "../../sim/kriegsschauplatz";
 import { ZIELRAUM_REGIONEN } from "../../data/schauplaetze";
-import { stimmenSicht } from "../../sim/handeln";
-import { rahmungWerte } from "../../sim/krieg";
+import { einsatzAnlass, rahmungWerte } from "../../sim/krieg";
+import { mandatSicht } from "../../sim/mandat";
 import { addDays } from "../../sim/dates";
 import { datum, t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
@@ -41,8 +41,9 @@ export function Leiter({ world, k }: { world: World; k: KriegVorgang }) {
     const frist = s.ab !== undefined && s.ab > world.day ? " · " + t("welle_k1.leiter.ab", { datum: tag(s.ab) }) : "";
     if (s.weg === "vollmacht") return t("welle_k1.leiter.einsatz.vollmacht", { bis: datum(v?.bis ?? world.date) }) + frist;
     if (s.weg === "erlass") return t("welle_k1.leiter.einsatz.erlass") + frist;
-    const stimmen = Math.round(stimmenSicht(world, { massnahme: "m_verteidigung", richtung: 1 }).erwartet + (k.rahmung ? rahmungWerte(k).stimmen : 0));
-    return t("welle_k1.leiter.einsatz.parlament", { stimmen, noetig: 301 }) + frist;
+    // Welle 4, K7: dieselbe Rechnung wie die Abstimmung (Fraktionen nach ihren Haltungen, Mehrheit der Anwesenden)
+    const m = mandatSicht(world, einsatzAnlass(k));
+    return t("welle_k1.leiter.einsatz.parlament", { stimmen: m.ja, noetig: m.noetig }) + frist;
   };
   return (
     <section className="kl" aria-label={t("welle_k1.leiter.titel")}>

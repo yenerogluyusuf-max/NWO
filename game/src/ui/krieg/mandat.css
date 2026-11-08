@@ -1,0 +1,34 @@
+/* Welle 4, K7: Mandat der Nationalversammlung und Heimatfront als Karten (ENTSCHEIDUNGEN Z), im Stil der Lagekarte (operation.css, .kl3) */
+.km7 { display: grid; gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); margin: var(--abstand-2) 0; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: var(--rund-2); }
+.km7 h5 { margin: 0; font: 600 var(--schrift-4)/1.2 var(--display); color: var(--messing-text); }
+.km7 p { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.km7-kern { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--abstand-2) 22px; margin: 0; }
+.km7-kern > div { display: grid; gap: 2px; min-width: 76px; }
+.km7-kern dt { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.km7-kern dd { margin: 0; font: 600 var(--schrift-6)/1.05 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.km7-kern .schlecht dd { color: var(--siegel); }
+.km7 .km7-urteil { flex: 1 1 180px; padding-bottom: 4px; font-weight: 600; }
+.km7 .km7-urteil.gut { color: var(--gut); }
+.km7 .km7-urteil.schlecht { color: var(--siegel); }
+.km7-balken { position: relative; display: flex; height: 10px; border-radius: 5px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.km7-balken i { display: block; height: 100%; }
+.km7-balken u { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--tinte-1); }
+.km7-fraktionen { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.km7-f { display: grid; grid-template-columns: 12px minmax(90px, 1.2fr) 44px minmax(120px, 1.4fr) minmax(150px, 1.4fr) auto; align-items: center; gap: 4px 10px;
+  padding: 4px 0; border-top: 1px solid var(--linie); font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-1); }
+.km7-f:first-child { border-top: none; }
+.km7-farbe { width: 12px; height: 12px; border-radius: 3px; }
+.km7-sitze { text-align: right; font-variant-numeric: tabular-nums; color: var(--tinte-2); }
+.km7-wort { color: var(--tinte-3); }
+.km7-ja .km7-wort { color: var(--gut); }
+.km7-nein .km7-wort { color: var(--siegel); }
+.km7-zahlen { font-variant-numeric: tabular-nums; color: var(--tinte-2); }
+.km7-zusage { justify-self: end; white-space: nowrap; }
+.km7 .km7-hinweis { font-size: var(--schrift-1); color: var(--tinte-3); }
+.km7 .km7-sperre { color: var(--siegel); font-weight: 600; }
+.km7-vollmacht p { color: var(--tinte-1); }
+@media (max-width: 760px) {
+  .km7-f { grid-template-columns: 12px 1fr auto; }
+  .km7-wort, .km7-zahlen { grid-column: 2 / -1; }
+  .km7-zusage { grid-column: 2 / -1; justify-self: start; }
+}
