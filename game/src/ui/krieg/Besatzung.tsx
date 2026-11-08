@@ -42,7 +42,7 @@ export function Besatzung({ world, onTat, nurLand }: { world: World; onTat: (tex
           <div><dt>{t("welle_k5.ui.regionen")}</dt><dd>{liste.length}</dd></div>
           <div><dt>{t("welle_k5.ui.einwohner")}</dt><dd>{tausend(einwohner)}</dd></div>
           <div><dt>{t("welle_k5.ui.kosten_jahr")}</dt><dd>{pz(kostenJahr)} %<small>{t("welle_k5.ui.mrd", { n: zahl(Math.round((kostenJahr * bip) / 100), 0) })}</small></dd></div>
-          {provinzen > 0 && <div><dt>{t("welle_k5.ui.steuern_jahr")}</dt><dd>{pz(steuernJahr, 3)} %<small>{t("welle_k5.ui.mrd", { n: zahl(Math.round((steuernJahr * bip) / 10) / 10, 1) })}</small></dd></div>}
+          {provinzen > 0 && <div><dt>{t("welle_k5.ui.steuern_jahr")}</dt><dd>{t("welle_k5.ui.mrd", { n: zahl(Math.round((steuernJahr * bip) / 10) / 10, 1) })}</dd></div>}
           {provinzen > 0 && <div><dt>{t("welle_k5.ui.provinzen")}</dt><dd>{provinzen}</dd></div>}
         </dl>
       </header>
@@ -132,7 +132,7 @@ function Region({ world, b, onTat }: { world: World; b: BesatzungsSicht; onTat: 
         {b.land === "SYR" && <div><dt>{t("welle_k5.ui.rueckkehr")}</dt><dd>{zahl(b.rueckkehr ?? 0, 0)}</dd></div>}
         {p && (
           <>
-            <div><dt>{t("welle_k5.ui.steuern_jahr")}</dt><dd>{pz(b.einnahmenMonat * 12, 3)} %</dd></div>
+            <div><dt>{t("welle_k5.ui.steuern_jahr")}</dt><dd>{t("welle_k5.ui.mrd", { n: zahl(Math.round((b.einnahmenMonat * 12 * bip) / 10) / 10, 1) })}</dd></div>
             <div><dt>{t("welle_k5.ui.eingliederung")}</dt><dd>{datum(addDays(world.date, p.eingliederungBis - world.day), "monat")}</dd></div>
             <div><dt>{t("welle_k5.ui.waehler")}</dt><dd>{tausend(wahlberechtigte(p))}</dd></div>
             <div><dt>{t("welle_k5.ui.sitze")}</dt><dd>{p.sitze !== undefined ? zahl(p.sitze, 0) : "–"}<small>{p.sitze !== undefined ? t("welle_k5.ui.sitze_seit") : t("welle_k5.ui.sitze_ab")}</small></dd></div>
