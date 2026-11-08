@@ -19,6 +19,7 @@ import { KriegDossier } from "./welt/KriegDossier";
 import { EuDossier } from "./welt/EuDossier";
 import { WeltLage } from "./welt/WeltLage";
 import { Dienst } from "./welt/Dienst";
+import { dienstImLand } from "../sim/dienst-sicht"; // Welle M1
 import { Block, BlockListe } from "./welt/Block";
 import { aktiveKriege, kriegMit, ohneKriegsvorgang, PHASEN_NAME } from "../sim/krieg";
 import { beziehungZurTuerkei, fuehreGesteAus, gestenFuerWeitere, istHauptakteur, akteurName } from "../sim/welt-modell";
@@ -355,7 +356,7 @@ function WeitereAkte({
 
       {tab === "ueberblick" && (
         <div className="we-ueberblick">
-          <WeltLage world={world} id={id} onDienst={onDienst} />
+          <WeltLage world={world} id={id} />
           {wd.eu && (
             <div className="we-eu-position">
               <b>{tx("ui2.ui.Welt.415b845")}</b>
@@ -375,9 +376,12 @@ function WeitereAkte({
             </div>
           )}
           <p className="we-hinweis">{tx("ui2.ui.Welt.a3f5878", { p0: akteurName(id) })}</p>
-          <button type="button" className="aktion-knopf we-zum-tisch" onClick={() => onDienst(id)}>
-            {tx("ui2.ui.Welt.8edbc59", { p0: akteurName(id) })}
-          </button>
+          {/* Welle M1: Der Dienst hat keine Liste mit Zielstaaten mehr; der Knopf erscheint nur, wenn der Dienst hier etwas hat */}
+          {dienstImLand(world, id) && (
+            <button type="button" className="aktion-knopf we-zum-tisch" onClick={() => onDienst(id)}>
+              {t("welle_m1.dienst.im_land", { land: akteurName(id) })}
+            </button>
+          )}
         </div>
       )}
 
@@ -420,7 +424,7 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
   const stand = anliegenStand(world, landId);
   return (
     <div className="we-ueberblick">
-      <WeltLage world={world} id={landId} onDienst={onDienst} />
+      <WeltLage world={world} id={landId} />
       <div className="we-anliegen">
         <b>{tx("ui2.ui.Welt.5ff75db", { p0: l.name })}</b>
         <ul>
@@ -453,9 +457,11 @@ function Ueberblick({ world, landId, onMassnahme, onVerhandeln, onDienst, onRat 
           <button type="button" className="aktion-knopf we-zum-tisch" onClick={onVerhandeln}>
             {tx("ui2.ui.Welt.9dd195c")}
           </button>
-          <button type="button" className="aktion-knopf we-zum-tisch" onClick={() => onDienst(landId)}>
-            {tx("ui2.ui.Welt.d9c8900")}
-          </button>
+          {dienstImLand(world, landId) && (
+            <button type="button" className="aktion-knopf we-zum-tisch" onClick={() => onDienst(landId)}>
+              {t("welle_m1.dienst.im_land", { land: akteurName(landId) })}
+            </button>
+          )}
           {onRat && (
             <button type="button" className="aktion-knopf we-zum-tisch" onClick={onRat}>
               {t("ui.Welt.e966efd")}

@@ -93,3 +93,93 @@
   .mk-szene { grid-template-columns: auto 1fr; }
   .mk-szene .mk-stempel { grid-column: 1 / -1; justify-self: start; }
 }
+
+/* ---------------------------------------------------------------------------
+   Welle M1: Machtkreis als Karten (ENTSCHEIDUNGEN Z; Vorbild Kopf von Wirtschaft › Haushalt). Klassen-Präfix .mk2- */
+
+.mk2 { gap: var(--abstand-4); }
+.mk2-kopf { display: grid; grid-template-columns: minmax(220px, 0.9fr) minmax(0, 2.2fr); gap: var(--abstand-5); align-items: stretch; padding: 18px 20px; background: var(--papier-1); border: 1px solid var(--linie); border-radius: var(--rund-3); box-shadow: var(--schatten-flach); }
+.mk2-frage { display: grid; align-content: center; gap: 6px; min-width: 0; }
+.mk2-frage small { font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--siegel); }
+.dossier .mk2-frage h3, .mk2-frage h3 { margin: 0; font: 500 var(--schrift-5)/1.25 var(--display); color: var(--tinte-1); }
+.mk2-frage p { margin: 0; font: var(--schrift-2)/1.45 var(--serif); color: var(--tinte-2); }
+.mk2-zahlen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--abstand-3); margin: 0; }
+.mk2-zahl { display: grid; gap: 5px; align-content: start; min-width: 0; padding: 10px 12px 12px; background: var(--papier-2); border: 1px solid var(--linie); border-top: 3px solid var(--linie-stark); border-radius: var(--rund-2); }
+.mk2-zahl.gut { border-top-color: var(--gut); }
+.mk2-zahl.mittel { border-top-color: var(--messing-2); }
+.mk2-zahl.schlecht { border-top-color: var(--siegel); }
+.mk2-zahl dt { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-3); }
+.mk2-zahl dd { margin: 0; font: 500 var(--schrift-6)/1.05 var(--display); font-variant-numeric: tabular-nums; color: var(--tinte-1); white-space: nowrap; }
+.mk2-zahl.schlecht dd { color: var(--siegel); }
+.mk2-zahl dd span { margin-left: 4px; font: 400 var(--schrift-2) var(--serif); color: var(--tinte-3); }
+.mk2-zahl em { font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+.mk2-stufen { position: relative; display: block; height: 6px; margin: 2px 0 3px; background: var(--papier-4); border-radius: var(--rund-pille); }
+.mk2-stufen i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--messing-2), var(--siegel)); border-radius: var(--rund-pille); }
+.mk2-stufen b { position: absolute; top: -3px; width: 2px; height: 12px; margin-left: -1px; background: var(--tinte-3); opacity: 0.55; }
+.mk2-stufen b.an { background: var(--siegel); opacity: 1; }
+.mk2-gefahren { margin: 0; padding: 0; display: grid; gap: 3px; }
+.mk2-gefahren li { list-style: none; padding-left: 8px; border-left: 3px solid var(--messing-2); font: var(--schrift-1)/1.35 var(--serif); color: var(--tinte-1); }
+.mk2-gefahren li.schlecht { border-left-color: var(--siegel); }
+
+.mk2-abspaltung { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 24px; align-items: center; padding: 12px 16px; background: var(--papier-1); border: 1px solid var(--linie); border-left: 4px solid #7a6a9c; border-radius: var(--rund-3); }
+.mk2-abspaltung.droht { border-left-color: var(--siegel); background: var(--schlecht-flaeche); }
+.mk2-abspaltung small { display: block; font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--siegel); }
+.mk2-abspaltung strong { font: 500 var(--schrift-4)/1.25 var(--display); color: var(--tinte-1); }
+.mk2-abspaltung p { grid-column: 1 / -1; margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.mk2-abspaltung dl { display: flex; gap: 22px; margin: 0; }
+.mk2-abspaltung dt { font: 400 var(--schrift-1) var(--kapitaelchen); color: var(--tinte-3); }
+.mk2-abspaltung dd { margin: 2px 0 0; font: 500 var(--schrift-5)/1.1 var(--display); font-variant-numeric: tabular-nums; }
+.mk2-abspaltung dd.name { font-size: var(--schrift-3); }
+
+.mk2-karten { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: var(--abstand-3); align-items: stretch; }
+/* Vier Personen: zwei mal zwei statt drei und eine einzelne */
+@container (min-width: 600px) { .mk2-karten.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mk2-karte { display: grid; grid-template-rows: auto auto auto 1fr auto; gap: 10px; align-content: start; min-width: 0; padding: 14px 14px 12px; background: var(--papier-1); border: 1px solid var(--linie); border-top: 4px solid var(--lager, var(--linie-stark)); border-radius: var(--rund-3); box-shadow: var(--schatten-flach); }
+.mk2-karte.on { box-shadow: 0 0 0 2px var(--messing-2), var(--schatten-hoch); }
+.mk2-karte.grund-wechsel, .mk2-karte.grund-geheimnis { background: linear-gradient(180deg, var(--schlecht-flaeche), var(--papier-1) 70px); }
+.mk2-karte-kopf { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; }
+.mk2-karte-kopf small { display: block; font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--siegel); }
+.mk2-karte-kopf strong { display: block; font: 500 var(--schrift-4)/1.2 var(--display); color: var(--tinte-1); overflow-wrap: anywhere; }
+.mk2-karte-kopf span { display: block; font: italic var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.mk2-werte { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.mk2-werte > div { padding: 5px 7px; background: var(--papier-2); border-radius: var(--rund-1); border-bottom: 2px solid var(--linie-stark); }
+.mk2-werte > div.gut { border-bottom-color: var(--gut); }
+.mk2-werte > div.mittel { border-bottom-color: var(--messing-2); }
+.mk2-werte > div.schlecht { border-bottom-color: var(--siegel); }
+.mk2-werte dt { font: 400 var(--schrift-1)/1.1 var(--serif); color: var(--tinte-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mk2-werte dd { margin: 2px 0 0; font: 500 var(--schrift-5)/1 var(--display); font-variant-numeric: tabular-nums; color: var(--tinte-1); }
+.mk2-marken { display: flex; flex-wrap: wrap; gap: 4px; }
+.mk2-marke { padding: 2px 8px; border-radius: var(--rund-pille); font: 600 var(--schrift-1)/1.4 var(--serif); }
+.mk2-marke.rot { background: var(--schlecht-flaeche); color: var(--siegel); border: 1px solid var(--schlecht-linie); }
+.mk2-marke.gold { background: var(--warnung-flaeche); color: var(--messing-3); border: 1px solid var(--warnung-linie); }
+.mk2-handlungen { display: grid; gap: 6px; align-content: end; }
+.dossier .mk2-handlung, .mk2-handlung { display: grid; gap: 2px; width: 100%; padding: 7px 10px; text-align: left; background: var(--papier-2); border: 1px solid var(--linie-stark); border-radius: var(--rund-2); cursor: pointer; color: var(--tinte-1); transition: background var(--druck-dauer); }
+.mk2-handlung:hover:not(:disabled) { background: var(--papier-3); }
+.mk2-handlung:focus-visible { outline: none; box-shadow: var(--fokus-ring); }
+.mk2-handlung:disabled { opacity: 0.6; cursor: default; }
+.mk2-handlung.sprung { background: transparent; border-style: dashed; }
+.mk2-handlung-kopf { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.mk2-handlung-kopf strong { font: 600 var(--schrift-2)/1.25 var(--display); }
+.mk2-handlung-kopf em { font: 600 var(--schrift-1) var(--serif); font-style: normal; color: var(--siegel); white-space: nowrap; }
+.mk2-handlung-kopf em.pfeil { color: var(--tinte-3); }
+.mk2-handlung small { font: var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+
+.mk2-netz { border: 1px solid var(--linie); border-radius: var(--rund-3); background: var(--papier-1); }
+.mk2-netz > summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 14px; cursor: pointer; font: 500 var(--schrift-3)/1.3 var(--display); color: var(--tinte-1); }
+.mk2-netz > summary span { font: italic var(--schrift-2) var(--serif); color: var(--tinte-3); }
+.mk2-netz[open] > summary { border-bottom: 1px solid var(--linie); }
+.mk2-netz > .mk-grid, .mk2-netz > .mk-legende { margin: 12px 14px; }
+.mk2-netz .mk-netz { height: 440px; }
+
+@media (max-width: 900px) {
+  .mk2-kopf { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .mk2-zahlen { grid-template-columns: 1fr; }
+  .mk2-abspaltung { grid-template-columns: 1fr; }
+}
+
+/* Welle M1: Chip „Nachfolgedruck“ in der Reiterleiste des Kabinetts (Sprung in den Machtkreis). Die Reiterleiste setzt ihre Knöpfe mit
+   !important (akte/bauteile.css); der Chip braucht deshalb dieselbe Stärke und eine höhere Spezifität. */
+.dossier .pe-tabs > button.pe-kreis-chip.pe-kreis-chip { margin: 0 0 4px auto !important; align-self: center; padding: 3px 12px !important; border: 1px solid var(--warnung-linie) !important; border-radius: var(--rund-pille) !important; background: var(--warnung-flaeche) !important; font: 600 var(--schrift-1)/1.4 var(--serif) !important; letter-spacing: 0; color: var(--messing-3) !important; }
+.dossier .pe-tabs > button.pe-kreis-chip.pe-kreis-chip.rot { border-color: var(--schlecht-linie) !important; background: var(--schlecht-flaeche) !important; color: var(--siegel) !important; }

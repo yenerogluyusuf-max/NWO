@@ -256,12 +256,17 @@ const VORLAGE_ZAHLEN: Record<string, string[]> = {
   dienst_kanal: ["ansehen", "dienst", "zustimmung"],
   dienst_aufgeflogen: ["eu", "ansehen", "vertrauen"],
   dienst_fremd: ["eu", "dienst", "vertrauen"],
+  // Welle M1: Abspaltung und Säuberung mit Anlass
+  kreis_abspaltung: ["nachfolge", "sitze", "zustimmung"],
+  kreis_saeuberung: ["angst", "eu", "zustimmung"],
 };
 
 /** Welle E3: Wer bei Vorgängen des Machtkreises und des Dienstes spricht (der Dienst ist dem Präsidenten unterstellt, Gesetz 2937 Art. 3). */
 const VORLAGE_SPRECHER: Record<string, Figur["amt"]> = {
   kreis_nachfolge_stufe: "stab", kreis_parteitag: "stab", kreis_befund: "stab",
   dienst_zugriff: "stab", dienst_kader: "stab", dienst_kanal: "aussen", dienst_aufgeflogen: "stab", dienst_fremd: "stab",
+  // Welle M1: Die Abspaltung meldet das Präsidialamt, die Säuberung das Innenministerium (Polizei und Gouverneure)
+  kreis_abspaltung: "stab", kreis_saeuberung: "inneres",
 };
 
 /** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */

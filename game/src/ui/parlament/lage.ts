@@ -14,6 +14,8 @@ export const PARTY_COLORS: Record<string, string> = {
   CHP: "#bb7462",
   Zafer: "#86845e",
   YRP: "#5f845a",
+  // Welle M1: Abspaltung aus der eigenen Partei (sim/abspaltung.ts)
+  Ufuk: "#7a6a9c",
 };
 
 export type Rolle = "eigene" | "lager" | "duldung" | "opposition";

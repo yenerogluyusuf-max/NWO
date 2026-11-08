@@ -30,7 +30,7 @@ import { kandidatenFuer } from "../src/sim/nachfolge";
 import { eigenVon, KALT_LEISTUNG, leistung } from "../src/sim/personen";
 import { aussenZustand } from "../src/sim/diplomatie";
 import { beziehungAendern, beziehungZurTuerkei, weltModellMonat } from "../src/sim/welt-modell";
-import { MitZusatz } from "../src/ui/behoerden/Mit";
+import { Dienst } from "../src/ui/welt/Dienst";
 import { NET } from "../src/sim/modell";
 import { nationalAverage } from "../src/sim/netz";
 import { Rng } from "../src/sim/rng";
@@ -125,12 +125,14 @@ describe("Welle 1: Fehler", () => {
     expect(KALT_LEISTUNG).toBeLessThan(1);
   });
 
+  // Welle M1: Inland und Schutz stehen jetzt in der Dienstakte (ui/welt/Dienst.tsx), nicht mehr im MİT-Zusatz der Behördenliste;
+  // geprüft wird dieselbe Anzeige am neuen Ort (Wert als Zahl in <b>, Schutz als eigene Kennzahl).
   test("MİT: Aussicht, Leck und Schutz in Prozent", () => {
     const w = welt();
-    const html = renderToStaticMarkup(createElement(MitZusatz, { w, refresh: () => {} }));
-    expect(html).not.toMatch(/Aussicht [01]\s%/);
-    expect(html).toMatch(/Aussicht \d{2}\s%/);
-    expect(html).toMatch(/Schutz des Präsidenten: \d{2}\s%/);
+    const html = renderToStaticMarkup(createElement(Dienst, { world: w, refresh: () => {}, onLand: () => {} }));
+    expect(html).not.toMatch(/Aussicht <b>[01]\s%/);
+    expect(html).toMatch(/Aussicht <b>\d{2}\s%/);
+    expect(html).toMatch(/Schutz<\/dt><dd>\d{2}\s%/);
   });
 });
 

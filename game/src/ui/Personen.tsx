@@ -12,6 +12,7 @@ import { Umfeld } from "./personen/Umfeld";
 import { MinisterratSaal } from "./personen/MinisterratSaal";
 import { ZusagenAnsicht } from "./personen/ZusagenAnsicht";
 import { Machtkreis } from "./personen/Machtkreis";
+import { NACHFOLGE_STUFEN } from "../sim/machtkreis";
 import "./personen/personen.css";
 
 import { t } from "../i18n";
@@ -37,6 +38,7 @@ export function Personen({ world, initialTab, startPerson, refresh, onMassnahme,
   const regierung = spiel.figuren.filter((f) => f.imAmt && AEMTER[f.amt].regierungsamt);
   const auftraege = regierung.filter((f) => eigenVon(world, f).auftrag?.status === "laeuft").length;
   const gefahr = spiel.figuren.filter((f) => f.imAmt && f.amt !== "opposition" && f.loyalitaet < 25).length;
+  const nachfolge = Math.round(spiel.machtkreis?.nachfolge ?? 0);
 
   function waehleAusKabinett(id: string, modus?: "gespraech" | "entlassen") {
     setGewaehltePerson({ id, modus });
@@ -78,15 +80,22 @@ export function Personen({ world, initialTab, startPerson, refresh, onMassnahme,
           <Icon name="kuppel" size={16} />
           {t("ui2.ui.Personen.7a193e6")}
         </button>
-        <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
-          {t("ui.Personen.51eda9e")}
-        </button>
+        {/* Welle M1: Der Machtkreis steht an zweiter Stelle (vorher vierter Unterreiter in der dritten Ebene) */}
         <button role="tab" aria-selected={tab === "machtkreis"} className={tab === "machtkreis" ? "on" : ""} onClick={() => setTab("machtkreis")}>
           {t("mk.ui.reiter")}
+        </button>
+        <button role="tab" aria-selected={tab === "umfeld"} className={tab === "umfeld" ? "on" : ""} onClick={() => setTab("umfeld")}>
+          {t("ui.Personen.51eda9e")}
         </button>
         <button role="tab" aria-selected={tab === "zusagen"} className={tab === "zusagen" ? "on" : ""} onClick={() => setTab("zusagen")}>
           {t("ui2.ui.Personen.526d7bc")}{offen.length > 0 && <span className="pe-zahl">{offen.length}</span>}
         </button>
+        {/* Welle M1: Im Kabinett springt ein Chip mit dem Nachfolgedruck in den Machtkreis, sobald er zählt (ab der ersten Stufe) */}
+        {tab !== "machtkreis" && nachfolge >= NACHFOLGE_STUFEN.stufen[0] && (
+          <button type="button" className={`pe-kreis-chip${nachfolge >= NACHFOLGE_STUFEN.kampfAb ? " rot" : ""}`} onClick={() => setTab("machtkreis")}>
+            {t("welle_m1.kreis.chip", { druck: nachfolge })} →
+          </button>
+        )}
       </div>
       {dringend > 0 && tab !== "zusagen" && (
         <p className="pe-rueck nein" role="status">
@@ -112,7 +121,7 @@ export function Personen({ world, initialTab, startPerson, refresh, onMassnahme,
           />
         </section>
       )}
-      {tab === "machtkreis" && <Machtkreis world={world} refresh={neu} {...(startPerson ? { startPerson } : {})} />}
+      {tab === "machtkreis" && <Machtkreis world={world} refresh={neu} onPerson={waehleAusKabinett} {...(startPerson ? { startPerson } : {})} />}
       {tab === "zusagen" && <ZusagenAnsicht world={world} refresh={neu} {...(onMassnahme ? { onMassnahme } : {})} {...(onVorgang ? { onVorgang } : {})} />}
     </div>
   );

@@ -1,0 +1,70 @@
+/* Welle M1: Der Dienst als eine Akte (ENTSCHEIDUNGEN Z; Vorbild Kopf von Wirtschaft › Haushalt). Präfix .dz- */
+
+.dz { gap: var(--abstand-4); }
+.dz-satz { font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+
+.dz-kopf { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr); gap: var(--abstand-5); align-items: stretch; padding: 18px 20px; background: var(--papier-1); border: 1px solid var(--linie); border-radius: var(--rund-3); box-shadow: var(--schatten-flach); }
+.dz-wer { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; align-items: center; }
+.dz-wer small { display: block; font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: var(--laufweite-2); color: var(--siegel); }
+.dossier .dz-wer h3, .dz-wer h3 { margin: 4px 0; font: 500 var(--schrift-5)/1.25 var(--display); color: var(--tinte-1); }
+.dz-wer p { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.dz-zahlen { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--abstand-3); margin: 0; }
+.dz-zahlen > div { display: grid; gap: 5px; align-content: start; min-width: 0; padding: 10px 12px 12px; background: var(--papier-2); border: 1px solid var(--linie); border-top: 3px solid var(--linie-stark); border-radius: var(--rund-2); }
+.dz-zahlen > div.gut { border-top-color: var(--gut); }
+.dz-zahlen > div.mittel { border-top-color: var(--messing-2); }
+.dz-zahlen > div.schlecht { border-top-color: var(--siegel); }
+.dz-zahlen > div.aktiv { border-top-color: var(--daten-4); }
+.dz-zahlen dt { font: 400 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-3); }
+.dz-zahlen dd { margin: 0; font: 500 var(--schrift-6)/1.05 var(--display); font-variant-numeric: tabular-nums; color: var(--tinte-1); white-space: nowrap; }
+.dz-zahlen dd span { margin-left: 3px; font: 400 var(--schrift-2) var(--serif); color: var(--tinte-3); }
+.dz-zahlen em { font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+.dz-balken { position: relative; display: block; height: 6px; background: var(--papier-4); border-radius: var(--rund-pille); overflow: hidden; }
+.dz-balken i { position: absolute; inset: 0 auto 0 0; background: var(--daten-4); border-radius: var(--rund-pille); }
+
+.dz-abschnitt { display: grid; gap: var(--abstand-3); }
+.dz-abschnitt-kopf { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; border-bottom: 1px solid var(--linie); padding-bottom: 4px; }
+.dossier .dz-abschnitt-kopf h4, .dz-abschnitt-kopf h4 { margin: 0; font: 400 var(--schrift-3)/1.3 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--siegel); }
+.dz-abschnitt-kopf span { font: italic var(--schrift-2) var(--serif); color: var(--tinte-3); }
+
+.dz-karten { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: var(--abstand-3); align-items: stretch; }
+.dz-inland { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.dz-karte { display: flex; flex-direction: column; gap: 7px; min-width: 0; padding: 13px 14px; background: var(--papier-1); border: 1px solid var(--linie); border-radius: var(--rund-3); box-shadow: var(--schatten-flach); }
+.dz-karte.gesperrt { opacity: 0.82; }
+.dz-karte.aktiv { border-color: var(--daten-4); }
+.dz-karte > strong, .dz-gel-kopf strong { font: 500 var(--schrift-4)/1.25 var(--display); color: var(--tinte-1); }
+.dz-karte > p { margin: 0; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); }
+.dz-gel { border-top: 4px solid var(--linie-stark); }
+.dz-gel.z-offen { border-top-color: var(--siegel); background: linear-gradient(180deg, var(--schlecht-flaeche), var(--papier-1) 90px); }
+.dz-gel.z-laufend { border-top-color: var(--daten-4); }
+.dz-gel.z-bereit { border-top-color: var(--gut); }
+.dz-gel-kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.dz-stempel { flex: none; padding: 1px 8px; border: 2px solid currentColor; border-radius: var(--rund-1); font: 400 var(--schrift-1)/1.4 var(--kapitaelchen); letter-spacing: var(--laufweite-1); transform: rotate(-3deg); }
+.dz-stempel.z-offen { color: var(--siegel); }
+.dz-stempel.z-laufend { color: var(--daten-4); }
+.dz-stempel.z-bereit { color: var(--gut); }
+.dz-stempel.z-ruht { color: var(--tinte-3); }
+.dz-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.dz-chips span { padding: 0 8px; border-radius: var(--rund-1); background: var(--papier-3); font: 600 var(--schrift-1)/1.7 var(--serif); color: var(--tinte-1); white-space: nowrap; }
+.dz-karte .dz-quote { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 var(--schrift-2)/1.4 var(--serif); color: var(--tinte-1); }
+.dz-quote b { font-weight: 700; color: var(--gut); }
+.dz-quote .risiko b { color: var(--siegel); }
+.dz-karte .dz-bed { padding: 5px 8px; border-left: 3px solid var(--linie-stark); background: var(--papier-2); font: var(--schrift-1)/1.4 var(--serif); color: var(--tinte-2); }
+.dz-karte .dz-bed.ja { border-left-color: var(--gut); }
+.dz-karte .dz-stand { font: italic 600 var(--schrift-2) var(--serif); color: var(--daten-4); }
+.dz-fuss { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: auto; font: var(--schrift-2)/1.4 var(--serif); color: var(--tinte-1); }
+.dz-fuss > span { flex: 1 1 140px; min-width: 0; }
+.dz-karte .dz-letzter { font: var(--schrift-1)/1.4 var(--serif); color: var(--tinte-3); }
+.dz-karte .dz-letzter.ausgang-erfolg { color: var(--gut); }
+.dz-karte .dz-letzter.ausgang-aufgedeckt { color: var(--siegel); }
+
+.dz-aufklapp { border: 1px solid var(--linie); border-radius: var(--rund-3); background: var(--papier-1); }
+.dz-aufklapp > summary { padding: 10px 14px; cursor: pointer; font: 500 var(--schrift-3)/1.3 var(--display); color: var(--tinte-1); }
+.dz-aufklapp[open] > summary { border-bottom: 1px solid var(--linie); }
+.dz-ausbau, .dz-bericht { display: grid; gap: 10px; padding: 12px 14px; }
+.dz-laufend, .dz-eintraege { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font: var(--schrift-2)/1.4 var(--serif); }
+.dz-laufend li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.dz-laufend.fremd li { color: var(--siegel); }
+
+@media (max-width: 1100px) { .dz-zahlen { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .dz-kopf { grid-template-columns: 1fr; } }
+@media (max-width: 520px) { .dz-zahlen { grid-template-columns: 1fr; } }
