@@ -1,0 +1,35 @@
+/* Karte des Schauplatzes mit echten Verwaltungsgrenzen (Welle 3, K2). Nur Tokens; Schrift ab 13 px. */
+.skk-feld { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(150px, 1fr); gap: var(--abstand-2) var(--abstand-3); align-items: start;
+  padding: var(--abstand-2); border: 1px solid var(--linie); border-radius: var(--rund-2); background: var(--papier-1); }
+@container (max-width: 520px) { .skk-feld { grid-template-columns: 1fr; } }
+.skk-bild { position: relative; }
+.skk { width: 100%; height: auto; display: block; }
+.skk-region path { stroke: var(--papier-1); stroke-width: 0.9; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.skk-eigen path { fill: var(--siegel); fill-opacity: 0.78; }
+.skk-besetzt path { fill: var(--siegel); fill-opacity: 0.5; }
+.skk-umkaempft path { fill: var(--messing-2); fill-opacity: 0.8; stroke: var(--warnung); stroke-width: 1.6; }
+.skk-gegner path { fill: var(--papier-4); stroke: var(--linie-stark); }
+.skk-aussen path { fill: var(--papier-3); fill-opacity: 0.7; stroke: var(--linie); stroke-dasharray: 2 2; }
+.skk-punkt { fill: var(--tinte-1); stroke: var(--papier-1); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.skk-punkt-eigen, .skk-punkt-besetzt { fill: var(--papier-1); stroke: var(--siegel); stroke-width: 1.5; }
+.skk-name { position: absolute; transform: translate(7px, -50%); white-space: nowrap; pointer-events: none;
+  font: 600 var(--schrift-1)/1 var(--serif); color: var(--tinte-1);
+  text-shadow: 0 0 2px var(--papier-1), 0 0 2px var(--papier-1), 0 0 3px var(--papier-1); }
+.skk-name-aussen { font-weight: 400; color: var(--tinte-3); }
+.skk-name-links { transform: translate(calc(-100% - 7px), -50%); }
+.skk-zahlen { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--abstand-2) var(--abstand-3); }
+.skk-zahlen > div { display: flex; flex-direction: column; gap: 1px; }
+.skk-zahlen dt { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-3); }
+.skk-zahlen dd { margin: 0; font: 600 var(--schrift-4)/1.15 var(--display); color: var(--tinte-1); font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; white-space: nowrap; }
+.skk-zahlen dd small { font: 400 var(--schrift-2) var(--serif); color: var(--tinte-3); }
+.skk-legende { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: var(--schrift-1); color: var(--tinte-3); }
+.skk-legende li::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 2px; vertical-align: -1px; }
+.skk-l-eigen::before { background: var(--siegel); opacity: 0.78; }
+.skk-l-umkaempft::before { background: var(--messing-2); box-shadow: inset 0 0 0 1.5px var(--warnung); }
+.skk-l-gegner::before { background: var(--papier-4); box-shadow: inset 0 0 0 1px var(--linie-stark); }
+.skk-l-aussen::before { background: var(--papier-3); box-shadow: inset 0 0 0 1px var(--linie); }
+.skk-glied { align-items: center; }
+.skk-glied-text { display: flex; flex-direction: column; line-height: 1.2; }
+.skk-glied-zahlen { font-size: var(--schrift-1); color: var(--tinte-3); font-variant-numeric: tabular-nums; }
+.skk-umk { margin: 0; font-size: var(--schrift-2); color: var(--tinte-2); }
+.skk-umk b { font-weight: 600; color: var(--tinte-1); }
