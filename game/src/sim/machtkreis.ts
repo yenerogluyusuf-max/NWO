@@ -52,6 +52,18 @@ export const MACHTKREIS = {
 };
 
 /**
+ * Welle M1: Was die Hebel bewirken, als Zahlen an einer Stelle. Die Karten im Machtkreis zeigen genau diese Werte, `zieheHebel` bucht sie
+ * (keine Schau). Alle Werte sind Spielparameter (die Größen standen vorher als Zahlen im Code von `zieheHebel`).
+ */
+export const HEBEL_WIRKUNG = {
+  befoerdern: { loyalitaet: 10, ehrgeiz: -10, groll: -15, einfluss: 15, kronprinzDruck: 8, rivalenGroll: 10, rivalenLoyalitaet: -4 },
+  kaltstellen: { loyalitaet: -10, groll: 22, ehrgeiz: -12, einfluss: -25, kronprinzDruck: -25 },
+  deal: { loyalitaet: 15, groll: -20, kronprinzDruck: -30 },
+  /** Eine Überprüfung bindet so viel Kapazität des Dienstes (Welle M1: der Dienst arbeitet hier gegen die eigenen Leute, Spielparameter) */
+  untersuchung: { kapazitaet: 10 },
+} as const;
+
+/**
  * Welle E3: Nachfolgedruck in Stufen und Parteitag mit Termin. Der Kronprinz meldet sich beim Überschreiten von 60, 80 und 95 (Spielparameter,
  * Vorbild CK3-Fraktionen: Unmut ab 80 %, Ultimatum bei 100 %). Rechtsrahmen: Ein ordentlicher Parteitag tagt in den Fristen der Satzung,
  * „iki yıldan az üç yıldan fazla olamaz“ (Siyasi Partiler Kanunu Nr. 2820, Art. 14); einen außerordentlichen verlangt mindestens ein Fünftel
@@ -231,6 +243,38 @@ export interface MachtkreisZustand {
   letzteAnkuendigung?: { amtszeit: number; stufe: number };
   /** Welle E3: Tag des letzten Parteitags (ordentlich oder außerordentlich) */
   letzterParteitag?: number;
+  /** Welle M1: Ein gebrochener Kronprinz gründet eine eigene Partei (sim/abspaltung.ts) */
+  abspaltung?: Abspaltung;
+  /** Welle M1: Abspaltungen, die schon gegründet sind (für Anzeige und Wahl) */
+  abspaltungen?: Abspaltung[];
+  /** Welle M1: Tag des Putschversuchs, auf den die Säuberungsfrage schon kam */
+  putschAntwort?: number;
+}
+
+/**
+ * Welle M1: Abspaltung aus der eigenen Partei nach dem Vorbild Davutoğlu (Gelecek, 12.12.2019) und Babacan (DEVA, 09.03.2020); Regeln und
+ * Belege in sim/abspaltung.ts.
+ */
+export interface Abspaltung {
+  /** Name und Geschlecht des Gründers (der frühere Kronprinz) */
+  gruender: string;
+  weiblich: boolean;
+  /** Kennung der neuen Partei im Parlament (`w.parliament`) */
+  partei: string;
+  /** Tag des Bruchs (kaltgestellt oder ausgebootet) und geplanter Tag der Gründung */
+  bruch: number;
+  gruendung: number;
+  /** Einfluss des Gründers beim Bruch: bestimmt die Größe */
+  einfluss: number;
+  /** Nach der Gründung: Abgeordnete, die mitgehen, und Prozentpunkte, die sie dem eigenen Lager abnimmt */
+  abgeordnete?: number;
+  anteil?: number;
+  /** Ausgang: angekündigt, gegründet oder versöhnt */
+  stand: "droht" | "gegruendet" | "versoehnt";
+  /** Der Ausschluss wurde beschleunigt: Gründung sofort, aber kleiner */
+  beschleunigt?: true;
+  /** Der Vorgang „kreis_abspaltung“ lag schon auf dem Tisch */
+  gemeldet?: true;
 }
 
 export type Hebel = "befoerdern" | "kaltstellen" | "deal" | "bauernopfer" | "untersuchung" | "begnadigung" | "saeuberung";
@@ -516,7 +560,6 @@ export function hebelFuer(w: World, schluessel: string): HebelSicht[] {
   const p = personVon(w, schluessel);
   if (!sp || !p) return [];
   const mk = machtkreis(w);
-  const stil = regimeStil(regimeGrad(w));
   const g = geheimnisVon(w, schluessel);
   const sperre = (h: Hebel): string | undefined => {
     const z = mk.zuletzt[`${h}|${schluessel}`];
@@ -531,14 +574,23 @@ export function hebelFuer(w: World, schluessel: string): HebelSicht[] {
   const opposition = p.rolle === "opposition";
   const haft = p.neben?.status === "haft";
   const kalt = (p.neben?.status === "kaltgestellt") || (mk.kalt[schluessel] ?? -1) > w.day;
-  if (!opposition && !haft) add("befoerdern", kalt ? t("mk.grund.kalt") : undefined, t(`mk.hebel.befoerdern.folge.${p.art}`));
+  // Welle M1: Für Minister fallen Befördern, Absprache und Bauernopfer weg. Sie doppelten Kabinett und Gespräch („Anerkennung und Mittel“,
+  // „Rückendeckung“, Entlassung); die Karte im Machtkreis führt dorthin (machtkreis_dienst.md, M3).
+  const minister = istRegierung(p);
+  if (!opposition && !haft && !minister) add("befoerdern", kalt ? t("mk.grund.kalt") : undefined, t(`mk.hebel.befoerdern.folge.${p.art}`));
   if (!opposition && !haft && p.rolle !== "journalist") add("kaltstellen", kalt ? t("mk.grund.schonKalt") : p.rolle === "zentralbank" ? t("mk.grund.zentralbank") : undefined, t(`mk.hebel.kaltstellen.folge.${p.rolle === "richter" ? "richter" : p.art}`));
-  if (!haft) add("deal", (mk.deals[schluessel] ?? -1) > w.day ? t("mk.grund.dealLaeuft") : undefined, t(`mk.hebel.deal.folge.${p.rolle === "kronprinz" ? "kronprinz" : p.rolle === "opposition" ? "opposition" : "allg"}`));
-  if (istRegierung(p)) add("bauernopfer", p.figur && eigenVon(w, p.figur).kommissarisch ? t("mk.grund.kommissarisch") : undefined, g?.oeffentlich ? t("mk.hebel.bauernopfer.folge.skandal") : t("mk.hebel.bauernopfer.folge.ohne"));
-  if (!haft) add("untersuchung", mk.untersuchungen.some((u) => u.person === schluessel) ? t("mk.grund.untersuchungLaeuft") : g?.aufgedeckt ? t("mk.grund.schonBekannt") : undefined, t("mk.hebel.untersuchung.folge", { tage: untersuchungDauer(w) }));
+  if (!haft && !minister) add("deal", (mk.deals[schluessel] ?? -1) > w.day ? t("mk.grund.dealLaeuft") : undefined, t(`mk.hebel.deal.folge.${p.rolle === "kronprinz" ? "kronprinz" : p.rolle === "opposition" ? "opposition" : "allg"}`));
+  const kap = dienstKapazitaet(w);
+  if (!haft) add("untersuchung", mk.untersuchungen.some((u) => u.person === schluessel) ? t("mk.grund.untersuchungLaeuft") : g?.aufgedeckt ? t("mk.grund.schonBekannt") : kap !== undefined && kap < HEBEL_WIRKUNG.untersuchung.kapazitaet ? t("welle_m1.kreis.grund.kapazitaet", { kap: Math.round(kap), noetig: HEBEL_WIRKUNG.untersuchung.kapazitaet }) : undefined, t("mk.hebel.untersuchung.folge", { tage: untersuchungDauer(w) }));
   if (haft) add("begnadigung", undefined, t("mk.hebel.begnadigung.folge"));
-  if (p.rolle === "generalstab" || p.rolle === "inneres") add("saeuberung", stil === "offen" ? t("mk.grund.saeuberungOffen") : undefined, t("mk.hebel.saeuberung.folge"));
+  // Welle M1: Die Säuberung ist kein freier Hebel mehr. Sie kommt nur mit Anlass: aufgedeckter Putschzirkel (kreis_putschzirkel) oder ein
+  // gescheiterter Putschversuch (kreis_saeuberung, sim/ereignisse-m1.ts). Der Typ bleibt, damit ältere Spielstände laden.
   return out;
+}
+
+/** Freie Kapazität des Dienstes (sim/welt-dienst.ts), gelesen ohne Import (welt-dienst hängt über den Krieg an diesem Modul); vor dem ersten Monat unbekannt. */
+export function dienstKapazitaet(w: World): number | undefined {
+  return w.spiel?.weltmodell?.dienst?.kapazitaet;
 }
 
 const untersuchungDauer = (w: World): number => Math.max(30, Math.round(MACHTKREIS.untersuchungTage - 12 * (mitStufen(w).personal - 3)));
@@ -567,35 +619,37 @@ export function zieheHebel(w: World, schluessel: string, h: Hebel): HebelErgebni
   let text = "";
   switch (h) {
     case "befoerdern": {
-      aendereLoyalitaet(w, p, 10);
-      aendereEhrgeiz(w, p, -10);
-      aendereGroll(w, p, -15);
+      const q = HEBEL_WIRKUNG.befoerdern;
+      aendereLoyalitaet(w, p, q.loyalitaet);
+      aendereEhrgeiz(w, p, q.ehrgeiz);
+      aendereGroll(w, p, q.groll);
       if (p.figur) eigenVon(w, p.figur).mittelBis = w.day + 180;
-      if (p.neben) p.neben.einfluss = klemme(p.neben.einfluss + 15);
+      if (p.neben) p.neben.einfluss = klemme(p.neben.einfluss + q.einfluss);
       for (const r of rivalen) {
-        aendereGroll(w, r, 10);
-        aendereLoyalitaet(w, r, -4);
+        aendereGroll(w, r, q.rivalenGroll);
+        aendereLoyalitaet(w, r, q.rivalenLoyalitaet);
       }
-      if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge + 8);
+      if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge + q.kronprinzDruck);
       if (p.rolle === "richter") wirke(w, "justiz_unabhaengigkeit", -1.5);
       text = t("mk.log.befoerdern", { name, rolle, rivalen: rivalen.length });
       break;
     }
     case "kaltstellen": {
-      aendereLoyalitaet(w, p, -10);
-      aendereGroll(w, p, 22);
-      aendereEhrgeiz(w, p, -12);
+      const q = HEBEL_WIRKUNG.kaltstellen;
+      aendereLoyalitaet(w, p, q.loyalitaet);
+      aendereGroll(w, p, q.groll);
+      aendereEhrgeiz(w, p, q.ehrgeiz);
       if (p.neben) {
         p.neben.status = "kaltgestellt";
         p.neben.bis = w.day + MACHTKREIS.kaltTage;
-        p.neben.einfluss = klemme(p.neben.einfluss - 25);
+        p.neben.einfluss = klemme(p.neben.einfluss + q.einfluss);
       } else {
         mk.kalt[schluessel] = w.day + MACHTKREIS.kaltTage;
         if (p.figur) eigenVon(w, p.figur).kaltBis = mk.kalt[schluessel];
       }
       for (const r of rivalen) aendereLoyalitaet(w, r, 5);
       for (const v of verbuendete) aendereLoyalitaet(w, v, -5);
-      if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge - 25);
+      if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge + q.kronprinzDruck);
       if (p.rolle === "richter") {
         wirke(w, "justiz_unabhaengigkeit", -4);
         wirke(w, "beziehungen_eu", -1.5);
@@ -604,10 +658,11 @@ export function zieheHebel(w: World, schluessel: string, h: Hebel): HebelErgebni
       break;
     }
     case "deal": {
-      aendereLoyalitaet(w, p, 15);
-      aendereGroll(w, p, -20);
+      const q = HEBEL_WIRKUNG.deal;
+      aendereLoyalitaet(w, p, q.loyalitaet);
+      aendereGroll(w, p, q.groll);
       mk.deals[schluessel] = w.day + MACHTKREIS.dealTage;
-      if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge - 30);
+      if (p.rolle === "kronprinz") mk.nachfolge = klemme(mk.nachfolge + q.kronprinzDruck);
       if (p.rolle === "opposition") wirke(w, "polarisierung", -1.5);
       if (p.rolle === "journalist" && p.neben) p.neben.einfluss = klemme(p.neben.einfluss - 5);
       text = t(`mk.log.deal.${p.rolle === "kronprinz" ? "kronprinz" : p.rolle === "opposition" ? "opposition" : "allg"}`, { name, rolle });
@@ -630,6 +685,8 @@ export function zieheHebel(w: World, schluessel: string, h: Hebel): HebelErgebni
     }
     case "untersuchung": {
       mk.untersuchungen.push({ person: schluessel, beginn: w.day, ende: w.day + untersuchungDauer(w) });
+      const dz = w.spiel?.weltmodell?.dienst;
+      if (dz) dz.kapazitaet = Math.max(0, dz.kapazitaet - HEBEL_WIRKUNG.untersuchung.kapazitaet);
       if (regimeStil(regimeGrad(w)) === "autoritaer") mk.angst = klemme(mk.angst + 4);
       text = t("mk.log.untersuchung", { name, rolle, tage: untersuchungDauer(w) });
       break;
@@ -668,28 +725,35 @@ export function zieheHebel(w: World, schluessel: string, h: Hebel): HebelErgebni
   return { ok: true, text };
 }
 
-/** Säuberung im Apparat: Putschgefahr sinkt für ein Jahr, Fähigkeit und Moral sinken, die Angst steigt, das Ausland schaut zu. */
-function saeubere(w: World, p: Person): void {
+/**
+ * Säuberung im Apparat: Putschgefahr sinkt für ein Jahr, Fähigkeit und Moral sinken, die Angst steigt, das Ausland schaut zu.
+ * Welle M1: nur noch mit Anlass (Vorgang nach einem Putschversuch, sim/ereignisse-m1.ts); die Person ist dann der Rädelsführer, wenn bekannt.
+ */
+export function saeubere(w: World, p?: Person): void {
+  const q = SAEUBERUNG_FOLGEN;
   const mk = machtkreis(w);
   mk.saeuberungen.push(w.day);
-  mk.angst = klemme(mk.angst + 15);
+  mk.angst = klemme(mk.angst + q.angst);
   for (const x of personen(w)) {
     if (x.lager === "apparat" || x.lager === "streitkraefte") {
-      aendereKompetenz(w, x, -8);
-      aendereLoyalitaet(w, x, 6);
+      aendereKompetenz(w, x, q.kompetenz);
+      aendereLoyalitaet(w, x, q.loyalitaet);
     }
   }
   // Wer ein Putsch-Geheimnis hatte, ist es los
   for (const g of mk.geheimnisse) if (g.art === "putschzirkel" && personVon(w, g.person)?.lager === "streitkraefte") g.schwere = 1;
-  if (p.figur) eigenVon(w, p.figur).ehrgeiz = klemme(eigenVon(w, p.figur).ehrgeiz - 20);
-  wirke(w, "truppenmoral", -4);
-  wirke(w, "offiziersvertrauen", -3);
-  wirke(w, "beziehungen_eu", -2);
-  wirke(w, "beziehungen_usa", -1);
-  wirke(w, "pressefreiheit", -1);
+  if (p?.figur) eigenVon(w, p.figur).ehrgeiz = klemme(eigenVon(w, p.figur).ehrgeiz - 20);
+  wirke(w, "truppenmoral", q.truppenmoral);
+  wirke(w, "offiziersvertrauen", q.offiziersvertrauen);
+  wirke(w, "beziehungen_eu", q.eu);
+  wirke(w, "beziehungen_usa", q.usa);
+  wirke(w, "pressefreiheit", q.pressefreiheit);
   const enden = w.spiel?.enden;
-  if (enden) enden.putsch.geschuetztBis = Math.max(enden.putsch.geschuetztBis ?? 0, w.day + 365);
+  if (enden) enden.putsch.geschuetztBis = Math.max(enden.putsch.geschuetztBis ?? 0, w.day + q.schutzTage);
 }
+
+/** Welle M1: die Folgen einer Säuberung als Zahlen an einer Stelle (Vorgang nach dem Putschversuch zeigt sie, `saeubere` bucht sie). Spielparameter. */
+export const SAEUBERUNG_FOLGEN = { angst: 15, kompetenz: -8, loyalitaet: 6, truppenmoral: -4, offiziersvertrauen: -3, eu: -2, usa: -1, pressefreiheit: -1, schutzTage: 365 } as const;
 
 // ---------------------------------------------------------------------------
 // Monat: Was die Menschen von selbst tun
@@ -807,9 +871,14 @@ function disziplinMonat(w: World, n: Nebenfigur): void {
 /** Wie viele Stimmen der Fraktionschef einem Gesetz dazugibt (positiv) oder kostet (negativ). */
 export function disziplinStimmen(w: World): number {
   const n = nebenVon(w, "fraktionschef");
-  if (!n || n.status !== "aktiv") return -4;
-  return Math.round(((n.loyalitaet + n.kompetenz) / 2 - 55) / 5);
+  if (!n || n.status !== "aktiv") return DISZIPLIN_OHNE;
+  return disziplinAus(n.loyalitaet, n.kompetenz);
 }
+
+/** Stimmen, die ein Fraktionschef mit dieser Loyalität und Fähigkeit einem Gesetz bringt (Welle M1: auch für die Vorschau auf den Karten). */
+export const disziplinAus = (loyalitaet: number, kompetenz: number): number => Math.round(((Math.min(100, loyalitaet) + kompetenz) / 2 - 55) / 5);
+/** Ohne aktiven Fraktionschef laufen die Reihen auseinander */
+export const DISZIPLIN_OHNE = -4;
 
 function schliesseUntersuchung(w: World, u: Untersuchung): void {
   const mk = machtkreis(w);

@@ -20,6 +20,7 @@ import {
   personen,
   regimeGrad,
   regimeStil,
+  saeubere,
   schluesselVon,
   zieheHebel,
 } from "../src/sim/machtkreis";
@@ -110,10 +111,11 @@ describe("Hebel", () => {
     expect(machtkreis(w).szenen.length).toBe(1);
   });
 
+  // Welle M1: Absprachen mit Ministern gibt es im Machtkreis nicht mehr (sie doppelten „Rückendeckung“ im Kabinett); geprüft wird der
+  // Wortbruch jetzt am Fraktionsvorsitz, für den die Absprache bleibt. Die Regel selbst ist unverändert.
   test("Absprache, dann Kaltstellen: Wortbruch kostet alle", () => {
     const w = neu();
-    const fin = w.spiel!.figuren.find((f) => f.amt === "finanzen")!;
-    const s = schluesselVon(fin);
+    const s = schluesselVon(nebenVon(w, "fraktionschef")!);
     expect(zieheHebel(w, s, "deal").ok).toBe(true);
     const anderer = w.spiel!.figuren.find((f) => f.amt === "aussen")!;
     const vorher = anderer.loyalitaet;
@@ -122,12 +124,19 @@ describe("Hebel", () => {
     expect(machtkreis(w).deals[s]).toBeUndefined();
   });
 
-  test("Bauernopfer entlässt; Untersuchung endet mit Ergebnis", () => {
+  // Welle M1: Bauernopfer, Befördern und Absprache für Minister entfallen (sie doppelten Entlassung, „Anerkennung und Mittel“ und
+  // „Rückendeckung“ im Kabinett, machtkreis_dienst.md M3); geprüft wird, dass sie nicht mehr angeboten werden und nicht ziehen.
+  test("Minister ohne doppelte Hebel; Untersuchung endet mit Ergebnis", () => {
     const w = neu();
     const inn = w.spiel!.figuren.find((f) => f.amt === "inneres")!;
     const alt = inn.name;
-    expect(zieheHebel(w, schluesselVon(inn), "bauernopfer").ok).toBe(true);
-    expect(inn.name).not.toBe(alt);
+    const angebot = hebelFuer(w, schluesselVon(inn)).map((h) => h.hebel);
+    expect(angebot).not.toContain("bauernopfer");
+    expect(angebot).not.toContain("befoerdern");
+    expect(angebot).not.toContain("deal");
+    expect(angebot).toContain("untersuchung");
+    expect(zieheHebel(w, schluesselVon(inn), "bauernopfer").ok).toBe(false);
+    expect(inn.name).toBe(alt);
     const aus = w.spiel!.figuren.find((f) => f.amt === "aussen")!;
     expect(zieheHebel(w, schluesselVon(aus), "untersuchung").ok).toBe(true);
     expect(machtkreis(w).untersuchungen.length).toBe(1);
@@ -136,12 +145,15 @@ describe("Hebel", () => {
     expect(w.log.some((l) => l.text.includes(aus.name) && /Überprüfung/.test(l.text))).toBe(true);
   });
 
-  test("Säuberung nur, wenn nicht offen; senkt Fähigkeit und schützt vor Putsch", () => {
+  // Welle M1: Die Säuberung ist kein freier Hebel mehr, sie kommt nur mit Anlass (Putschzirkel, Putschversuch; test/welle-m1.test.ts).
+  // Ihre Folgen sind dieselben: geprüft über `saeubere`, das der Vorgang aufruft.
+  test("Säuberung nur mit Anlass; senkt Fähigkeit und schützt vor Putsch", () => {
     const w = neu();
     const gs = w.spiel!.figuren.find((f) => f.amt === "generalstab")!;
+    expect(hebelFuer(w, schluesselVon(gs)).some((h) => h.hebel === "saeuberung")).toBe(false);
+    expect(zieheHebel(w, schluesselVon(gs), "saeuberung").ok).toBe(false);
     const fae = eigenVon(w, gs).faehigkeit;
-    const r = zieheHebel(w, schluesselVon(gs), "saeuberung");
-    expect(r.ok).toBe(true);
+    saeubere(w, personen(w).find((p) => p.figur === gs));
     expect(eigenVon(w, gs).faehigkeit).toBeLessThan(fae);
     expect(machtkreis(w).angst).toBeGreaterThan(0);
   });

@@ -90,6 +90,8 @@ export const PARTEI_NAME: Record<string, string> = {
   DEM: "DEM Parti",
   Zafer: "Zafer Partisi",
   YRP: "Yeniden Refah",
+  // Welle M1: Abspaltung aus der eigenen Partei (sim/abspaltung.ts); erfundener Name
+  Ufuk: "Yeni Ufuk Partisi",
 };
 
 /** Kurzbeschreibung der Ausrichtung, damit man Partner und Gegner einordnen kann. */

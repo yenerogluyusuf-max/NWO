@@ -49,6 +49,7 @@ import { MEDIEN_VORLAGEN } from "./ereignisse-medien";
 import { KREIS_VORLAGEN } from "./ereignisse-kreis";
 import { LETZTE_VORLAGEN } from "./ereignisse-letzte";
 import { DIENST_VORLAGEN } from "./ereignisse-dienst";
+import { M1_VORLAGEN } from "./ereignisse-m1"; // Welle M1: Abspaltung, Säuberung mit Anlass
 import type { Stelle } from "./ereignis-hilfen";
 import { PERSONEN_VORLAGEN } from "./ereignisse-personen";
 import { MACHTKREIS_VORLAGEN } from "./ereignisse-machtkreis";
@@ -1049,7 +1050,7 @@ export const VORLAGEN: Vorlage[] = [
   ...RUESTUNG_VORLAGEN,
   ...MEDIEN_VORLAGEN,
   // Welle E3: Machtkreis und Dienst melden sich (eigener Wurf, ohne Zusatzplatz)
-  ...KREIS_VORLAGEN, ...DIENST_VORLAGEN,
+  ...KREIS_VORLAGEN, ...DIENST_VORLAGEN, ...M1_VORLAGEN,
   // Welle E3b: Die letzte Amtszeit kündigt sich an (eigener Platz, fester Tag)
   ...LETZTE_VORLAGEN,
 ];

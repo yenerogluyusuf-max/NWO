@@ -11,6 +11,7 @@ import { zusagenMonat } from "./zusagen";
 import { ehemaligeMonat } from "./nachfolge";
 import { ministerflussMonat } from "./ministerfluss-monat";
 import { machtkreisMonat } from "./machtkreis";
+import { abspaltungMonat } from "./abspaltung"; // Welle M1
 import type { Figur } from "./spiel-typen";
 import type { World } from "./types";
 import { erfasseRessortVorfall } from "./ressortpolitik";
@@ -81,4 +82,6 @@ export function personenMonat(w: World): void {
   ministerflussMonat(w);
   // Was der Machtkreis von selbst tut: Rivalitäten, Angst, Nachfolgedruck, Untersuchungen (sim/machtkreis.ts)
   machtkreisMonat(w);
+  // Welle M1: Ein gebrochener Kronprinz gründet eine eigene Partei (sim/abspaltung.ts)
+  abspaltungMonat(w);
 }

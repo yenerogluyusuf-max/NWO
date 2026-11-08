@@ -38,6 +38,7 @@ import { beende } from "./spiel";
 import { aktuelleAmtszeit, beginneAmtszeit, maxAmtszeiten, nachholen, wahlBezugsAnteil } from "./amtszeit";
 import { msg, t } from "../i18n";
 import type { World } from "./types";
+import { abspaltungWahlEinfluss } from "./abspaltung"; // Welle M1
 import type {
   WahlErgebnis,
   WahlKandidat,
@@ -223,6 +224,12 @@ export function wahlRechnung(w: World, basis: number, letzte: boolean, zufall = 
   for (const x of gegnerEinfluss(w)) {
     roh += x.punkte;
     einfluesse.push(x);
+  }
+  // Welle M1: Eine Abspaltung aus der eigenen Partei nimmt dem Amtsinhaber einen Teil ihrer Stimmen (sim/abspaltung.ts)
+  const abs = abspaltungWahlEinfluss(w);
+  if (abs) {
+    roh += abs.punkte;
+    einfluesse.push(abs);
   }
   const opp = oppositionsEinfluss(w);
   if (opp !== 0) {
