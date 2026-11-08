@@ -439,20 +439,6 @@ export const GEGNER_BESTAND_STANDARD: GegnerBestandDef = {
 };
 
 // ---------------------------------------------------------------------------
-// Besatzung (Spielparameter)
+// Besatzung: seit Welle 3, K5 in data/besatzung.ts (fünf Formen mit Vorbild); hier weitergereicht
 
-export type BesatzungsForm = "pufferzone" | "verwaltung" | "annexion";
-
-export const BESATZUNG = {
-  /** Kosten je Region und Monat in % des BIP */
-  kosten: { pufferzone: 0.012, verwaltung: 0.025, annexion: 0.03 } as Record<BesatzungsForm, number>,
-  /** Ziel des Widerstands je Form (0 bis 100); Gelände „berge“ und „stadt“ erhöhen ihn */
-  widerstandZiel: { pufferzone: 35, verwaltung: 22, annexion: 60 } as Record<BesatzungsForm, number>,
-  gelaendeWiderstand: { ebene: 0, berge: 12, stadt: 10, insel: -5, kueste: 0 } as Record<Gelaende, number>,
-  /** Ab diesem Widerstand drohen Anschläge; ab `aufstand` über drei Monate fällt die Region zurück */
-  anschlagAb: 50,
-  aufstand: 85,
-  /** Kapital für einen Formwechsel, Annexion teurer */
-  pkWechsel: 6,
-  pkAnnexion: 14,
-};
+export { BESATZUNG, type BesatzungsForm } from "./besatzung";

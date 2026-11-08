@@ -47,6 +47,7 @@ import { haushaltsMonatsabschluss } from "./haushaltsbericht";
 import { krisenAktualisieren } from "./krisen";
 import { katastropheMonat } from "./katastrophe";
 import { drohkulisseDurchGegner, kriegMonat, kriegTag } from "./krieg";
+import { annexionTag } from "./annexion"; // Welle 3, K5
 import { akuteProbleme } from "./bilanz";
 import { zielDef } from "./ziele";
 import { Rng } from "./rng";
@@ -296,6 +297,7 @@ export function spielTick(world: World, rng: Rng): void {
   ereignisTag(world, rng);
   krisenAktualisieren(world);
   kriegTag(world, rng);
+  annexionTag(world); // Welle 3, K5: Sicherheitsrat, Generalversammlung, Sanktionsstufen
   programmTag(world);
   fokusTag(world);
   berichteTag(world);

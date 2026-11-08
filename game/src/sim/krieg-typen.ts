@@ -234,12 +234,16 @@ export type GegnerGattungId = "heer" | "luft" | "luftabwehr" | "see" | "drohnen"
 /** Lage einer Region im Krieg: beim Gegner, umkämpft (die Front steht dort) oder unter türkischer Kontrolle */
 export type RegionLage = "gegner" | "umkaempft" | "eigen";
 
-/** Eine besetzte Region nach dem Frieden (sim/kriegsschauplatz.ts): Form, Widerstand, Kosten. */
+/**
+ * Eine besetzte Region nach dem Frieden (sim/besatzung.ts): Form, Widerstand, Kosten. Welle 3, K5: vier Formen nach Vorbild
+ * („zone“ Sicherheitszone, „zivil“ Zivilverwaltung, „satellit“ Satellitenstaat, „annexion“; data/besatzung.ts). Ältere Spielstände mit
+ * „pufferzone“ und „verwaltung“ werden beim Laden umbenannt.
+ */
 export interface BesatzungsGebiet {
   region: string;
   land: string;
   seit: number;
-  form: "pufferzone" | "verwaltung" | "annexion";
+  form: import("../data/besatzung").BesatzungsForm;
   /** 0 bis 100 */
   widerstand: number;
   /** Monate in Folge über der Aufstandsschwelle */
@@ -249,6 +253,68 @@ export interface BesatzungsGebiet {
    * Waffenstillstandslinie ohne Vertrag (Vorbild Zypern 1974). Ältere Einträge haben das Feld nicht und gelten als „vertrag“.
    */
   grundlage?: "vertrag" | "linie";
+  /** Welle 3, K5: Tag des letzten Formwechsels (fehlt: seit der Besetzung) */
+  formSeit?: number;
+  /** Welle 3, K5: zurückgekehrte Geflüchtete in diese Region, Personen (fehlt: 0) */
+  rueckkehr?: number;
+  /** Welle 3, K5: Kfz-Kennziffer der Provinz, wenn die Region annektiert ist */
+  plaka?: number;
+}
+
+/**
+ * Eine neue türkische Provinz aus einer annektierten Region (Welle 3, K5; ENTSCHEIDUNGEN AA 1): nächste freie Kennziffer ab 82, Einwohner,
+ * Steuern, Wahlberechtigte; Sitze erst nach der nächsten Parlamentswahl (sim/provinzen-neu.ts).
+ */
+export interface NeueProvinz {
+  plaka: number;
+  region: string;
+  land: string;
+  /** Tag des Beschlusses */
+  seit: number;
+  /** Einwohner beim Beschluss (Daten der Region, data/schauplaetze.ts) */
+  einwohner: number;
+  /** Anteil, der die Staatsangehörigkeit ablehnt (Vorbild Krim 2014: Frist von einem Monat; Spielparameter aus dem Widerstand) */
+  ablehnung: number;
+  /** Ende der Eingliederung (Tag) */
+  eingliederungBis: number;
+  /** Abtretung per Vertrag (Hatay-Weg) */
+  vertrag?: true;
+  /** Sitze in der TBMM; erst ab der nächsten Parlamentswahl gesetzt */
+  sitze?: number;
+  /** Tag, an dem die Provinz verloren ging (Rückeroberung, Rückgabe, Aufstand); bleibt für die Kennziffer stehen */
+  verloren?: number;
+}
+
+/** Abstimmung in einem UN-Organ. */
+export interface UnAbstimmung {
+  tag: number;
+  ja: number;
+  nein: number;
+  enth: number;
+  abwesend?: number;
+  /** Sicherheitsrat: ständige Mitglieder mit Veto */
+  veto?: string[];
+  angenommen: boolean;
+}
+
+/** Die internationale Reaktion auf eine Annexion oder einen Satellitenstaat (sim/annexion.ts). */
+export interface AnnexionsVorgang {
+  id: string;
+  land: string;
+  regionen: string[];
+  art: "annexion" | "satellit";
+  seit: number;
+  /** Abtretung per Friedensvertrag (Hatay-Weg) */
+  vertrag?: true;
+  /** Die Türkei hatte den Krieg begonnen (erzwungener Vertrag nach Art. 52 WVK nichtig) */
+  angriff?: true;
+  sr?: UnAbstimmung;
+  gv?: UnAbstimmung;
+  /** Erreichte Sanktionsstufe (0 bis 4) und die Träger (EU, USA) mit ihrem Anteil */
+  stufe: number;
+  traeger?: Record<string, number>;
+  /** Höchste Stufe dieses Vorgangs */
+  stufeMax: number;
 }
 
 // Gebietsübertragung (Welle 2, noch nicht gebaut): Der Hebel liegt in sim/krieg.ts, Funktion `friedenSchliessen`: Dort steht heute

@@ -226,7 +226,8 @@ describe("Besatzung nach dem Frieden", () => {
     besetzt(w);
     const liste = besatzung(w);
     expect(liste.length).toBeGreaterThan(0);
-    expect(liste.every((b) => b.form === "pufferzone")).toBe(true);
+    // Welle 3, K5: Die Pufferzone heißt jetzt Sicherheitszone („zone“, data/besatzung.ts)
+    expect(liste.every((b) => b.form === "zone")).toBe(true);
     const schuld = w.economy.debtRatio;
     kriegMonat(w, new Rng(3));
     expect(w.economy.debtRatio).toBeGreaterThan(schuld);
