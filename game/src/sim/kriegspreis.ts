@@ -48,6 +48,9 @@ export const REAKTION: Record<string, Reaktion> = {
   CYP: { eu: 5, usa: 2.5, euSanktionAb: 4, tourismus: -0.15, kueste: { provinzen: [7, 33, 1, 31], wert: -0.5 }, risiko: 18, kapital: -0.25, grenze: 0 },
 };
 
+/** Welle 4, K7: Anteil der Kriegsmüdigkeit, solange die Kritik am Einsatz unterdrückt wird (Spielparameter; derselbe Wert wie KRIEG.kritik.muede) */
+export const KRITIK_MUEDE = 0.5;
+
 export const PREIS = {
   /** Kriegsmüdigkeit: Zustimmung je Woche, wächst mit der Dauer bis zum Deckel; bei Selbstverteidigung schwächer */
   muedeJeWoche: 0.035,
@@ -161,7 +164,9 @@ export function kriegspreisWoche(w: World, k: KriegVorgang, gegnerStaerke: numbe
   // 1. Die Sammlung um die Flagge verfliegt: Müdigkeit wächst mit jeder Woche
   const zuletzt = k.letzteWoche?.last !== undefined ? k.letzteWoche.last * Math.max(0.5, gegnerStaerke / 30) : PREIS.muedeBezug;
   const intensitaet = Math.min(1, Math.max(PREIS.muedeMindest, zuletzt / PREIS.muedeBezug));
-  const muede = Math.min(PREIS.muedeDeckel, PREIS.muedeJeWoche * k.woche) * (angriff ? 1 : PREIS.muedeVerteidigung) * intensitaet;
+  // Welle 4, K7: Wird die Kritik am Einsatz unterdrückt (sim/krieg.ts, Handlung „kritik“), wirkt die Müdigkeit nur zum Teil
+  const unterdrueckt = k.kritikBis !== undefined && w.day < k.kritikBis ? KRITIK_MUEDE : 1;
+  const muede = Math.min(PREIS.muedeDeckel, PREIS.muedeJeWoche * k.woche) * (angriff ? 1 : PREIS.muedeVerteidigung) * intensitaet * unterdrueckt;
   // 2. Gefallene: aus den Wochenverlusten der tragenden Gattungen (Prozent), je stärker der Gegner, desto blutiger
   // Im Landkrieg mit Zielraum aus der Gefechtslast der Woche (Fläche, Gelände, Grundverschleiß; sim/kriegsschauplatz.ts), sonst aus den
   // Prozentverlusten. Gerundet wird mit einem festen Versatz je Woche: Bruchteile gehen nicht verloren, und der Lauf bleibt deterministisch.

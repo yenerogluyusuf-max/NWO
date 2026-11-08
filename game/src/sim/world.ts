@@ -3,6 +3,7 @@ import { initialisiereStaatsgeld, staatsgeldMonat } from "./staatsgeld";
 // protokolliert (Entwicklungsplan, Abschnitt 6).
 
 import { migriereEingefroreneLinien } from "./kriegsschauplatz";
+import { RESERVISTEN } from "./reservisten"; // Welle 4, K7
 import { t } from "../i18n";
 import type { EconomyState, MonthlySnapshot, Scenario, World } from "./types";
 import { Rng, seedToState } from "./rng";
@@ -202,7 +203,8 @@ function monthlyNet(world: World): void {
   const traegt = KOSTEN.spirale * spiralAnteil(world);
   e.kostenRef = ref + PARAMS.preisAnpassung * (kosten - traegt - ref);
   const prod = nationalAverage(NET, world.net, "produktivitaet") - startAverage(NET, world.net, "produktivitaet");
-  e.potentialShift = clamp(COUPLING.productivity * prod, -2, 2);
+  // Welle 4, K7: Einberufene Reservisten fehlen in den Betrieben und drücken das Potenzialwachstum, solange sie unter Waffen stehen (sim/reservisten.ts)
+  e.potentialShift = clamp(COUPLING.productivity * prod, -2, 2) - (e.reservistenAnteil ?? 0) * RESERVISTEN.wachstumJeProzent;
   // Runde „Netz atmet“: Institutionen, Branchen, Importabhängigkeit, Konjunktursaldo, politische Marktschocks und Rating (sim/maerkte.ts)
   koppleNetzAnWirtschaft(world);
 }

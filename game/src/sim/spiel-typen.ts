@@ -624,6 +624,10 @@ export interface SpielZustand {
   krisen?: AktiveKrise[];
   /** Konfliktvorgänge (MIL-1 „Krieg als Vorgang“); ältere Spielstände haben das Feld nicht — kein Krieg-Feld = kein Konflikt, es wird beim ersten Zugriff angelegt */
   kriege?: import("./krieg-typen").KriegVorgang[];
+  /** Welle 4, K7: die stehende Rahmenvollmacht für Syrien und Irak mit ihren Verlängerungen (sim/krieg-recht.ts); ältere Spielstände legen sie beim ersten Monat an */
+  vollmacht?: import("./krieg-recht").VollmachtZustand;
+  /** Welle 4, K7: Nach einem gescheiterten Mandat darf die Regierung für dieses Land bis zu diesem Tag keinen neuen Antrag stellen (Land → Tag) */
+  mandatSperre?: Record<string, number>;
   /** Zynismus durch Kehrtwenden und Wahlgeschenke (sim/zynismus.ts) */
   zynismus?: import("./zynismus").ZynismusZustand;
   /** Amtszeit-Epochen: historische Momente und Bewertungen (sim/epoche.ts); ältere Spielstände legen das Feld beim ersten Monat an */

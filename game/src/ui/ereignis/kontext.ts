@@ -34,7 +34,7 @@ const MUSTER: [RegExp, Thema][] = [
   [/wiederaufbau|wohnung|miet|bauaufsicht|sozialbau/, "wohnen"],
   [/beben|flut|brand|duerre|dürre|katastroph|ueberschwemm|hochwasser/, "katastrophe"],
   [/haushalt|mindestlohn|iwf|rating|lira|bank|steuer|zins|waehrung|schulden|rente/, "haushalt"],
-  [/krieg|mil_|putsch|grenz|anschlag|terror|militaer/, "sicherheit"],
+  [/krieg|mil_|putsch|grenz|anschlag|terror|militaer|vollmacht/, "sicherheit"], // vollmacht: Welle 4, K7
   [/^land_|^welt_|^eu_|nato|gipfel|botschaft|vermittlung|abkommen|beistand/, "aussen"],
   [/fabrik|industrie|export|energie|gas|wirtschaft|investor|tourismus/, "wirtschaft"],
   [/justiz|gericht|aym|verfassung|richter|anwalt/, "recht"],
@@ -259,6 +259,8 @@ const VORLAGE_ZAHLEN: Record<string, string[]> = {
   // Welle M1: Abspaltung und Säuberung mit Anlass
   kreis_abspaltung: ["nachfolge", "sitze", "zustimmung"],
   kreis_saeuberung: ["angst", "eu", "zustimmung"],
+  // Welle 4, K7: Verlängerung der Vollmacht für Syrien und Irak (Sitze des Lagers, Zustimmung, Terrorgefahr)
+  vollmacht_verlaengerung: ["sitze", "zustimmung", "terror"],
 };
 
 /** Welle E3: Wer bei Vorgängen des Machtkreises und des Dienstes spricht (der Dienst ist dem Präsidenten unterstellt, Gesetz 2937 Art. 3). */
@@ -267,6 +269,8 @@ const VORLAGE_SPRECHER: Record<string, Figur["amt"]> = {
   dienst_zugriff: "stab", dienst_kader: "stab", dienst_kanal: "aussen", dienst_aufgeflogen: "stab", dienst_fremd: "stab",
   // Welle M1: Die Abspaltung meldet das Präsidialamt, die Säuberung das Innenministerium (Polizei und Gouverneure)
   kreis_abspaltung: "stab", kreis_saeuberung: "inneres",
+  // Welle 4, K7: Die Vollmacht legt der Verteidigungsminister vor (Art. 92; Tutanak 21.10.2025)
+  vollmacht_verlaengerung: "verteidigung",
 };
 
 /** Beschriftung des Wegs zur zuständigen Stelle (Option.stelle, Vorlage.stelle). */

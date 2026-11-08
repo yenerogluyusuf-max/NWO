@@ -204,6 +204,12 @@ export interface KriegVorgang {
   demobBis?: number;
   /** Bis zu diesem Tag ist eine erneute Mobilisierung gesperrt */
   demobSperreBis?: number;
+  /** Welle 4, K7: Reservisten unter Waffen, als die Demobilisierung begann (sie kehren über KRIEG.demobTage in die Betriebe zurück) */
+  demobVon?: number;
+  /** Welle 4, K7: Fraktionen, denen der Präsident für das Mandat dieses Einsatzes eine Zusage gab (sim/mandat.ts) */
+  mandatZusagen?: string[];
+  /** Welle 4, K7: Kritik am Einsatz wird bis zu diesem Tag unterdrückt (Festnahmen, Ermittlungen; Vorbild Oktober 2019) */
+  kritikBis?: number;
   /** Innenpreis des Friedens, schon verrechnet (für Chronik und Bilanz) */
   friedenspreis?: number;
   ausgang?: KriegsAusgang;
