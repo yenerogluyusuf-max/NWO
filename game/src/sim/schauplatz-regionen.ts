@@ -14,8 +14,9 @@ export function regionenVon(landId: string): Region[] {
 }
 
 /** Die Zielregionen des Vorgangs in der Reihenfolge, in der die Front sie nimmt (Tiefe, dann Lage im Datensatz). */
-export function zielRegionen(k: Pick<KriegVorgang, "land" | "zielraum">): Region[] {
-  const ids = k.zielraum ? ZIELRAUM_REGIONEN[k.zielraum] : undefined;
+export function zielRegionen(k: Pick<KriegVorgang, "land" | "zielraum" | "zielRegionen">): Region[] {
+  // K6: eine eigene Auswahl von der Karte (sim/zielwahl.ts) geht dem festen Zielraum vor
+  const ids = k.zielRegionen ?? (k.zielraum ? ZIELRAUM_REGIONEN[k.zielraum] : undefined);
   const alle = regionenVon(k.land);
   const liste = ids ? ids.map((id) => REGION_NACH_ID[id]).filter((r): r is Region => !!r) : alle.filter((r) => r.tiefe === 1);
   return [...liste].sort((a, b) => a.tiefe - b.tiefe);

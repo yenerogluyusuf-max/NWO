@@ -2008,13 +2008,15 @@ export function waehleZielraum(w: World, kriegId: string, zielId: string): Ergeb
   const z = ZIELRAEUME.find((x) => x.id === zielId);
   if (!k || !z || z.land !== k.land) return { ok: false, text: t("militaer.ziel.ungueltig") };
   if (k.phase === "frieden" || k.phase === "beendet") return { ok: false, text: t("militaer.ziel.vorbei") };
-  const wechsel = !!k.zielraum && k.zielraum !== zielId && k.phase === "krieg";
+  // K6: Auch der Schritt von einer eigenen Auswahl (zielRegionen) zurück auf einen festen Zielraum ist ein Wechsel
+  const wechsel = !!k.zielraum && (k.zielraum !== zielId || !!k.zielRegionen) && k.phase === "krieg";
   if (wechsel) {
     if (!kannZahlen(w.spiel!.kapital, ZIELRAUM_WECHSEL.pk)) return { ok: false, text: t("militaer.grund.kapital") };
     w.spiel!.kapital -= ZIELRAUM_WECHSEL.pk;
     wirke(w, "truppenmoral", ZIELRAUM_WECHSEL.moral);
   }
   k.zielraum = zielId;
+  delete k.zielRegionen;
   zielGeaendert(w, k);
   const text = t(wechsel ? "militaer.ziel.gewechselt" : "militaer.ziel.gesetzt", { ziel: t(`militaer.zielraum.${zielId}`) });
   addLog(w, "entscheidung", text);

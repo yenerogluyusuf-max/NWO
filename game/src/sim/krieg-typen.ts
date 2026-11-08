@@ -138,6 +138,11 @@ export interface KriegVorgang {
   kriegszielDeklariert?: boolean;
   /** Gewählter Zielraum (data/streitkraefte.ts ZIELRAEUME); Vorstufe der Regionen mit Besitzerwechsel */
   zielraum?: string;
+  /**
+   * Welle 3, K6: eigene Auswahl der Zielregionen (auf der Karte gesetzt, sim/zielwahl.ts), in der Reihenfolge der Front. Fehlt das Feld,
+   * gelten die Regionen des Zielraums. `zielraum` nennt dann den kleinsten festen Zielraum, der die Auswahl enthält (Gegenwehr, Bedeutung).
+   */
+  zielRegionen?: string[];
   beschluss?: KriegBeschluss;
   /** Abstrakte Frontlage 0–100: 100 = die Türkei siegt, 0 = Zusammenbruch (kein Taktikspiel) */
   front: number;

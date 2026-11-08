@@ -27,7 +27,8 @@ test("zeigt die Kriegslage: Regionen nach Lage, Vorstöße und bedrohte Provinze
   };
   const html = renderToStaticMarkup(createElement(Karte2D, { krieg: krieg as never }));
   expect(html).toContain('class="karte2d-krieg aktiv"');
-  expect(html).toContain('class="umkaempft"');
+  // Welle 3, K6: Regionen tragen die Klasse „region“ und ihre Lage (Flächen statt Kreise; ohne Umriss wie hier bleibt der Kreis)
+  expect(html).toContain('class="region umkaempft"');
   expect(html).toContain('class="pfeil eigen"');
   expect(html).toContain('class="bedroht"');
   // 47° Ost liegt außerhalb des Grundausschnitts (bis 45°): die Breite wächst über 836 hinaus

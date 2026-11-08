@@ -27,7 +27,9 @@ import type { Kartenebene } from "../ebenen";
 import type { KartenMarke } from "../gueter/linsen";
 import type { TransportKartenDaten } from "../gueter/TransportKarte";
 import type { KriegsKarte } from "../../sim/kriegsschauplatz";
-import type { KriegUv } from "./kriegsfx";
+import type { KriegUv, OrtswahlUvRegion } from "./kriegsfx";
+import { landVonRegion, regionBei, type KriegsLage } from "./front";
+import type { Bewertung } from "./ortswahl";
 import { t as tx } from "../../i18n";
 import SCHAUPLATZ_FLAECHEN_ROH from "../../data/schauplatz-flaechen.json";
 
@@ -121,6 +123,15 @@ export interface AtlasMapProps {
   sparsam?: boolean;
   /** Lage laufender Kriege und Besatzungen (sim/kriegsschauplatz.ts `kriegsKarte`): Regionen, Front, Vorstöße in der Effektschicht */
   krieg?: KriegsKarte | null;
+  /** Welle 3, K6: Front entlang der Regionsgrenzen, Zielraum und Verbände an der Front (ui/atlas/front.ts `kriegsLage`) */
+  front?: Pick<KriegsLage, "linien" | "ziel" | "verbaende">;
+  /**
+   * Welle 3, K6 (karte.md K1): Ortswahl. Die Regionen (`r:<id>`) erscheinen nach Bewertung gefärbt; ein Klick ruft `onOrtswahl` mit dem
+   * Ziel statt der üblichen Auswahl. Provinzen (`p:`) und Länder (`l:`) färbt der Aufrufer über `fill` und `laenderFarben`; ihr Klick
+   * kommt ebenfalls über `onOrtswahl`, wenn sie in der Liste stehen.
+   */
+  ortswahl?: { ziele: { ziel: string; name: string; stil: Bewertung | "gewaehlt" }[] } | null;
+  onOrtswahl?: (ziel: string) => void;
   versorgung?: TransportKartenDaten;
   onTransport?: (id: string) => void;
 }
@@ -174,6 +185,13 @@ function abstandZuSperren(sperren: Rechteck[], x: number, y: number, hb: number,
   return m;
 }
 
+/** Umkehrung von `lonLatToUv` (Mercator in der Breite): Texturkoordinaten → Länge, Breite (für den Klick auf eine Region, K6) */
+function uvZuLonLat(r: { lon0: number; lon1: number; lat0: number; lat1: number }, u: number, v: number): [number, number] {
+  const merc = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360));
+  const y = merc(r.lat1) - v * (merc(r.lat1) - merc(r.lat0));
+  return [r.lon0 + u * (r.lon1 - r.lon0), ((2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180) / Math.PI];
+}
+
 const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
   return t * t * (3 - 2 * t);
@@ -211,6 +229,9 @@ export function AtlasMap({
   datum,
   ereignis,
   krieg = null,
+  front,
+  ortswahl = null,
+  onOrtswahl,
   versorgung,
   onTransport,
 }: AtlasMapProps) {
@@ -226,6 +247,10 @@ export function AtlasMap({
   const [landHover, setLandHover] = useState<{ iso: string; name: string } | undefined>(undefined);
   const landHoverRef = useRef<string | undefined>(undefined);
   const [bezirk, setBezirk] = useState<{ info: BezirkInfo; x: number; y: number } | undefined>(undefined);
+  /** Region der Ortswahl unter dem Zeiger (K6) */
+  const [ortHover, setOrtHover] = useState<string | undefined>(undefined);
+  const ortswahlRef = useRef(ortswahl);
+  ortswahlRef.current = ortswahl;
   const styleRef = useRef({ fill, fillAlpha, hover, selected, ebene });
   const labelsRef = useRef(labels);
   const neubauRef = useRef(neubau);
@@ -620,7 +645,7 @@ export function AtlasMap({
   }, [ready, marken]);
 
   // Kriegslage: Regionen, Front und Vorstöße in Texturkoordinaten an die Effektschicht (Radius etwa 0,2 Längengrad um den Ort)
-  const kriegSig = krieg ? JSON.stringify(krieg) : "";
+  const kriegSig = krieg ? JSON.stringify(krieg) + JSON.stringify(front ?? null) : "";
   useEffect(() => {
     const c = ctx.current;
     const fx = fxRef.current;
@@ -631,6 +656,7 @@ export function AtlasMap({
       return;
     }
     const uv = (lon: number, lat: number): [number, number] => lonLatToUv(c.relief, lon, lat) as [number, number];
+    const ziel = new Set(front?.ziel ?? []);
     const lage: KriegUv = {
       regionen: krieg.regionen.map((r) => {
         const [u, v] = uv(r.lon, r.lat);
@@ -638,16 +664,67 @@ export function AtlasMap({
         // Echte Fläche aus der Karte (Gebiet um den Ort, an Grenze und Küste geschnitten; tools/geodaten/schauplatz_flaechen.py), sonst der Umkreis
         const fl = SCHAUPLATZ_FLAECHEN[r.id];
         const ringe = fl?.map((ring) => ring.map(([lo, la]) => uv(lo, la)));
-        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), ...(ringe ? { ringe } : {}), name: r.plaka ? t("welle_k5.karte.name", { name: t(`krieg.region.${r.id}`), plaka: r.plaka }) : t(`krieg.region.${r.id}`) }; // K5: Provinz mit Kennziffer
+        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), ...(ziel.has(r.id) ? { ziel: true } : {}), ...(ringe ? { ringe } : {}), name: r.plaka ? t("welle_k5.karte.name", { name: t(`krieg.region.${r.id}`), plaka: r.plaka }) : t(`krieg.region.${r.id}`) }; // K5: Provinz mit Kennziffer
       }),
-      pfeile: krieg.pfeile.map((p) => ({ von: uv(p.von[0], p.von[1]), nach: uv(p.nach[0], p.nach[1]), seite: p.seite })),
+      // Der Vorstoß gehört zum Land der Region, auf die er zielt (für die Zackenlinie, die nur ohne Frontlinie erscheint)
+      pfeile: krieg.pfeile.map((p) => {
+        const nach = krieg.regionen.find((r) => r.lon === p.nach[0] && r.lat === p.nach[1]);
+        const land = nach ? landVonRegion(nach.id) : undefined;
+        return { von: uv(p.von[0], p.von[1]), nach: uv(p.nach[0], p.nach[1]), seite: p.seite, ...(land ? { land } : {}) };
+      }),
       bedroht: krieg.bedroht.map((pl) => c.centers[pl]).filter((x): x is [number, number] => !!x),
       aktiv: krieg.aktiv,
+      // K6: Front entlang der Regionsgrenzen; die Prüfpunkte zum Gegner liegen ein Stück neben jedem Abschnitt
+      linien: (front?.linien ?? []).map((l) => ({
+        art: l.art,
+        land: l.land,
+        punkte: l.punkte.map(([lo, la]) => uv(lo, la)),
+        feindPunkte: l.feind.map(([fx, fy], i) => {
+          const a = l.punkte[i]!, b = l.punkte[i + 1]!;
+          const n = Math.hypot(fx, fy) || 1;
+          return uv((a[0] + b[0]) / 2 + (fx / n) * 0.05, (a[1] + b[1]) / 2 + (fy / n) * 0.05);
+        }),
+      })),
+      mitLinie: [...new Set((front?.linien ?? []).filter((l) => l.art !== "linie").map((l) => l.land))],
+      verbaende: (front?.verbaende ?? krieg.verbaende ?? []).map((v) => {
+        const [vu, vv] = uv(v.lon, v.lat);
+        return { u: vu, v: vv, seite: v.seite, art: v.art, staerke: v.staerke, text: t("nacht_n7.karte.prozent", { p: v.staerke }) };
+      }),
     };
     fx.setKrieg(lage);
     wecke(600);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, kriegSig]);
+
+  // Ortswahl (K6): Regionen mit Bewertung und Auswahl in die Effektschicht; Provinzen und Länder färbt der Aufrufer
+  const ortSig = ortswahl ? JSON.stringify(ortswahl.ziele) + (ortHover ?? "") : "";
+  useEffect(() => {
+    const c = ctx.current;
+    const fx = fxRef.current;
+    if (!ready || !c || !fx) return;
+    if (!ortswahl) {
+      fx.setOrtswahl(null);
+      setOrtHover(undefined);
+      wecke(300);
+      return;
+    }
+    const regionen: OrtswahlUvRegion[] = [];
+    for (const z of ortswahl.ziele) {
+      if (!z.ziel.startsWith("r:")) continue;
+      const id = z.ziel.slice(2);
+      const fl = SCHAUPLATZ_FLAECHEN[id];
+      if (!fl) continue;
+      // Mitte für den Namen: Schwerpunkt des größten Rings
+      const gross = [...fl].sort((a, b) => b.length - a.length)[0]!;
+      const mlon = gross.reduce((s, p) => s + p[0], 0) / gross.length;
+      const mlat = gross.reduce((s, p) => s + p[1], 0) / gross.length;
+      const [u, v] = lonLatToUv(c.relief, mlon, mlat);
+      regionen.push({ id, name: z.name, u, v, ringe: fl.map((ring) => ring.map(([lo, la]) => lonLatToUv(c.relief, lo, la) as [number, number])), stil: z.stil, hover: ortHover === id });
+    }
+    fx.setOrtswahl(regionen);
+    wecke(600);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, ortSig]);
 
   // Tinten-Animation für Besitzerwechsel (Annexion, Besatzung): `animiereBesitzerwechsel` aus tinte.ts läuft über diese Karte
   useEffect(() => {
@@ -954,6 +1031,19 @@ export function AtlasMap({
       c.vector.setStyle({ hoverBezirk: undefined, hoverLand: undefined });
       return;
     }
+    // Ortswahl: Region unter dem Zeiger (K6)
+    const ow = ortswahlRef.current;
+    if (ow) {
+      const [lon, lat] = uvZuLonLat(c.relief, uv[0], uv[1]);
+      const ids = ow.ziele.filter((z) => z.ziel.startsWith("r:")).map((z) => z.ziel.slice(2));
+      const r = regionBei(lon, lat, ids);
+      if (r !== ortHover) setOrtHover(r);
+      if (r) {
+        if (hover !== undefined) { setHover(undefined); onHover?.(undefined); }
+        setLandzeiger(undefined);
+        return;
+      }
+    }
     const p = c.vector.pickProvince(uv[0], uv[1]);
     if (p !== hover) {
       setHover(p);
@@ -973,7 +1063,7 @@ export function AtlasMap({
   return (
     <div
       ref={wrap}
-      className={`atlas ${interactive ? "" : "passive"} ${hover || landHover ? "karte-zeiger" : ""} ${className ?? ""}`}
+      className={`atlas ${interactive ? "" : "passive"} ${hover || landHover || ortHover ? "karte-zeiger" : ""} ${ortswahl ? "ortswahl-an" : ""} ${className ?? ""}`}
       onPointerDown={(e) => {
         const c = ctx.current;
         wecke(2500);
@@ -1046,12 +1136,25 @@ export function AtlasMap({
           // Klick auf ein Stadtbanner: diese Provinz (nicht, was unter dem Zeiger auf dem Gelände liegt)
           const stadt = (e.target as HTMLElement | null)?.closest?.(".city") as HTMLElement | null;
           const plakaStadt = stadt ? Number(stadt.dataset.plaka) : 0;
-          if (plakaStadt) {
+          if (plakaStadt && !ortswahlRef.current) {
             onSelect?.(plakaStadt);
             return;
           }
           const { x, y } = local(e);
           const uv = c.atlas.pickUv(x, y);
+          // Ortswahl (K6): eine Region, Provinz oder ein Land aus der Liste wählen oder streichen; sonst geschieht nichts
+          const ow = ortswahlRef.current;
+          if (ow) {
+            if (!uv) return;
+            const [lon, lat] = uvZuLonLat(c.relief, uv[0], uv[1]);
+            const ziele = new Set(ow.ziele.map((z) => z.ziel));
+            const r = regionBei(lon, lat, [...ziele].filter((z) => z.startsWith("r:")).map((z) => z.slice(2)));
+            const pv = r ? undefined : c.vector.pickProvince(uv[0], uv[1]);
+            const ld = r || pv ? undefined : c.vector.pickLand(uv[0], uv[1]);
+            const ziel = r ? `r:${r}` : pv ? `p:${pv}` : ld ? `l:${ld}` : undefined;
+            if (ziel && ziele.has(ziel)) onOrtswahl?.(ziel);
+            return;
+          }
           const p = uv ? c.vector.pickProvince(uv[0], uv[1]) : undefined;
           if (p) onSelect?.(p);
           else if (uv && onLand) {
@@ -1332,7 +1435,7 @@ export function AtlasMap({
       </div>
       {!ready && !fehler && <div className="atlas-loading">{tx("ui2.ui.atlas.AtlasMap.895afa5")}</div>}
       {/* Ohne WebGL: vereinfachte 2D-Karte statt einer leeren Fläche (Vorgabe S) */}
-      {fehler && <Karte2D fill={fill} fillAlpha={fillAlpha} selected={selected} onSelect={onSelect} laenderFarben={laenderFarben} onLand={onLand} krieg={krieg} />}
+      {fehler && <Karte2D fill={fill} fillAlpha={fillAlpha} selected={selected} onSelect={onSelect} laenderFarben={laenderFarben} onLand={onLand} krieg={krieg} {...(front ? { front } : {})} ortswahl={ortswahl} {...(onOrtswahl ? { onOrtswahl } : {})} {...(camera && (ortswahl || ebene === "front") ? { fokus: camera } : {})} randRechts={randRechts} />}
       {bezirk ? (
         <div className="atlas-hover bezirk" style={{ left: bezirk.x + 16, top: bezirk.y + 16 }}>
           <strong>{bezirk.info.name}</strong>
@@ -1341,7 +1444,9 @@ export function AtlasMap({
           <span>{t("karte.bezirk.einrichtungen", { k: bezirk.info.krankenhaeuser, f: bezirk.info.flughaefen })}</span>
         </div>
       ) : (
-        (hover || landHover) && (
+        ortHover && ortswahl ? (
+          <div className="atlas-hover">{ortswahl.ziele.find((z) => z.ziel === `r:${ortHover}`)?.name ?? ""}</div>
+        ) : (hover || landHover) && (
           <div className="atlas-hover" {...(hover && hoverZeilen ? { style: { top: 72, bottom: "auto", zIndex: 6, maxWidth: 360 } } : {})}>
             {hover ? NAMES[hover] : landHover!.name}
             {hover && hoverZeilen?.(hover).map((z) => <span key={z} style={{ display: "block", fontSize: "0.8em", lineHeight: 1.35, opacity: 0.9 }}>{z}</span>)}

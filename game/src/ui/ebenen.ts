@@ -21,6 +21,7 @@ import { belastungFarben } from "./infrastruktur/linse";
 import type { World } from "../sim/types";
 import type { IconName } from "./icons";
 import { t, aktuelleSprache, zahl } from "../i18n";
+import { frontFarben } from "./linsen/front-linse";
 
 // Neue Ebene („Linse“) anlegen: Kennung in `Kartenebene`, Eintrag in KARTENEBENEN (Gruppe, Symbol, Kurzsatz), Färbung in
 // `farbenFuerEbene`, Verfügbarkeitsregel in ui/linsen/linsen.ts (`REGELN`). Geplant, aber noch ohne Daten und darum nicht
@@ -29,7 +30,7 @@ import { t, aktuelleSprache, zahl } from "../i18n";
 // Welle 1, E5 (karte.md K4): Sechs Linsen änderten sich im ganzen Spiel nie. „Regionen“, „Ressourcen“ und „Strategische Orte“ stehen
 // nicht mehr in der Linsenwahl (ohne Gruppe; Färbung und Marken bleiben für Wirtschaft › Güter und spätere Anlässe). „Wirtschaftskraft“,
 // „Infrastruktur“ und „Katastrophenrisiko“ färben jetzt nach Werten aus dem Spiel statt nach den Ausgangsdaten von 2024.
-export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko" | "ressourcen" | "strategie" | "belastung" | "versorgung";
+export type Kartenebene = "gelaende" | "regionen" | "wahl" | "wirtschaft" | "arbeitslosigkeit" | "probleme" | "infrastruktur" | "netz" | "welt" | "rueckhalt" | "erbe" | "risiko" | "ressourcen" | "strategie" | "belastung" | "versorgung" | "front";
 
 export type LinsenGruppe = "land" | "wirtschaft" | "krisen" | "kultur" | "welt";
 
@@ -70,6 +71,8 @@ export const KARTENEBENEN: EbenenDef[] = [
   { id: "strategie", label: "Strategische Orte", icon: "ziel", kurz: "Meerengen, Pipelines, Häfen, Dämme und Inseln, die über Versorgung und Macht entscheiden." },
   { id: "versorgung", label: "Versorgungswege", icon: "tausch", gruppe: "wirtschaft", kurz: "Regionale Warenströme und Frontdepots." },
   { id: "netz", label: "Politiknetz", icon: "netz", kurz: "Ein Knoten des Politiknetzes je Provinz." },
+  // Welle 3, K6 (karte.md K8): nur während eines Krieges auf einem Schauplatz oder einer Besatzung (Regel in ui/linsen/linsen.ts)
+  { id: "front", label: "Front und Besatzung", icon: "kreuz", gruppe: "welt", kurz: "Wo die Front verläuft, was die Türkei hält und welche Provinzen bedroht sind." },
 ];
 
 /**
@@ -362,6 +365,9 @@ export function farbenFuerEbene(w: World, ebene: Kartenebene, problemId: string 
         },
       };
     }
+
+    case "front":
+      return frontFarben(w);
 
     case "netz": {
       const node = NET.nodes[NET.index.get(netNode)!]!;

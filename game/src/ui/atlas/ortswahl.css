@@ -1,0 +1,51 @@
+/* Seitenfenster der Ortswahl (Welle 3, K6; karte.md K1). Rechts neben der Karte im selben Leder- und Goldrahmen wie Akte und Provinzkarte,
+   Breite 372 px (ortswahl.ts SEITENFENSTER_BREITE). Nur Tokens; Schrift ab 13 px, Kennzahlen als Karte mit großen Zahlen (ENTSCHEIDUNGEN Z). */
+.ortswahl-leiste, .ortswahl-leiste.frame {
+  position: absolute; z-index: 60; right: 16px; top: 72px; bottom: 16px; width: 372px; max-width: calc(100vw - 32px);
+  display: flex; flex-direction: column; background: var(--paper); animation: rise 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.ortswahl-leiste .dossier-head h2 { margin: 0; font: 600 var(--schrift-5)/1.2 var(--display); color: var(--papier-3); text-shadow: 0 1px 0 #000; white-space: normal; }
+.ortswahl-leiste .dossier-head .close { flex: none; width: 26px; height: 26px; padding: 0; border-radius: 50%; color: var(--papier-4); border: none; cursor: pointer; background: radial-gradient(circle at 38% 30%, #c44a3c, var(--seal) 60%, #4d130e); box-shadow: 0 0 0 1.5px var(--gold-2), 0 2px 4px rgba(0, 0, 0, 0.5); }
+.ow-koerper {
+  flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--abstand-3); padding: var(--abstand-4) var(--abstand-4) var(--abstand-3);
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 250, 235, 0.7), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(120, 90, 50, 0.025) 0 1px, transparent 1px 3px),
+    var(--paper);
+  color: var(--tinte-1); overflow: auto;
+}
+.ow-frage { margin: 0; font: 500 var(--schrift-4)/1.3 var(--serif); color: var(--tinte-1); }
+.ow-legende { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font: 400 var(--schrift-1)/1.3 var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-2); }
+.ow-legende li { display: inline-flex; align-items: center; gap: 5px; }
+.ow-legende i { display: inline-block; width: 14px; height: 10px; border-radius: 2px; border: 1.5px solid; }
+
+.ow-karte { padding: var(--abstand-3); border: 1px solid var(--linie); border-radius: var(--rund-3); background: linear-gradient(180deg, var(--papier-1), var(--papier-2)); box-shadow: var(--schatten-flach); }
+.ow-zahlen { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--abstand-3) var(--abstand-4); }
+.ow-zahlen > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ow-zahlen dt { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-3); }
+.ow-zahlen dd { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 6px; font: 600 var(--schrift-5)/1.1 var(--display); color: var(--tinte-1); font-variant-numeric: tabular-nums; }
+.ow-zahlen dd small { font: 400 var(--schrift-1) var(--kapitaelchen); letter-spacing: var(--laufweite-1); color: var(--tinte-3); }
+.ow-hinweis { margin: var(--abstand-2) 0 0; padding-top: var(--abstand-2); border-top: 1px solid var(--linie); font: italic 400 var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+
+.ow-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ow-liste li { display: flex; align-items: center; justify-content: space-between; gap: var(--abstand-2); padding: 6px 10px; border-left: 3px solid var(--siegel); border-radius: 0 var(--rund-1) var(--rund-1) 0; background: var(--papier-2); }
+.ow-liste li > span { display: flex; flex-direction: column; min-width: 0; }
+.ow-liste b { font: 600 var(--schrift-3)/1.2 var(--serif); color: var(--tinte-1); }
+.ow-liste small { font-size: var(--schrift-1); color: var(--tinte-3); font-variant-numeric: tabular-nums; }
+.ow-liste .knopf-leise { flex: none; font-size: var(--schrift-1); }
+.ow-leer { margin: 0; padding: var(--abstand-3); border: 1px dashed var(--linie-stark); border-radius: var(--rund-2); font: italic var(--schrift-2)/1.4 var(--serif); color: var(--tinte-2); text-align: center; }
+
+.ow-fuss { margin-top: auto; display: grid; gap: var(--abstand-2); padding-top: var(--abstand-3); border-top: 1px solid var(--linie-stark); }
+.ow-preis { margin: 0; font: 600 var(--schrift-2)/1.35 var(--serif); color: var(--tinte-1); }
+.ow-preis.gesperrt { color: var(--siegel); font-weight: 500; }
+.ow-knoepfe { display: flex; align-items: center; gap: var(--abstand-3); }
+.ow-knoepfe .knopf-haupt { flex: 1; }
+
+/* Während der Ortswahl ruht die Akte (bleibt erhalten, Esc holt sie zurück); Schild, Marken- und Effektschalter weichen dem Seitenfenster */
+.dossier.ortswahl-ruht { display: none; }
+.stage.ortswahl-an .karten-werkzeuge, .stage.ortswahl-an .cartouche, .stage.ortswahl-an .province-card-float { display: none; }
+/* Die Bereichsleiste tritt während der Ortswahl zurück: Die Karte ist bis auf das Seitenfenster frei (Esc führt zurück) */
+.stage.ortswahl-an .dossier-menu.regierungs-navigation, .stage.ortswahl-an .rn-schalter, .stage.ortswahl-an .linsen { display: none; }
+@media (max-width: 640px) { .ortswahl-leiste, .ortswahl-leiste.frame { top: auto; height: 46vh; left: 16px; right: 16px; width: auto; } }
+/* Die ruhende Akte dunkelt die Karte nicht ab (styles.css: .stage:has(.dossier) .stage-map); die Karte ist jetzt die Bühne */
+.stage.ortswahl-an:has(.dossier) .stage-map { filter: none; }
