@@ -62,7 +62,7 @@
  "krieg.gegner.see": "deniz kuvvetleri",
  "krieg.gegner.drohnen": "İHA'lar ve füzeler",
  "krieg.einsatz.luft.name": "Hava ve İHA harekâtı",
- "krieg.einsatz.luft.text": "Az kendi kaybı, düşman ve altyapısı üzerinde yüksek baskı; ancak hava saldırıları tek başına yalnızca sınır bölgelerini alır. Müzakereyi zorlamak için uygun.",
+ "krieg.einsatz.luft.text": "Az kendi kaybı, düşman ve altyapısı üzerinde yüksek baskı; ancak hava saldırıları tek başına toprak almaz. Müzakereyi zorlamak için uygun.",
  "krieg.einsatz.boden.name": "Kara harekâtı",
  "krieg.einsatz.boden.text": "Ülkenin derinliklerinde toprak almanın tek yolu. Ovada hızlı, dağda ve şehirde zorlu; yüksek kayıplar, iç cephe daha çabuk yorulur.",
  "krieg.einsatz.see.name": "Deniz ablukası",

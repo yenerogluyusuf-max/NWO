@@ -132,16 +132,18 @@ describe("Regionen folgen der Front", () => {
     expect(ziel.some((r) => k.regionen![r.id] === "umkaempft")).toBe(true);
   });
 
-  test("Luftschläge allein nehmen nur die Grenzreihe; dahinter kommt die Front kaum voran", () => {
+  // Welle 3, K2 (Kalibrierung an Klauenschwert 2022): Luftschläge nehmen gar kein Gebiet mehr, auch nicht die Grenzreihe. Die Front zeigt
+  // die Lage (Druck bis zur Verhandlung), genommen wird nichts; vorher nahmen Luftschläge die Grenzregionen (Prüfung geändert).
+  test("Luftschläge allein nehmen kein Gebiet; die Front zeigt nur die Lage", () => {
     const w = welt();
     const k = krieg(w, "SYR", "syr_tief");
     expect(waehleEinsatz(w, k, "luft").ok).toBe(true);
     k.front = 90;
     regionenSetzen(w, k);
-    for (const r of zielRegionen(k)) if (r.tiefe > 1) expect(k.regionen![r.id], r.id).not.toBe("eigen");
+    for (const r of zielRegionen(k)) expect(k.regionen![r.id], r.id).not.toBe("eigen");
     const f = kriegsFaktoren(k);
-    expect(f.ausserReichweite).toBe(true);
-    expect(f.vorstoss).toBeLessThan(0.4);
+    expect(f.keinLand).toBe(true);
+    expect(f.ausserReichweite).toBe(false);
   });
 
   test("Gelände zählt: Inseln brauchen die Marine, Ebenen die Panzer", () => {

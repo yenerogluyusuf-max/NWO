@@ -77,6 +77,37 @@ export const SCHAUPLATZ = {
   verlustZustimmung: 40,
   /** Munitionsvorrat (Gefechtstage), unter dem die Kampfkraft einbricht */
   munitionKnapp: 10,
+  // --- Welle 3, K2 (krieg.md Schritt 5): Fläche statt Regionenzahl, kalibriert an echten Operationen (test/krieg-kalibrierung.test.ts) ---
+  /**
+   * Fläche des Zielraums, die ein Frontpunkt am Boden bewegt (km²; Spielparameter, kalibriert). Die Front läuft von `frontStart` bis
+   * `frontStart + frontSpanne` über den ganzen Zielraum; ein großer Zielraum braucht entsprechend mehr Wochen. Vorher fiel der Zielraum in
+   * gleich vielen Wochen, ob er 2.000 oder 55.000 km² groß war (Lauf W1: ganz Nordsyrien in sechs Wochen).
+   */
+  km2JePunkt: 100,
+  /** Kleinster Faktor auf die Frontbewegung (sehr große Zielräume) und größter (kleine Zielräume rücken nicht schneller vor als bisher) */
+  flaecheMin: 0.05,
+  flaecheMax: 1,
+  /** Der Gegner verteidigt tiefer im Land zäher: Faktor auf den Vorstoß je Tiefe der umkämpften Region (Spielparameter) */
+  tiefe: { 1: 1, 2: 0.85, 3: 0.7 } as Record<1 | 2 | 3, number>,
+  /**
+   * Gefallene im Landkrieg mit Zielraum (Welle 3, K2): Sie hängen an der genommenen Fläche und ihrem Gelände, nicht am Prozentsatz des
+   * Bestands (der zählt Gerät und Personal; vorher galten 22 Gefallene je Prozent, das ganze Heer also wie 2.200 Menschen). Spielparameter,
+   * kalibriert an den Vorbildern (recherche_operationen.md, Zahlen fürs Spiel; test/krieg-kalibrierung.test.ts):
+   *   - Ebene: Friedensquelle 2019, 12 Gefallene für 2.419 bis 4.820 km², also 2,5 bis 5 je 1.000 km²
+   *   - Bergland: Olivenzweig 2018 um Afrin, 55 Gefallene für rund 2.000 km², also 27
+   *   - Stadt: Schutzschild Euphrat 2016/17 mit al-Bab, 71 Gefallene für 2.000 bis 2.055 km², also 35
+   *   - Landung über das Meer: Zypern 1974, 568 bis 1.500 Gefallene für rund 3.350 km², also 170 bis 450
+   * Dazu ein Grundverschleiß je Woche (Anschläge, Beschuss, Unfälle), auch ohne Geländegewinn. Beides mal Einsatzart, Tempo und Stärke des
+   * Gegners (sim/kriegspreis.ts).
+   */
+  gefalleneJeWoche: 4.5,
+  gefalleneJe1000Km2: { ebene: 3, berge: 12, stadt: 35, insel: 30, kueste: 12 } as Record<Gelaende, number>,
+  /**
+   * Faktor für den Kampf um Inseln: die Inseln der Ägäis (Landung über das Meer) und Zypern (Spielparameter, kalibriert an der Größenordnung
+   * von 1974, siehe oben). Auf Zypern stehen heute türkische Truppen im Norden; der Faktor steht dort für den Kampf gegen die Nationalgarde und
+   * das griechische Kontingent in vorbereiteten Stellungen an der Pufferzone, nicht für eine zweite Landung.
+   */
+  landung: 8,
 };
 
 /** Tragende Gattungen ohne gewählte Einsatzart („gemischt“, der Generalstab verteilt). */
@@ -220,6 +251,10 @@ export interface KriegsFaktoren {
   /** Grund für die Anzeige: Gelände der umkämpften Region und ob sie außer Reichweite liegt */
   gelaende?: Gelaende;
   ausserReichweite: boolean;
+  /** Die Einsatzart nimmt kein Gebiet (Luftschläge); die Front zeigt nur die Lage */
+  keinLand: boolean;
+  /** Faktor der Zielraumfläche auf die Frontbewegung (Anzeige) */
+  flaeche: number;
 }
 
 export function kriegsFaktoren(k: KriegVorgang): KriegsFaktoren {
@@ -227,16 +262,60 @@ export function kriegsFaktoren(k: KriegVorgang): KriegsFaktoren {
   const tp = TEMPO[tempoVon(k)];
   const r = umkaempfteRegion(k);
   const gel = r ? (e === "gemischt" ? GEMISCHT_GELAENDE[r.gelaende] : EINSATZ[e].gelaende[r.gelaende]) : 1;
-  const reichweite = e === "gemischt" ? 3 : EINSATZ[e].reichweite;
-  const ausser = !!r && r.tiefe > reichweite;
+  const reichweite = reichweiteVon(k);
+  // Reichweite 0 (Luftschläge): Druck ohne Gebiet; die Front zeigt die Lage, genommen wird nichts (Vorbild Klauenschwert 2022)
+  const keinLand = reichweite === 0;
+  const ausser = !!r && !keinLand && r.tiefe > reichweite;
+  // Fläche: Am Boden bewegt ein Frontpunkt SCHAUPLATZ.km2JePunkt; im Gebiet des Gegners (über frontStart) bremst ein großer Zielraum auch
+  // seinen Gegenstoß, auf eigenem Boden nicht
+  const fl = keinLand ? 1 : flaechenFaktor(k);
+  const tiefe = r && !keinLand ? SCHAUPLATZ.tiefe[r.tiefe] : 1;
+  const rueck = tempoVon(k) === "vorsichtig" ? 0.8 : tempoVon(k) === "hart" ? 1.1 : 1;
   return {
-    vorstoss: gel * tp.front * (ausser ? SCHAUPLATZ.ueberReichweite : 1),
-    rueckschlag: tempoVon(k) === "vorsichtig" ? 0.8 : tempoVon(k) === "hart" ? 1.1 : 1,
+    vorstoss: gel * (e === "gemischt" ? 1 : EINSATZ[e].tempo ?? 1) * tp.front * (ausser ? SCHAUPLATZ.ueberReichweite : 1) * fl * tiefe,
+    rueckschlag: rueck * (k.front > SCHAUPLATZ.frontStart ? fl : 1),
     uhr: (e === "gemischt" ? 1 : EINSATZ[e].uhr) * tp.uhr,
     druck: e === "gemischt" ? 0.15 : EINSATZ[e].druck,
     ...(r ? { gelaende: r.gelaende } : {}),
     ausserReichweite: ausser,
+    keinLand,
+    flaeche: Math.round(fl * 1000) / 1000,
   };
+}
+
+/** Wie tief die Einsatzart Land nehmen kann (0 = gar nicht). */
+export function reichweiteVon(k: KriegVorgang): 0 | 1 | 2 | 3 {
+  const e = einsatzVon(k);
+  return e === "gemischt" ? 3 : EINSATZ[e].reichweite;
+}
+
+/** Fläche des Zielraums in km² (data/schauplaetze.ts, belegte Verwaltungsgrenzen); 0 ohne Schauplatz. */
+export function zielFlaeche(k: KriegVorgang): number {
+  return zielRegionen(k).reduce((s, r) => s + r.flaecheKm2, 0);
+}
+
+/** Wie weit die Front in den Zielraum reicht, in km² (auch in eine Region hinein, die noch nicht ganz genommen ist). */
+export function vorgerueckteFlaeche(k: KriegVorgang): number {
+  if (reichweiteVon(k) === 0) return 0;
+  return clamp((k.front - SCHAUPLATZ.frontStart) / SCHAUPLATZ.frontSpanne, 0, 1) * zielFlaeche(k);
+}
+
+/** Genommene Fläche in km²: die eigenen Regionen des Schauplatzes (auch was schon besetzt war). */
+export function genommeneFlaeche(k: KriegVorgang): number {
+  const lage = k.regionen ?? {};
+  return regionenVon(k.land).filter((r) => lage[r.id] === "eigen").reduce((s, r) => s + r.flaecheKm2, 0);
+}
+
+/** Faktor der Fläche auf die Frontbewegung: Ein Frontpunkt bewegt SCHAUPLATZ.km2JePunkt; ohne Zielregionen 1. */
+export function flaechenFaktor(k: KriegVorgang): number {
+  const f = zielFlaeche(k);
+  if (f <= 0) return 1;
+  return clamp((SCHAUPLATZ.km2JePunkt * SCHAUPLATZ.frontSpanne) / f, SCHAUPLATZ.flaecheMin, SCHAUPLATZ.flaecheMax);
+}
+
+/** Kampf um Inseln: die Inseln der Ägäis (Gelände „insel“) und Zypern (SCHAUPLATZ.landung). */
+function brauchtLandung(k: KriegVorgang, r: Region | undefined): boolean {
+  return !!r && (r.gelaende === "insel" || schauplatzFuer(k.land)?.id === "zypern");
 }
 
 // ---------------------------------------------------------------------------
@@ -318,6 +397,15 @@ export function schauplatzWoche(w: World, k: KriegVorgang, delta: number): void 
   const verlustArt = (e === "gemischt" ? 1 : EINSATZ[e].verlust) * (istFernkonflikt(k.land) ? FERN.verlust : 1);
   // Eigene Verluste: Verschleiß, Rückschläge, ein Teil der Vorstöße
   const eigen = (SCHAUPLATZ.verlustBasis + Math.max(0, -delta) * SCHAUPLATZ.verlustRueckzug + Math.max(0, delta) * SCHAUPLATZ.verlustVorstoss) * verlustArt * tp.verlust;
+  // Gefallene im Landkrieg mit Zielraum (Welle 3, K2): aus der Fläche dieser Woche, ihrem Gelände und dem Grundverschleiß; vor dem Faktor der
+  // gegnerischen Stärke, den sim/kriegspreis.ts anlegt. Ohne Gebiet (Luftschläge, Fernkonflikt, kein Schauplatz) gilt dort die alte Rechnung.
+  const umkVorher = umkaempfteRegion(k);
+  const flaeche = zielFlaeche(k);
+  const amBoden = flaeche > 0 && reichweiteVon(k) > 0 && !istFernkonflikt(k.land);
+  const km2 = amBoden ? (Math.max(0, delta) / SCHAUPLATZ.frontSpanne) * flaeche : 0;
+  const last = amBoden
+    ? (SCHAUPLATZ.gefalleneJeWoche + (km2 / 1000) * SCHAUPLATZ.gefalleneJe1000Km2[umkVorher?.gelaende ?? "ebene"] * (brauchtLandung(k, umkVorher) ? SCHAUPLATZ.landung : 1)) * verlustArt * tp.verlust
+    : undefined;
   kriegsVerluste(w, traegerVon(k), eigen);
   // Verluste des Gegners: Verschleiß, unsere Vorstöße, Druck (Luftschläge, Blockade); stärker, wer mehr Feuerkraft hat
   const feuer = clamp(einsatzIndex(w, traegerVon(k)), 0.3, 1.8);
@@ -345,7 +433,7 @@ export function schauplatzWoche(w: World, k: KriegVorgang, delta: number): void 
     }
   }
   const umk = umkaempfteRegion(k);
-  k.letzteWoche = { eigen: r1(eigen * 100), gegner: r1(gegner * 100), ...(umk ? { region: umk.id } : {}) };
+  k.letzteWoche = { eigen: r1(eigen * 100), gegner: r1(gegner * 100), ...(umk ? { region: umk.id } : {}), ...(last !== undefined ? { last, km2: Math.round(km2) } : {}) };
   // Bedrohte Grenzprovinzen: Tourismus und Handel leiden dort
   if (k.bedroht?.length) wirke(w, "tourismus", -0.15, k.bedroht);
   // Kriegslast im Gegnerland (Weltmodell): treibt Flucht und Instabilität
@@ -365,9 +453,15 @@ export function regionenSetzen(w: World, k: KriegVorgang): void {
   const lage: Record<string, RegionLage> = {};
   for (const r of regionenVon(k.land)) lage[r.id] = "gegner";
   const anteil = clamp((k.front - SCHAUPLATZ.frontStart) / SCHAUPLATZ.frontSpanne, 0, 1);
-  const e = einsatzVon(k);
-  const reichweite = e === "gemischt" ? 3 : EINSATZ[e].reichweite;
-  let n = Math.floor(anteil * ziel.length + 1e-9);
+  const reichweite = reichweiteVon(k);
+  // Die Front deckt einen Anteil der Fläche des Zielraums (Welle 3, K2): Eine Region fällt, wenn sie mit allen vor ihr ganz gedeckt ist
+  const gesamt = ziel.reduce((s, r) => s + r.flaecheKm2, 0);
+  let n = 0;
+  for (let i = 0, summe = 0; i < ziel.length; i++) {
+    summe += ziel[i]!.flaecheKm2;
+    if (summe <= anteil * gesamt + 1e-6) n = i + 1;
+    else break;
+  }
   // Was schon genommen war und noch von der Front gedeckt ist, bleibt; neu genommen wird nur in Reichweite
   const alt = k.regionen ?? {};
   let genommen = 0;
@@ -384,6 +478,9 @@ export function regionenSetzen(w: World, k: KriegVorgang): void {
   for (const b of w.spiel?.besatzung ?? []) if (b.land === k.land && lage[b.region] !== undefined) lage[b.region] = "eigen";
   k.regionen = lage;
   const s = schauplatzFuer(k.land);
+  // Der Landkrieg beginnt an der Grenze (Welle 3, K2): Die Überlegenheit zeigt sich im Tempo, nicht in Fläche am ersten Tag. Vorher
+  // begann die Front je nach Stärke bei bis zu 75 und nahm in einem Lauf gegen Syrien gleich zu Beginn ein Viertel des Zielraums.
+  if (k.phase === "krieg" && k.woche === 0 && s && !istFernkonflikt(k.land)) k.front = Math.min(k.front, SCHAUPLATZ.frontStart);
   const druck = clamp((SCHAUPLATZ.bedrohtAb - k.front) / SCHAUPLATZ.bedrohtSpanne, 0, 1);
   k.bedroht = s && k.phase === "krieg" && druck > 0 ? s.grenzprovinzen.slice(0, Math.ceil(druck * s.grenzprovinzen.length)) : [];
 }

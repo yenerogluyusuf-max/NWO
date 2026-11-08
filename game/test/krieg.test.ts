@@ -354,14 +354,14 @@ describe("Erschöpfungsuhr und Anti-Aussitzen", () => {
     // im Normalstand nicht mehr schwächer als Griechenland)
     for (const id of ["bereitschaft_heer", "bereitschaft_luft", "bereitschaft_see"]) wirke(w, id, -55);
     const vorher = nationalAverage(NET, w.net, "offiziersvertrauen");
-    // Zwei Stillstandswochen erzwingen: der Verstärkungs-Schub gleicht den Rückzug exakt aus (Front über 50, damit der Gegenstoß
-    // nicht nach GEGNER_OFFENSIVE gedämpft wird)
-    k.front = 55;
+    // Zwei Stillstandswochen erzwingen: der Verstärkungs-Schub gleicht den Rückzug exakt aus (Front bei 50: nicht darunter, damit der
+    // Gegenstoß nicht nach GEGNER_OFFENSIVE gedämpft wird, und nicht im Zielraum über 52, wo ihn seit Welle 3, K2 dessen Fläche bremst)
+    k.front = 50;
     k.frontSchub = 5;
     k.seit = w.day - 6;
     advance(w, 1);
     expect(k.stagnation, "erste Stillstandswoche").toBe(1);
-    k.front = 55;
+    k.front = 50;
     k.frontSchub = 5;
     k.seit = w.day - 6;
     advance(w, 1);

@@ -118,7 +118,8 @@ export const KRIEG = {
   erlassLegitimitaet: -2.5,
   /** Kriegsbeginn: Risikoaufschlag der Märkte (Basispunkte) und die Sammlung um die Flagge (Zustimmung; ohne Parlament oder bei offener Revision ein Abschlag) */
   beginnRisiko: { angriff: 220, revision: 200, sonst: 150 },
-  beginnSammlung: 2,
+  // Welle 3, K2: +3 (Mitte des belegten Bandes 0 bis +4, recherche_operationen.md A3); klingt über die Umfrage in zwei bis drei Monaten ab
+  beginnSammlung: 3,
   beginnOhneSammlung: -1,
   /** Frontlage: Faktor und Wochen-Maximum der Bewegung */
   frontFaktor: 0.16,

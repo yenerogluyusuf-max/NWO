@@ -62,7 +62,7 @@
  "krieg.gegner.see": "Marine",
  "krieg.gegner.drohnen": "Drohnen und Raketen",
  "krieg.einsatz.luft.name": "Luftschläge und Drohnen",
- "krieg.einsatz.luft.text": "Wenig eigene Verluste, viel Druck auf den Gegner und seine Infrastruktur, aber Luftschläge allein nehmen nur Grenzräume. Eignet sich, um Verhandlungen zu erzwingen.",
+ "krieg.einsatz.luft.text": "Wenig eigene Verluste, viel Druck auf den Gegner und seine Infrastruktur, aber Luftschläge allein nehmen kein Gebiet. Eignet sich, um Verhandlungen zu erzwingen.",
  "krieg.einsatz.boden.name": "Bodenoffensive",
  "krieg.einsatz.boden.text": "Die einzige Art, tief im Land Gebiet zu nehmen. Schnell in der Ebene, zäh in Bergen und Städten; hohe Verluste, die Heimatfront ermüdet schneller.",
  "krieg.einsatz.see.name": "Seeblockade",

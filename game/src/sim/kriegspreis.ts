@@ -12,7 +12,7 @@ import { addLog } from "./log";
 import { kosten } from "./ereignis-hilfen";
 import { land, landAendern, weltZustand } from "./laender";
 import { verhaengeSanktion } from "./diplomatie";
-import { t } from "../i18n";
+import { t, zahl } from "../i18n";
 import type { World } from "./types";
 
 /** Wie Dritte auf einen türkischen Angriff reagieren (je Kriegswoche) und was er die Wirtschaft kostet. */
@@ -53,6 +53,14 @@ export const PREIS = {
   muedeJeWoche: 0.035,
   muedeDeckel: 0.4,
   muedeVerteidigung: 0.5,
+  /**
+   * Welle 3, K2: Die Müdigkeit folgt den Särgen, nicht dem Kalender. Ab so vielen Gefallenen je Woche wirkt sie voll, darunter anteilig, aber
+   * mindestens zu `muedeMindest` (Spielparameter). Belegt ist die Richtung: Lange Operationen mit wenigen Gefallenen (Schutzschild Euphrat
+   * sieben Monate, 71 Gefallene; Klauenschloss seit 2022) kosteten keine messbare Zustimmung; Kriegsbeginn 2019 brachte 0 bis +4 Punkte
+   * (recherche_operationen.md A3). Der Deckel je Woche bleibt `muedeDeckel`.
+   */
+  muedeBezug: 10,
+  muedeMindest: 0.25,
   /** Gefallene je Prozentpunkt Wochenverlust der tragenden Gattungen, skaliert mit der Stärke des Gegners (Bezug 30) */
   gefalleneJeProzent: 22,
   /** Zustimmung je Gefallenem der Woche (Medien und Trauerfeiern) */
@@ -69,6 +77,58 @@ export const PREIS = {
   /** Schwellen der Gefallenen, an denen die Opposition eine Debatte erzwingt */
   schwellen: [50, 250, 1000, 5000],
 };
+
+/**
+ * Welle 3, K2 (krieg.md Schritt 5): die Sanktionsdrohung des Westens als eigener Moment an den Märkten. Belegt ist der Fall Friedensquelle
+ * 2019 (recherche_operationen.md A3, eigene Rechnung aus EZB-Referenzkursen und BIST-100): Der Kriegsbeginn selbst bewegte die Lira kaum
+ * (−1,3 % bis +1,1 % in allen Operationen 2016 bis 2022). Die Drohung und die Sanktion am fünften Tag kosteten die Lira 4,3 % (USD/TRY
+ * 5,687 am 01.10. → 5,931 am 14.10.), die Börse 7,7 %; nach der Pause standen noch +1,3 bis +1,7 % (25.10. bzw. 18.10.), die Börse war in
+ * rund zwei Wochen fast erholt. Die Lira zeigt das Spiel, einen Börsenindex führt das Wirtschaftsmodell nicht (Lücke im Modell, nicht in den
+ * Daten); die Börse wirkt hier über das Vertrauen der Märkte.
+ */
+export const MARKT_DROHUNG = {
+  /** Sprung des Kurses (USD/TRY) bei der Drohung: +4,3 % (belegt, siehe oben) */
+  kurs: 0.043,
+  /** Anteil des Sprungs, der nach der Erholung bleibt: 1,5 % von 4,3 %, Mitte der belegten 1,3 bis 1,7 % */
+  bleibt: 0.35,
+  /** Tage bis zur Erholung (2019: Sanktion am 14.10., Pause am 17.10., Kurs am 25.10. zurück; Börse in rund zwei Wochen) */
+  erholungTage: 14,
+  /** Wann der Westen droht: eigene Bodenoffensive (nicht Luftschläge und nicht Verbündete vor Ort; 2016, 2018 und 2022 gab es keinen
+   * Kursabschlag) gegen ein Land, bei dem die USA mindestens so stark reagieren (REAKTION.usa) */
+  usaAb: 0.5,
+  /** Vertrauen der Märkte bei der Drohung (Spielparameter, an Stelle des Börsenabschlags) */
+  vertrauen: -3,
+};
+
+/**
+ * Die Sanktionsdrohung an den Märkten auslösen, einmal je Krieg: Kurs und Vertrauen der Märkte. Auch für Wendepunkte im Krieg nutzbar;
+ * ein zweiter Aufruf im selben Krieg bucht nichts. Rückgabe: ob gebucht wurde.
+ */
+export function sanktionsDrohungMarkt(w: World, k: KriegVorgang): boolean {
+  if (k.marktDrohung) return false;
+  const e = w.economy;
+  e.usdTry *= 1 + MARKT_DROHUNG.kurs;
+  e.eurTry *= 1 + MARKT_DROHUNG.kurs;
+  wirke(w, "vertrauen_maerkte", MARKT_DROHUNG.vertrauen);
+  k.marktDrohung = { tag: w.day, sprung: MARKT_DROHUNG.kurs };
+  addLog(w, "markt", t("welle_k2.markt.drohung", { land: land(k.land).name, prozent: zahlProzent(MARKT_DROHUNG.kurs) }), t("welle_k2.markt.drohung_warum"));
+  return true;
+}
+
+/** Die Erholung nach der Drohung (nach der Pause oder nach `erholungTage`): Der Kurs gibt bis auf den bleibenden Anteil zurück. */
+export function marktErholung(w: World, k: KriegVorgang): boolean {
+  const d = k.marktDrohung;
+  if (!d || d.erholt) return false;
+  const faktor = (1 + d.sprung * MARKT_DROHUNG.bleibt) / (1 + d.sprung);
+  w.economy.usdTry *= faktor;
+  w.economy.eurTry *= faktor;
+  wirke(w, "vertrauen_maerkte", -MARKT_DROHUNG.vertrauen * 0.8);
+  d.erholt = true;
+  addLog(w, "markt", t("welle_k2.markt.erholung", { prozent: zahlProzent(d.sprung * MARKT_DROHUNG.bleibt) }), t("welle_k2.markt.erholung_warum"));
+  return true;
+}
+
+const zahlProzent = (anteil: number): string => zahl(anteil * 100, 1);
 
 function reaktion(id: string): Reaktion {
   return REAKTION[id] ?? STANDARD;
@@ -99,10 +159,16 @@ export function kriegspreisWoche(w: World, k: KriegVorgang, gegnerStaerke: numbe
   const angriff = angreifer(k);
 
   // 1. Die Sammlung um die Flagge verfliegt: Müdigkeit wächst mit jeder Woche
-  const muede = Math.min(PREIS.muedeDeckel, PREIS.muedeJeWoche * k.woche) * (angriff ? 1 : PREIS.muedeVerteidigung);
+  const zuletzt = k.letzteWoche?.last !== undefined ? k.letzteWoche.last * Math.max(0.5, gegnerStaerke / 30) : PREIS.muedeBezug;
+  const intensitaet = Math.min(1, Math.max(PREIS.muedeMindest, zuletzt / PREIS.muedeBezug));
+  const muede = Math.min(PREIS.muedeDeckel, PREIS.muedeJeWoche * k.woche) * (angriff ? 1 : PREIS.muedeVerteidigung) * intensitaet;
   // 2. Gefallene: aus den Wochenverlusten der tragenden Gattungen (Prozent), je stärker der Gegner, desto blutiger
-  const verlustProzent = k.letzteWoche?.eigen ?? 0;
-  const neu = Math.round(verlustProzent * PREIS.gefalleneJeProzent * Math.max(0.5, gegnerStaerke / 30));
+  // Im Landkrieg mit Zielraum aus der Gefechtslast der Woche (Fläche, Gelände, Grundverschleiß; sim/kriegsschauplatz.ts), sonst aus den
+  // Prozentverlusten. Gerundet wird mit einem festen Versatz je Woche: Bruchteile gehen nicht verloren, und der Lauf bleibt deterministisch.
+  const staerke = Math.max(0.5, gegnerStaerke / 30);
+  const last = k.letzteWoche?.last;
+  const roh = last !== undefined ? last * staerke : (k.letzteWoche?.eigen ?? 0) * PREIS.gefalleneJeProzent * staerke;
+  const neu = last !== undefined ? Math.floor(roh + ((k.woche * 0.618034) % 1)) : Math.round(roh);
   const vorher = k.gefallene ?? 0;
   k.gefallene = vorher + neu;
   // Sofort in der Umfrage, dauerhaft über das Vertrauen in die Regierung und die Gruppen, die den Krieg tragen müssen
@@ -133,6 +199,9 @@ export function kriegspreisWoche(w: World, k: KriegVorgang, gegnerStaerke: numbe
   if (angriff && r.usaSanktionAb !== undefined && k.woche >= r.usaSanktionAb && verhaengeSanktion(w, "caatsa", "USA")) {
     addLog(w, "ereignis", t("krieg.preis.sanktion_usa", { land: l.name }), t("krieg.preis.sanktion_warum"));
   }
+  // Sanktionsdrohung des Westens bei einer eigenen Bodenoffensive (Vorbild Friedensquelle 2019), danach die Erholung
+  if (angriff && (k.einsatz === undefined || k.einsatz === "boden") && r.usa >= MARKT_DROHUNG.usaAb) sanktionsDrohungMarkt(w, k);
+  if (k.marktDrohung && !k.marktDrohung.erholt && w.day - k.marktDrohung.tag >= MARKT_DROHUNG.erholungTage) marktErholung(w, k);
   wirke(w, "tourismus", r.tourismus);
   if (r.kueste) wirke(w, "tourismus", r.kueste.wert, r.kueste.provinzen);
   wirke(w, "auslandskapital", r.kapital * (angriff ? 1 : 0.5));

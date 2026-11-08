@@ -189,12 +189,15 @@ export interface KriegVorgang {
   tempo?: KriegsTempoWahl;
   regionen?: Record<string, RegionLage>;
   gegnerBestand?: Record<GegnerGattungId, { menge: number; generation: number }>;
-  /** Verluste der letzten Kriegswoche in Prozent des jeweiligen Bestands (Anzeige) */
-  letzteWoche?: { eigen: number; gegner: number; region?: string };
+  /** Verluste der letzten Kriegswoche in Prozent des jeweiligen Bestands (Anzeige). Welle 3, K2: im Landkrieg mit Zielraum dazu die
+   * Gefechtslast (Gefallene vor dem Faktor der gegnerischen Stärke, sim/kriegspreis.ts) und die Fläche des Vorstoßes in km² */
+  letzteWoche?: { eigen: number; gegner: number; region?: string; last?: number; km2?: number };
   /** Türkische Grenzprovinzen (Plaka), auf die der Gegner gerade vorstößt */
   bedroht?: number[];
   /** Gefallene bisher (sim/kriegspreis.ts); ältere Spielstände haben das Feld nicht und zählen ab der nächsten Woche */
   gefallene?: number;
+  /** Welle 3, K2: Sanktionsdrohung des Westens an den Märkten (sim/kriegspreis.ts): Tag, Sprung des Kurses (Anteil), ob er sich erholt hat */
+  marktDrohung?: { tag: number; sprung: number; erholt?: boolean };
   /**
    * Sockel der Eskalation aus eigenen Schritten (Welle 3, K1; krieg.md Schritt 1): Krise, Drohkulisse, Kriegsziel, Bereitschaft,
    * Mobilmachung und ein abgelehntes Ultimatum heben ihn auf den Stand nach dem Schritt. Die Eskalation fällt nicht darunter. Ist das

@@ -62,7 +62,7 @@
  "krieg.gegner.see": "navy",
  "krieg.gegner.drohnen": "drones and missiles",
  "krieg.einsatz.luft.name": "Air and drone campaign",
- "krieg.einsatz.luft.text": "Few own losses and heavy pressure on the enemy and his infrastructure, but air strikes alone only take border areas. Suited to forcing negotiations.",
+ "krieg.einsatz.luft.text": "Few own losses and heavy pressure on the enemy and his infrastructure, but air strikes alone take no ground. Suited to forcing negotiations.",
  "krieg.einsatz.boden.name": "Ground offensive",
  "krieg.einsatz.boden.text": "The only way to take ground deep inside the country. Fast on plains, slow in mountains and cities; heavy losses, the home front tires faster.",
  "krieg.einsatz.see.name": "Naval blockade",
