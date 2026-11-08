@@ -23,6 +23,7 @@ import { quelleName } from '../minister/VorlageKarte';
 import { Icon } from '../icons';
 import { anliegenKarte, entscheideAnliegen, entscheideVorfall, entscheideZusage, vorfallKarte, zusageKarte } from './Tischkarte';
 import { fristText, type ForderungsReihe, type Prioritaet, type RessortReihe } from './arbeitsplatz';
+import { KriegKachel } from './KriegKachel';
 import type { Ziel } from './briefing';
 
 export type Antwort = { ok: boolean; text: string; why?: string };
@@ -97,6 +98,7 @@ function Bild({ world, e, size }: { world: World; e: Prioritaet; size: number })
   if (i.art === 'ressorts') return <span className="tk2-gruppenbild">{i.reihen.slice(0, 4).map((r) => { const f = figur(r.amt); return f ? <Gesicht key={r.amt} name={f.name} weiblich={f.weiblich} amt={r.amt} size={Math.round(size * 0.72)} /> : null; })}</span>;
   if (i.art === 'partei') return <Wappen id={`partei:${i.partei}`} size={size} />;
   if (i.art === 'zusage') { const z = world.spiel?.zusagen.find((x) => x.id === i.zusageId); return z && world.parliament?.seats[z.von] !== undefined ? <Wappen id={`partei:${z.von}`} size={size} /> : <span className="tk2-zeichen"><Icon name="siegel" size={size / 2} /></span>; }
+  if (i.art === 'krieg') { const g = figur('generalstab'); if (g) return <Gesicht name={g.name} weiblich={g.weiblich} amt="generalstab" size={size} />; }
   const amt = i.art === 'ressort' ? i.amt : i.art === 'vorlage' ? i.vorlage.amt : undefined;
   const m = i.art === 'vorlage' ? i.vorlage.minister : undefined;
   const f = amt ? figur(amt) : undefined;
@@ -107,6 +109,7 @@ function Bild({ world, e, size }: { world: World; e: Prioritaet; size: number })
 
 function thema(world: World, e: Prioritaet): Thema {
   const i = e.inhalt;
+  if (i.art === 'krieg') return 'sicherheit';
   if (i.art === 'partei' || i.art === 'zusage') return 'partner';
   if (i.art === 'vorgang' || e.gruppe === 'land') return 'wohnen';
   if (i.art === 'vorlage' && i.vorlage.quelle === 'ereignis' && i.vorlage.ziel?.art === 'ereignis') {
@@ -171,6 +174,7 @@ export function Tischkachel({ world, e, gross = false, onAntwort, refresh, onGeh
     </>}
     {i.art === 'partei' && <ul className="tk2-reihen">{i.reihen.map((r) => <ForderungReihe key={r.forderung} world={world} r={r} refresh={refresh} />)}</ul>}
     {i.art === 'vorgang' && <button type="button" className="knopf-haupt tk2-sprung" onClick={() => (onVorgang ? onVorgang(i.id) : onGehe({ art: 'akte', akte: 'programme' }))}>{t('vorgang.sprung.zum')}</button>}
+    {i.art === 'krieg' && <KriegKachel world={world} kriegId={i.kriegId} {...(i.ereignisId ? { ereignisId: i.ereignisId } : {})} onAntwort={onAntwort} refresh={refresh} onGehe={onGehe} />}
     {i.art === 'sprung' && <button type="button" className="knopf-haupt tk2-sprung" onClick={() => onGehe(i.ziel)}>{t('h4.oeffnen')}</button>}
     {weitere.length > 0 && <div className="tk2-weitere"><span className="tk2-kicker">{t('h4.r.weitere')}</span>
       {weitere.map((x) => <details key={x.id} className="tk2-tiefe"><summary>{x.titel}</summary>
@@ -187,7 +191,7 @@ export function Tischkachel({ world, e, gross = false, onAntwort, refresh, onGeh
       <span className={`tk2-frist ton-${e.ton}`}>{frist}</span>
     </div>
     <div className="tk2-koerper">
-      <span className="tk2-kicker">{i.art === 'vorlage' ? quelleName(i.vorlage.quelle) : t(`h4.gruppe.${e.gruppe}`)}</span>
+      <span className="tk2-kicker">{i.art === 'vorlage' ? quelleName(i.vorlage.quelle) : i.art === 'krieg' ? t('welle_k3.tisch.kicker') : t(`h4.gruppe.${e.gruppe}`)}</span>
       <h4 id={`tk2-${e.id}`}>{e.titel}</h4>
       {koerper}
     </div>

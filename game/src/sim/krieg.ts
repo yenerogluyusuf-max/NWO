@@ -57,6 +57,9 @@ import { landFormen } from "./ereignisse-krieg";
 import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFuer } from "./krieg-recht";
 import { FERN, fernZielErreicht, fernZielVon, istFernkonflikt } from "./fernkonflikt";
 import { besatzung, regionenVon, schauplatzFuer, zielRegionen } from "./kriegsschauplatz";
+// Welle 3, K3: Operationsform und Wendepunkte (kleinste Stellen in kriegWoche, kriegsbeginn und kriegszielErreicht, jeweils mit „K3“ vermerkt)
+import { operationBeginn, operationNachSchauplatz, operationsTiefe, operationsVorstoss } from "./operationen";
+import { wendepunkteWoche } from "./ereignisse-wendepunkte";
 
 /** Spielparameter, keine Tatsachen: alle Schwellen, Kosten und Faktoren des Konfliktvorgangs (Kalibrierung). */
 export const KRIEG = {
@@ -507,7 +510,8 @@ export function lagePaketId(w: World, k: KriegVorgang): string {
 export function kriegszielErreicht(k: KriegVorgang): boolean {
   if (k.phase !== "krieg" && k.phase !== "waffenruhe") return false;
   if (istFernkonflikt(k.land)) return fernZielErreicht(k);
-  const ziel = schauplatzFuer(k.land) ? zielRegionen(k) : [];
+  // K3: Eine begrenzte Operation hat ihr Ziel, wenn sie ihre Tiefe genommen hat (Zone statt ganzem Zielraum)
+  const ziel = schauplatzFuer(k.land) ? zielRegionen(k).filter((r) => r.tiefe <= operationsTiefe(k)) : [];
   if (ziel.length) return ziel.every((r) => k.regionen?.[r.id] === "eigen");
   return k.front >= KRIEG.zielFrontOhneSchauplatz;
 }
@@ -1286,6 +1290,7 @@ function kriegsbeginn(w: World, k: KriegVorgang, wegVoll: "parlament" | "erlass"
     else if (vertrauenZu(w, x.id) >= 60) landAendern(w, x.id, { vertrauen: -1 }, t("krieg.k.beg.sorge"));
   }
   kriegspreisBeginn(w, k);
+  operationBeginn(w, k); // K3: Ansehen und Sammeleffekt der Operationsform
   belastungEreignis(w, VERFASSUNG.eskalation, t("krieg.k.beg.belastung", { land: l.name }));
   delete k.sockel;
   delete k.zielErreicht;
@@ -1530,6 +1535,8 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   // Gelände der umkämpften Region, Reichweite der Einsatzart und Tempo (sim/kriegsschauplatz.ts)
   const sf = kriegsFaktoren(k);
   delta *= delta > 0 ? sf.vorstoss : sf.rueckschlag;
+  // K3: Faktor der Operationsform (Tiefe, Tempo der Form; ohne Form 1)
+  delta *= operationsVorstoss(k, delta);
   // Gegenstoß auf türkischen Boden: Wer sich auf Inseln verteidigt, kann das Festland kaum nehmen (Spielparameter GEGNER_OFFENSIVE)
   // Im Fernkonflikt kann der Gegner die Türkei über Meer und Luft nicht niederwerfen (Welle 3, K1): Sein Gegenstoß ist gedämpft wie bei den
   // Inselstaaten; verlieren kann die Türkei dort über die Erschöpfung, nicht über einen Zusammenbruch der Front
@@ -1550,6 +1557,7 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   // Erschöpfungsuhren (Vic3-Wochen-Tabelle: Basis +, Verluste +, Gewinne −, Wirtschaftslage ±); Partner teilen die Last (sim/pakte.ts)
   const wirtschaftsdruck = clamp((1.5 - w.economy.growth) * 0.3, -0.45, 0.6);
   const last = lastTeilung(w, k);
+  const vorWoche = { uhr: k.uhr, uhrGegner: k.uhrGegner }; // K3
   k.uhr += -(KRIEG.uhrBasis + verlustWoche * KRIEG.uhrVerlust + (k.mobilmachung === 2 ? KRIEG.uhrVollLast : 0) + Math.max(0, wirtschaftsdruck)) * (1 - last.eigen) * sf.uhr + gewinnWoche * KRIEG.uhrGewinn + Math.min(0, wirtschaftsdruck);
   k.uhrGegner += -(KRIEG.uhrBasis + gewinnWoche * KRIEG.uhrVerlust + sf.druck) * (1 - last.gegner) + verlustWoche * KRIEG.uhrGewinn;
   // Siege füllen den Rückhalt nur bis zum Vollstand auf (Welle 1, E5): Im Spielstand des Inhabers stand er nach dem Israel-Krieg bei 109,7,
@@ -1558,10 +1566,14 @@ function kriegWoche(w: World, k: KriegVorgang, rng: Rng): void {
   k.uhrGegner = Math.min(RUECKHALT_MAX, k.uhrGegner);
   // Verluste beider Bestände, Regionen, bedrohte Grenzprovinzen, Kriegslast im Gegnerland
   schauplatzWoche(w, k, delta);
+  // K3: Verluste, Rückhalt, Druck und Weltpreis der Operationsform (vor dem Kriegspreis, der aus den Verlusten die Gefallenen rechnet)
+  operationNachSchauplatz(w, k, vorWoche);
   // Der Preis der Woche: Müdigkeit, Gefallene, Dritte, Märkte (sim/kriegspreis.ts)
   kriegspreisWoche(w, k, gegner);
   // Die Koalitionen altern: Zögernde werden geprüft, Partner verlieren Kampfkraft, Erschöpfte steigen aus
   koalitionWoche(w, k);
+  // K3: Wendepunkte des Krieges (sim/ereignisse-wendepunkte.ts), ausgelöst von Lage und Zeit
+  wendepunkteWoche(w, k);
   // Anti-Aussitzen: Keine Uhr fällt unter 0, solange die eigene Seite ihr Kriegsziel nicht zur Hälfte kontrolliert
   if (gegnerKontrolle(k) < 0.5) k.uhr = Math.max(0, k.uhr);
   if (eigenKontrolle(k) < 0.5) k.uhrGegner = Math.max(0, k.uhrGegner);

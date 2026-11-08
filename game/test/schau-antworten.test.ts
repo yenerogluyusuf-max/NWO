@@ -8,6 +8,7 @@ import { createWorld, load, save } from "../src/sim/world";
 import { turkey2026 } from "../src/sim/scenario";
 import { startAfterElection, schnellProfil } from "../src/sim/prolog";
 import { VORLAGEN, ansicht, antworten, entscheide, oeffne } from "../src/sim/ereignisse";
+import { WENDEPUNKT_IDS } from "../src/sim/ereignisse-wendepunkte";
 import { bipWertMrd, kassenbestand } from "../src/sim/staatsgeld";
 import { Rng } from "../src/sim/rng";
 import type { World } from "../src/sim/types";
@@ -80,7 +81,9 @@ const NICHTSTUN = new Set(["aussitzen", "abwarten", "spaeter", "ordentlich", "ha
 /** Ereignisse, deren Antworten auf eine laufende Lage wirken (Krieg, Stichwahl, Nachfolge): in einer frischen Partie ohne Gegenstand. */
 // Welle H1: Der Inflationsausgleich braucht Lira-Ausgaben, die Kaufkraft verloren haben; in der frischen Partie ist der Nachtrag gesperrt.
 // Seine Antworten prüft test/haushalt-etat.test.ts in einer Lage mit Kaufkraftverlust (Wirkung und Preisplakette gegen die Buchung).
-const LAGE_NOETIG = new Set(["krieg_drohkulisse", "krieg_waffenruhe", "wahl_stichwahl", "nachfolge_kuer", "inflationsausgleich"]);
+// Welle 3, K3: Die Wendepunkte des Krieges wirken auf einen laufenden Krieg; ihre Wirkung und Plakette prüft test/krieg-wendepunkte.test.ts
+// in einem Krieg gegen Syrien und Griechenland (Buchung gegen Anzeige je Antwort).
+const LAGE_NOETIG = new Set(["krieg_drohkulisse", "krieg_waffenruhe", "wahl_stichwahl", "nachfolge_kuer", "inflationsausgleich", ...WENDEPUNKT_IDS]);
 /** Nur noch für ältere Spielstände, in denen das Ereignis offen sein kann (neue Partien öffnen es nicht mehr). */
 const ALT = new Set(["start_haushalt"]);
 
