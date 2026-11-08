@@ -1,6 +1,7 @@
 import { Preisfeld, ReglerZeile } from "../bausteine/ReglerZeile";
 import { Staatsfinanzen } from "./Staatsfinanzen";
 import { AUSGABE_GRUPPEN, HaushaltsRad, radStuecke } from "./HaushaltsRad";
+import { BesatzungsPosten } from "../krieg/NeueProvinzen"; // Welle 3, K5
 import { geldAusBip } from "../../sim/staatsgeld";
 import { staatsfinanzen } from "../../sim/staatsfinanzen";
 import type { SteuerZeile } from "../../sim/haushalt-steuern";
@@ -575,6 +576,8 @@ export function Haushalt({ world, geaendert, posten, onGehe }: { world: World; g
             </dd>
           </div>
         </dl>
+        {/* Welle 3, K5: Besatzung und neue Provinzen als eigener Posten (sim/besatzung.ts, dieselbe Summe wie die Buchung) */}
+        <BesatzungsPosten world={world} />
         <p className="hd-fenster">
           {fenster.offen ? t("haushalt.ui.ressorts.hinweis_offen") : t("haushalt.ui.ressorts.hinweis_nachtrag", { faktor: HAUSHALT_ZYKLUS.nachtragFaktor })}
           {mehrheit && (

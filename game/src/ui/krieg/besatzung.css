@@ -1,0 +1,89 @@
+/* Welle 3, K5: besetzte Regionen und neue Provinzen. Vorbild ist der Kopf von Wirtschaft › Haushalt (ENTSCHEIDUNGEN Z): große Kennzahlen mit
+   kleinem Etikett, Karten statt Fließtext. Nur Tokens; keine Schrift unter 13 px. */
+.bz { display: grid; gap: var(--abstand-3); margin: var(--abstand-3) 0; }
+.bz-kopf { display: grid; gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: var(--rund-2); }
+.bz-kopf h5, .bz-reaktion h6, .bz-folgen h6 { margin: 0; font: 600 var(--schrift-4)/1.2 var(--display); color: var(--messing-text); }
+.bz-reaktion h6, .bz-folgen h6 { font-size: var(--schrift-3); }
+.bz-kern, .bz-zahlen { display: flex; flex-wrap: wrap; gap: var(--abstand-3) 22px; margin: 0; }
+.bz-kern > div, .bz-zahlen > div { display: grid; gap: 2px; min-width: 80px; align-content: start; }
+.bz-kern dt, .bz-zahlen dt { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.bz-kern dd, .bz-zahlen dd { margin: 0; font: 600 var(--schrift-6)/1.05 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.bz-zahlen dd { font-size: var(--schrift-5); }
+.bz-kern dd small, .bz-zahlen dd small { display: block; margin-top: 2px; font: var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.bz-zahlen .schlecht dd { color: var(--siegel); }
+.bz-balken { position: relative; display: block; height: 6px; margin-top: 3px; border-radius: 3px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.bz-balken i { position: absolute; inset: 0 auto 0 0; background: var(--messing-2); border-radius: 3px; }
+.bz-zahlen .schlecht .bz-balken i { background: var(--siegel); }
+.bz-balken u { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--tinte-1); }
+.bz-staat { margin: 0; padding: 6px 10px; border-left: 3px solid var(--siegel); background: var(--papier-1); font: 600 var(--schrift-2)/1.35 var(--serif); color: var(--tinte-1); }
+
+.bz-reaktion { display: grid; gap: 6px; padding: var(--abstand-2) var(--abstand-4); background: var(--papier-2); border: 1px solid var(--linie-stark); border-left: 4px solid var(--siegel); border-radius: var(--rund-2); }
+.bz-un { display: grid; gap: 6px; }
+.bz-unzeile { display: grid; grid-template-columns: 13em minmax(80px, 1fr) auto minmax(0, 1.6fr); gap: var(--abstand-2); align-items: center; font: var(--schrift-2)/1.3 var(--serif); }
+.bz-unzeile > span { font-weight: 600; color: var(--tinte-2); }
+.bz-unzeile b { font: 600 var(--schrift-3)/1.2 var(--display); color: var(--tinte-1); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bz-unzeile em { font-style: italic; color: var(--tinte-2); }
+.bz-stimmen { display: flex; height: 10px; border-radius: 3px; overflow: hidden; background: rgba(90, 64, 40, 0.12); }
+.bz-stimmen i.ja { background: var(--siegel); }
+.bz-stimmen i.nein { background: var(--gut); }
+.bz-stimmen i.enth { background: var(--messing-2); }
+.bz-stufe { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.bz-stufe b { color: var(--siegel); }
+
+.bz-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--abstand-3); }
+.bz-region { display: grid; gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: var(--rund-2); }
+.bz-region.form-annexion { border-left: 4px solid var(--siegel); }
+.bz-rkopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--abstand-3); }
+.bz-rkopf strong { font: 600 var(--schrift-4)/1.2 var(--display); color: var(--tinte-1); }
+.bz-rkopf span { font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+
+.bz-wahl { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 6px; border-top: 1px solid var(--linie); }
+.bz-form { flex: 1 1 0; display: grid; gap: 1px; min-width: 7.5em; text-align: left; padding: 6px var(--abstand-3); background: var(--papier-1); border: 1px solid var(--linie-stark); border-radius: var(--rund-2); color: var(--tinte-1); font: var(--schrift-2)/1.25 var(--serif); cursor: pointer; }
+.bz-form strong { font: 600 var(--schrift-2)/1.2 var(--serif); color: var(--messing-text); }
+.bz-form span { font-size: var(--schrift-1); color: var(--tinte-2); }
+.bz-form:hover:not(:disabled) { border-color: var(--messing-2); }
+.bz-form.on { border: 2px solid var(--siegel); padding: 5px calc(var(--abstand-3) - 1px); }
+.bz-form.jetzt { background: var(--papier-3); cursor: default; }
+.bz-form.jetzt strong { color: var(--tinte-1); }
+
+.bz-vorschau { display: grid; gap: var(--abstand-2); padding: var(--abstand-2) var(--abstand-3); background: var(--papier-1); border-radius: var(--rund-2); }
+.bz-satz { margin: 0; font: italic var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.bz-kurven { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--abstand-2) var(--abstand-3); }
+.bz-kurve { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 6px; align-items: end; }
+.bz-kurve figcaption { grid-column: 1 / -1; font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.bz-kurve svg { width: 100%; height: 40px; overflow: visible; }
+.bz-kurve path { fill: none; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.bz-kurve path.a { stroke: var(--tinte-3); stroke-dasharray: 3 3; }
+.bz-kurve path.b { stroke: var(--siegel); }
+.bz-kurve b { font: 600 var(--schrift-3)/1 var(--display); color: var(--tinte-1); font-variant-numeric: tabular-nums; }
+.bz-legende { grid-column: 1 / -1; margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font: var(--schrift-1)/1.3 var(--serif); color: var(--tinte-2); }
+.bz-legende i { display: inline-block; width: 18px; height: 0; border-top: 2px solid var(--siegel); }
+.bz-legende i.a { border-top: 2px dashed var(--tinte-3); }
+.bz-legende i.b { margin-left: 10px; }
+
+.bz-folgen { display: grid; gap: var(--abstand-2); padding: var(--abstand-2) var(--abstand-3); border: 1px solid var(--linie-stark); border-left: 4px solid var(--siegel); border-radius: var(--rund-2); background: var(--papier-2); }
+.bz-hinweis { margin: 0; font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+.bz-stufen { border-collapse: collapse; font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-1); }
+.bz-stufen caption { text-align: left; font: 600 var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); padding-bottom: 4px; }
+.bz-stufen th { text-align: left; font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); padding: 2px 10px 2px 0; }
+.bz-stufen td { padding: 3px 10px 3px 0; border-top: 1px solid var(--linie); font-variant-numeric: tabular-nums; }
+.bz-stufen td:nth-child(4), .bz-stufen td:nth-child(5) { color: var(--siegel); font-weight: 600; }
+.bz-tat { display: flex; flex-wrap: wrap; align-items: center; gap: var(--abstand-2) var(--abstand-3); font: var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.bz-grund { color: var(--warnung); }
+@media (max-width: 760px) {
+  .bz-unzeile { grid-template-columns: minmax(0, 1fr) auto; }
+  .bz-unzeile .bz-stimmen, .bz-unzeile em { grid-column: 1 / -1; }
+}
+
+/* Haushalt und Provinzliste */
+.bz-posten { display: grid; gap: 6px; margin: var(--abstand-2) 0; padding: var(--abstand-2) var(--abstand-3); background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 4px solid var(--siegel); border-radius: var(--rund-2); }
+.bz-posten h6 { margin: 0; font: 600 var(--schrift-3)/1.2 var(--display); color: var(--messing-text); }
+.bz-provinzliste { margin: 0 0 var(--abstand-3); padding: var(--abstand-2) var(--abstand-3); background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-left: 4px solid var(--siegel); border-radius: var(--rund-2); }
+.bz-provinzliste h4 { margin: 0 0 6px; font: 600 var(--schrift-3)/1.2 var(--display); color: var(--messing-text); }
+.bz-provinzliste h4 span { font: 600 var(--schrift-2)/1 var(--serif); color: var(--tinte-3); }
+.bz-provinzliste ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.bz-provinzliste li { display: grid; grid-template-columns: 2.6em minmax(0, 1fr) auto; gap: 2px var(--abstand-2); align-items: baseline; font: var(--schrift-2)/1.3 var(--serif); }
+.bz-provinzliste li b { font: 600 var(--schrift-3)/1 var(--display); color: var(--siegel); font-variant-numeric: tabular-nums; }
+.bz-provinzliste li .name { font-weight: 600; color: var(--tinte-1); }
+.bz-provinzliste li .partei { color: var(--tinte-2); }
+.bz-provinzliste li small { grid-column: 2 / -1; font-size: var(--schrift-1); color: var(--tinte-2); }

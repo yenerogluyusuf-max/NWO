@@ -638,7 +638,7 @@ export function AtlasMap({
         // Echte Fläche aus der Karte (Gebiet um den Ort, an Grenze und Küste geschnitten; tools/geodaten/schauplatz_flaechen.py), sonst der Umkreis
         const fl = SCHAUPLATZ_FLAECHEN[r.id];
         const ringe = fl?.map((ring) => ring.map(([lo, la]) => uv(lo, la)));
-        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), ...(ringe ? { ringe } : {}), name: t(`krieg.region.${r.id}`) };
+        return { u, v, r: Math.abs(u2 - u), lage: r.lage, ...(r.form === "annexion" ? { annexion: true } : {}), ...(ringe ? { ringe } : {}), name: r.plaka ? t("welle_k5.karte.name", { name: t(`krieg.region.${r.id}`), plaka: r.plaka }) : t(`krieg.region.${r.id}`) }; // K5: Provinz mit Kennziffer
       }),
       pfeile: krieg.pfeile.map((p) => ({ von: uv(p.von[0], p.von[1]), nach: uv(p.nach[0], p.nach[1]), seite: p.seite })),
       bedroht: krieg.bedroht.map((pl) => c.centers[pl]).filter((x): x is [number, number] => !!x),
