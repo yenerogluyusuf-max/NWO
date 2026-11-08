@@ -24,6 +24,7 @@ import { istMinisterienZusage } from '../../sim/ressortvergabe';
 import { schreibtischMappe } from '../../sim/ministerfluss';
 import { gefaehrdeteZusagen } from '../../sim/zusagenwarnung';
 import { tageslage, type Briefing, type Warnung, type Ziel } from './briefing';
+import { kriegsTisch } from './krieg-tisch';
 
 export type Arbeitsbereich = 'entscheiden' | 'arbeit' | 'rueckblick';
 export type ArbeitsGruppe = 'vorlagen' | 'minister' | 'zusagen';
@@ -43,7 +44,9 @@ export type TischInhalt =
   | { art:'zusage'; zusageId:string }
   | { art:'partei'; partei:string; reihen:ForderungsReihe[] }
   | { art:'vorgang'; id:string }
-  | { art:'sprung'; ziel:Ziel };
+  | { art:'sprung'; ziel:Ziel }
+  // Welle 3, K3: ein laufender Krieg mit Lage und dem nächsten Entscheid (ui/schreibtisch/KriegKachel.tsx)
+  | { art:'krieg'; kriegId:string; ereignisId?:string };
 export interface Prioritaet { id:string; titel:string; grund:string; ton:'rot'|'gelb'|'ruhig'; tage?:number; rang:number; sprung:ArbeitsSprung; gruppe:TischGruppe; inhalt:TischInhalt; amt?:Amt }
 /** Lagebericht ohne eigene Entscheidung: steht im ruhigen Block „Lage“, nicht auf dem Tisch, und zählt nicht am Reiter */
 export interface LageEintrag { id:string; text:string; warum:string; ton:'rot'|'gelb'; ziel:Ziel }
@@ -109,12 +112,17 @@ export function schreibtischArbeit(w:World,b:Pick<Briefing,'warnungen'|'faellig'
       sprung:intern('entscheiden','zusagen',z.z.id),gruppe:'parteien',inhalt:{art:'zusage',zusageId:z.z.id}});
   }
 
+  // Welle 3, K3: Ein laufender Krieg steht ganz oben, mit Lage und dem nächsten Entscheid; seine Vorgänge stehen nur dort
+  const krieg=kriegsTisch(w);
+  alle.push(...krieg.eintraege);
+
   // Ressorts: Anfrage, Vorfall und Vorlagen je Amt sammeln
-  const ereignisse=new Set<string>();
+  const ereignisse=new Set<string>(krieg.ereignisse);
   const proAmt=new Map<Amt,Vorlage[]>();
   for(const v of mappe) {
     for(const o of v.optionen)if(o.aktion.art==='ereignis')ereignisse.add(o.aktion.ereignisId);
     if(v.optionen.some(o=>o.aktion.art==='zusage'&&zusageIds.has(o.aktion.zusageId)))continue;
+    if(v.ziel?.art==='ereignis'&&krieg.ereignisse.has(v.ziel.id))continue;
     if(ressortVorlage(v)){proAmt.set(v.amt,[...(proAmt.get(v.amt)??[]),v]);continue;}
     const gruppe:TischGruppe=v.quelle==='zusage'?'parteien':v.quelle==='ereignis'?'fristen':'land';
     const ton=ehrlicherTon(v.frist);

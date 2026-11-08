@@ -1,0 +1,83 @@
+/* Welle 3, K3: Operationsform, Lagekarte des Krieges und die Kriegskachel des Schreibtischs. Nur Tokens; keine Schrift unter 13 px. */
+
+/* --- Operationsform --- */
+.op { display: grid; gap: var(--abstand-2); margin: var(--abstand-3) 0; }
+.op-kopf { display: flex; align-items: baseline; gap: var(--abstand-3); }
+.op-kopf h5 { margin: 0; font: 600 var(--schrift-2)/1.2 var(--kapitaelchen); letter-spacing: 0.06em; color: var(--siegel); }
+.op-kopf span { font: italic var(--schrift-2)/1.3 var(--serif); color: var(--tinte-2); }
+.op-tabelle { display: grid; gap: 4px; }
+.op-zeile { display: grid; grid-template-columns: minmax(0, 1fr) 7.5em repeat(4, 4.6em); gap: 0 var(--abstand-2); align-items: center; }
+.op-kopfzeile { padding: 0 var(--abstand-3); font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.op-kopfzeile span { text-align: right; }
+.op-kopfzeile span:nth-child(2) { text-align: left; }
+.op-form { width: 100%; text-align: left; padding: 7px var(--abstand-3); background: var(--papier-2); border: 1px solid var(--linie-stark); border-radius: var(--rund-2);
+  color: var(--tinte-1); font: var(--schrift-2)/1.3 var(--serif); cursor: pointer; }
+.op-form:hover:not([aria-disabled="true"]) { border-color: var(--messing-2); background: var(--papier-1); }
+.op-form.on { border: 2px solid var(--siegel); background: var(--papier-1); padding: 6px calc(var(--abstand-3) - 1px); cursor: default; }
+.op-form.aus { cursor: default; background: var(--papier-3); }
+.op-form.aus .op-name strong, .op-form.aus .op-wert { color: var(--tinte-3); }
+.op-name { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px var(--abstand-2); align-items: baseline; }
+.op-name strong { font: 600 var(--schrift-3)/1.2 var(--display); color: var(--messing-text); }
+.op-name b { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--messing-3); white-space: nowrap; }
+.op-form.on .op-name b { color: var(--siegel); }
+.op-name small { grid-column: 1 / -1; font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+.op-wert { text-align: right; font: 600 var(--schrift-2)/1.2 var(--serif); font-variant-numeric: tabular-nums; color: var(--tinte-1); }
+.op-wert:nth-child(2) { text-align: left; font-weight: 400; }
+.op-wert.gut { color: var(--gut); }
+.op-wert.schlecht { color: var(--siegel); }
+.op-grund { font: var(--schrift-1)/1.3 var(--serif); color: var(--warnung); font-style: normal; }
+@media (max-width: 760px) {
+  .op-zeile { grid-template-columns: minmax(0, 1fr) repeat(5, auto); }
+}
+.op-mit { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--abstand-2); }
+.op-etikett { align-self: center; min-width: 6em; font: 600 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.06em; color: var(--tinte-2); }
+.op-mit button { display: grid; gap: 2px; text-align: left; padding: 6px var(--abstand-3); max-width: 26em; background: var(--papier-2); border: 1px solid var(--linie-stark); border-radius: var(--rund-2);
+  color: var(--tinte-1); font: var(--schrift-2)/1.3 var(--serif); cursor: pointer; }
+.op-mit button.on { border: 2px solid var(--siegel); background: var(--papier-1); cursor: default; }
+.op-mit button[aria-disabled="true"]:not(.on) { color: var(--tinte-3); cursor: default; }
+.op-mit button span { font-size: var(--schrift-1); color: var(--tinte-2); }
+.op-hinweis { margin: 0; font: italic var(--schrift-1)/1.35 var(--serif); color: var(--tinte-2); }
+.op-grenze { margin: 0; padding: 5px 8px; border-left: 3px solid var(--warnung-linie); background: var(--warnung-flaeche); font: var(--schrift-2)/1.35 var(--serif); color: var(--tinte-1); }
+
+/* --- Lagekarte (Vorbild: Kopf von Wirtschaft › Haushalt) --- */
+.kl3 { display: grid; gap: var(--abstand-2); padding: var(--abstand-3) var(--abstand-4); margin: var(--abstand-2) 0; background: var(--papier-2); border: 1px solid rgba(90, 64, 40, 0.3); border-radius: var(--rund-2); }
+.kl3-titel { margin: 0; font: 600 var(--schrift-4)/1.2 var(--display); color: var(--messing-text); }
+.kl3-kern { display: flex; flex-wrap: wrap; gap: var(--abstand-3) 22px; margin: 0; }
+.kl3-kern > div { display: grid; gap: 2px; min-width: 82px; align-content: start; }
+.kl3-kern dt { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.kl3-kern dd { margin: 0; font: 600 var(--schrift-6)/1.05 var(--display); color: var(--messing-text); font-variant-numeric: tabular-nums; }
+.kl3-kern dd small { display: block; margin-top: 2px; font: var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
+.kl3-kern dd.kl3-wort { font: 600 var(--schrift-3)/1.25 var(--serif); padding-top: 6px; }
+.kl3-kern .schlecht dd { color: var(--siegel); }
+.kl3-balken { position: relative; display: block; height: 6px; margin-top: 3px; border-radius: 3px; background: rgba(90, 64, 40, 0.15); overflow: hidden; }
+.kl3-balken i { position: absolute; inset: 0 auto 0 0; background: var(--messing-2); border-radius: 3px; }
+.kl3-kern .schlecht .kl3-balken i { background: var(--siegel); }
+.kl3-balken u { position: absolute; top: 0; bottom: 0; left: 50%; width: 1px; background: var(--tinte-2); }
+.kl3-zeile { list-style: none; margin: 0; padding: 6px 0 0; display: flex; flex-wrap: wrap; gap: 4px 18px; border-top: 1px solid var(--linie); font: var(--schrift-2)/1.3 var(--serif); }
+.kl3-zeile span { color: var(--tinte-3); }
+.kl3-zeile b { color: var(--tinte-1); font-weight: 600; }
+.kl3.klein { padding: var(--abstand-2) var(--abstand-3); margin: 0; }
+.kl3.klein .kl3-kern { gap: var(--abstand-2) 16px; }
+.kl3.klein .kl3-kern > div { min-width: 64px; }
+.kl3.klein .kl3-kern dd { font-size: var(--schrift-5); }
+.kl3.klein .kl3-kern dd.kl3-wort { font-size: var(--schrift-2); padding-top: 3px; }
+
+/* --- Kriegskachel des Schreibtischs --- */
+.kt3 { display: grid; gap: var(--abstand-2); }
+.kt3-naechster { display: grid; gap: 6px; }
+.kt3-kicker { font: 600 var(--schrift-1)/1.2 var(--kapitaelchen); letter-spacing: 0.06em; color: var(--siegel); }
+.kt3-frage { margin: 0; font: 600 var(--schrift-3)/1.3 var(--serif); color: var(--tinte-1); }
+.kt3-wege { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.kt3-wege button { width: 100%; display: grid; gap: 2px; text-align: left; }
+.kt3-kopf { display: flex; justify-content: space-between; align-items: start; gap: var(--abstand-2); }
+.kt3-kopf .tk2-preis { flex: none; white-space: nowrap; }
+.kt3-wirkung { font: var(--schrift-1)/1.3 var(--serif); color: var(--tinte-2); }
+.kt3-leer { margin: 0; font: italic var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.kt3-grund { font: var(--schrift-1)/1.3 var(--serif); color: var(--warnung); }
+/* Auf dem Schreibtisch steht ein laufender Krieg über die ganze Breite: links die Lage, rechts der nächste Entscheid */
+.sk3-kacheln > li:has(.kt3) { grid-column: 1 / -1; }
+.tk2.gross .kt3 { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; column-gap: var(--abstand-4); }
+.tk2.gross .kt3 > .kl3 { grid-row: span 2; }
+.tk2.gross .kt3-wege { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
+.tk2.gross .kt3 > .tk2-akte { justify-self: start; }
+@media (max-width: 760px) { .tk2.gross .kt3 { grid-template-columns: minmax(0, 1fr); } .tk2.gross .kt3 > .kl3 { grid-row: auto; } }

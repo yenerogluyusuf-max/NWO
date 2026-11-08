@@ -47,6 +47,8 @@ import { Besatzung } from "../krieg/Besatzung";
 import { Kriegsziel, Leiter } from "../krieg/Leiter";
 import { Pakete } from "../krieg/Pakete";
 import { Fernkonflikt } from "../krieg/Fernkonflikt";
+import { Lagekarte } from "../krieg/Lagekarte";
+import { Operation } from "../krieg/Operation";
 import { istFernkonflikt } from "../../sim/fernkonflikt";
 import { VersorgungsLage } from "../gueter/VersorgungsLage";
 import { UbVerweis } from "../akte/Uebersicht";
@@ -179,7 +181,6 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
   const gegner = gegnerStaerke(world, landId);
   const imKrieg = k.phase === "krieg" || k.phase === "waffenruhe";
   const vorKrieg = k.phase === "spannung" || k.phase === "drohkulisse" || k.phase === "beschluss";
-  const trend = k.front > k.frontVorher + 0.5 ? "steigend" : k.front < k.frontVorher - 0.5 ? "fallend" : "stabil";
   const sperre = demobSperreBis(world);
   const leiter = phasenLeiter(world, k);
   const mob = mobilStand(world, k);
@@ -189,7 +190,6 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
   // Befehle ordnen: das Kriegsziel als eine Reihe, dann bis zu vier Hauptschritte nach Vorrang, der Rest zugeklappt
   const ziele = handlungen.filter((h) => h.id.startsWith("ziel_"));
   const uebrig = handlungen.filter((h) => !h.id.startsWith("ziel_") && !h.id.startsWith("paket_"));
-  const fern = istFernkonflikt(k.land);
   const vorrang = VORRANG[k.phase] ?? [];
   const haupt = [...uebrig].filter((h) => vorrang.includes(h.id)).sort((a, b) => vorrang.indexOf(a.id) - vorrang.indexOf(b.id)).slice(0, 4);
   const weitere = uebrig.filter((h) => !haupt.includes(h));
@@ -244,33 +244,12 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
         </div>
       )}
 
-      {imKrieg && (
-        <>
-          <div className="kd-zeile" title={t("nacht_n7.d.front.titel", { woche: k.woche })}>
-            <span>{fern ? t("welle_k1.fern.lage") : t("krieg.d.front")}</span>
-            <span className="kd-balken kd-front" aria-hidden>
-              <i style={{ width: `${k.front}%` }} />
-              <u style={{ left: "50%" }} />
-            </span>
-            <b>
-              {nf(k.front)} <em className={`kd-trend kd-trend-${trend}`}>{trend === "steigend" ? "↑" : trend === "fallend" ? "↓" : "→"} {t(`krieg.d.trend.${trend}`)}</em>
-            </b>
-          </div>
-          <div className="kd-zeile" title={t("ui.welt.KriegDossier.fb1d897")}>
-            <span>{t("ui.welt.KriegDossier.7c1b834")}</span>
-            <span className={`kd-balken kd-rueckhalt${k.uhr < 40 ? " knapp" : ""}`} aria-hidden>
-              <i style={{ width: `${Math.max(0, Math.min(100, k.uhr))}%` }} />
-            </span>
-            <b>{nf(Math.max(0, Math.min(100, k.uhr)))}</b>
-          </div>
-          <p className="subtitle kd-woche">
-            {t("nacht_n7.d.woche", { woche: k.woche, mobil: t(k.mobilmachung === 2 ? "krieg.k.x.voll" : k.mobilmachung === 1 ? "krieg.k.x.teil" : "krieg.d.keine_mobil") })}
-            {k.gefallene ? ` · ${t("krieg.d.gefallene", { zahl: zahl(k.gefallene, 0) })}` : ""}
-          </p>
-        </>
-      )}
+      {/* Welle 3, K3: die Lage als Karte mit Kennzahlen (ENTSCHEIDUNGEN Z) statt dreier Balken und eines Satzes */}
+      {imKrieg && <Lagekarte k={k} />}
 
       {k.phase !== "frieden" && k.phase !== "beendet" && <Kriegsziel world={world} k={k} ziele={ziele} tun={tun} onTat={(text) => melde({ ok: true, text })} />}
+      {/* Welle 3, K3: die Operationsform (Luftschlag, begrenzte Bodenoperation, Großoffensive, Landung) mit der Wahl der Verbündeten */}
+      {k.phase !== "frieden" && k.phase !== "beendet" && k.phase !== "waffenruhe" && <Operation world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
 
       {k.phase === "waffenruhe" && <Pakete world={world} k={k} handlungen={handlungen} tun={tun} />}
 
