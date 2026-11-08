@@ -9,8 +9,8 @@ import { KRIEG, einsatzAnlass, fuehreKriegHandlungAus, handlungenFuer, kriegMit,
 import { MANDAT, haltungVon, mandatSicht, zusageAngebote } from "../src/sim/mandat";
 import { vollmachtAbgeleitet, vollmachtFuer, vollmachtStand } from "../src/sim/krieg-recht";
 import { RESERVISTEN, reservistenLuecke } from "../src/sim/reservisten";
-import { VORLAGEN, antworten, oeffne } from "../src/sim/ereignisse";
-import { verlaengerungFaellig } from "../src/sim/ereignisse-mandat";
+import { VORLAGEN, antworten } from "../src/sim/ereignisse";
+import { verlaengerungFaellig, verlaengerungStrittig, vollmachtPlanSetzen } from "../src/sim/ereignisse-mandat";
 import { nationalAverage } from "../src/sim/netz";
 import { NET } from "../src/sim/modell";
 import { Rng } from "../src/sim/rng";
@@ -88,39 +88,54 @@ describe("Vollmacht für Syrien und den Irak", () => {
     expect(vollmachtAbgeleitet("2045-06-04")).toBe("2046-10-30");
   });
 
-  test("im Oktober 2028 liegt die Verlängerung auf dem Tisch; drei Jahre gehen durch, gebucht wird, was die Karte zeigt", () => {
+  test("im Oktober 2028 ist die Verlängerung Routine, wenn nichts auf dem Spiel steht: drei Jahre, ohne Akte auf dem Tisch", () => {
     const w = welt();
     expect(w.spiel!.vollmacht, "ein frischer Stand schreibt erst im ersten Monat fest").toBeUndefined();
     while (w.date < "2028-10-01") advance(w, 1);
     expect(verlaengerungFaellig(w)).toBe(true);
-    advance(w, 6);
+    expect(verlaengerungStrittig(w)).toBe(false);
+    const erwartet = mandatSicht(w, { art: "verlaengerung", jahre: 3 });
+    while (w.date < "2028-10-22") advance(w, 1);
+    expect(w.spiel!.chronik.some((c) => c.vorlage === "vollmacht_verlaengerung")).toBe(false);
+    const v = vollmachtStand(w);
+    expect(v.verlauf).toHaveLength(1);
+    expect(Math.abs(v.verlauf[0]!.ja - erwartet.ja)).toBeLessThanOrEqual(erwartet.band * 2);
+    expect(v.bis).toBe("2031-10-30");
+    expect(w.spiel!.hinweise.some((h) => h.id.startsWith("vollmacht-"))).toBe(true);
+  });
+
+  test("läuft ein Konflikt mit Syrien, liegt die Verlängerung am 5. Oktober auf dem Tisch; gebucht wird, was die Karte zeigt", () => {
+    const w = welt();
+    while (w.date < "2028-09-10") advance(w, 1);
+    expect(kriseEroeffnen(w, "SYR").ok).toBe(true);
+    w.spiel!.ereignisse = [];
+    while (w.date < "2028-10-06") advance(w, 1);
+    expect(verlaengerungStrittig(w)).toBe(true);
     const ev = w.spiel!.ereignisse.find((e) => e.vorlage === "vollmacht_verlaengerung");
     expect(ev, "Termin am 5. Oktober").toBeDefined();
     const opts = antworten(w, ev!);
     expect(opts.map((o) => o.id)).toEqual(expect.arrayContaining(["jahre_3", "jahre_1", "auslaufen"]));
-    const erwartet = mandatSicht(w, { art: "verlaengerung", jahre: 3 });
-    const drei = opts.find((o) => o.id === "jahre_3")!;
-    expect(drei.bedingungen![0]).toContain(String(erwartet.noetig));
-    drei.wirkung(w, ev!, new Rng(1));
+    const erwartet = mandatSicht(w, { art: "verlaengerung", jahre: 1 });
+    const eins = opts.find((o) => o.id === "jahre_1")!;
+    expect(eins.bedingungen![0]).toContain(String(erwartet.noetig));
+    eins.wirkung(w, ev!, new Rng(1));
     const v = vollmachtStand(w);
     const letzte = v.verlauf.at(-1)!;
+    expect(letzte.jahre).toBe(1);
     expect(Math.abs(letzte.ja - erwartet.ja)).toBeLessThanOrEqual(erwartet.band * 2);
-    if (letzte.angenommen) expect(v.bis).toBe("2031-10-30");
-    else expect(v.bis).toBe("2028-10-30");
+    expect(v.bis).toBe(letzte.angenommen ? "2029-10-30" : "2028-10-30");
     expect(verlaengerungFaellig(w)).toBe(false);
   });
 
-  test("liegen lassen: Die Vollmacht läuft aus, danach braucht Syrien ein eigenes Mandat", () => {
+  test("Plan „auslaufen lassen“: Die Vollmacht endet, danach braucht Syrien ein eigenes Mandat", () => {
     const w = welt();
-    while (w.date < "2028-10-06") advance(w, 1);
-    const v = VORLAGEN.find((x) => x.id === "vollmacht_verlaengerung")!;
-    const ev = w.spiel!.ereignisse.find((e) => e.vorlage === "vollmacht_verlaengerung")!;
-    v.standard(w, ev, new Rng(1));
-    w.spiel!.ereignisse = [];
+    vollmachtPlanSetzen(w, 0);
     while (w.date <= "2028-10-30") advance(w, 1);
     expect(vollmachtFuer(w, "SYR")).toBeUndefined();
+    expect(vollmachtStand(w).verlauf).toHaveLength(0);
     advance(w, 40);
     expect(w.spiel!.ereignisse.some((e) => e.vorlage === "vollmacht_verlaengerung")).toBe(false);
+    void VORLAGEN;
   });
 
   test.skipIf(!existsSync(STAND_2043))("Stand des Inhabers 2043: Syrien ohne neue Abstimmung, Zypern mit Abstimmung und sichtbarer Opposition", () => {

@@ -7,6 +7,7 @@ import type { World } from "../../sim/types";
 import type { KriegVorgang } from "../../sim/krieg-typen";
 import { einsatzAnlass, mandatSperreBis, reservistenUnterWaffen, type KriegHandlungId, type KriegHandlungSicht } from "../../sim/krieg";
 import { mandatSicht } from "../../sim/mandat";
+import { vollmachtPlanSetzen } from "../../sim/ereignisse-mandat";
 import { vollmachtFuer, vollmachtStand } from "../../sim/krieg-recht";
 import { reservistenLuecke } from "../../sim/reservisten";
 import { PARTY_COLORS } from "../parlament/lage";
@@ -17,34 +18,10 @@ import "./mandat.css";
 
 const n0 = (x: number) => zahl(Math.round(x), 0);
 
-export function Mandat({ world, k, handlungen, tun }: { world: World; k: KriegVorgang; handlungen: KriegHandlungSicht[]; tun: (id: KriegHandlungId) => void }) {
+export function Mandat({ world, k, handlungen, tun, onTat }: { world: World; k: KriegVorgang; handlungen: KriegHandlungSicht[]; tun: (id: KriegHandlungId) => void; onTat: () => void }) {
   useSprache();
   const vollmacht = vollmachtFuer(world, k.land);
-  if (vollmacht) {
-    const letzte = vollmachtStand(world).verlauf.filter((v) => v.angenommen).at(-1);
-    return (
-      <section className="km7 km7-vollmacht" aria-label={t("welle_k7.m.titel")}>
-        <h5>{t("welle_k7.m.titel")}</h5>
-        <dl className="km7-kern">
-          <div>
-            <dt>{t("welle_k7.m.v.bis")}</dt>
-            <dd>{datum(vollmacht.bis)}</dd>
-          </div>
-          <div>
-            <dt>{t("welle_k7.m.v.abstimmung")}</dt>
-            <dd>{t("welle_k7.m.v.monat", { jahr: vollmacht.bis.slice(0, 4) })}</dd>
-          </div>
-          {letzte && (
-            <div>
-              <dt>{t("welle_k7.m.v.letzte")}</dt>
-              <dd>{t("welle_k7.m.v.letzte_wert", { ja: n0(letzte.ja), nein: n0(letzte.nein) })}</dd>
-            </div>
-          )}
-          <p className="km7-urteil gut">{t("welle_k7.m.v.satz")}</p>
-        </dl>
-      </section>
-    );
-  }
+  if (vollmacht) return <VollmachtKarte world={world} onTat={onTat} />;
   const m = mandatSicht(world, einsatzAnlass(k));
   const sperre = mandatSperreBis(world, k.land);
   const zusagen = new Map(handlungen.filter((h) => h.id.startsWith("zusage_")).map((h) => [h.id.slice("zusage_".length), h]));
@@ -96,6 +73,54 @@ export function Mandat({ world, k, handlungen, tun }: { world: World; k: KriegVo
       </ul>
       {[...zusagen.values()].slice(0, 1).map((z) => <p key={z.id} className="km7-hinweis">{z.hinweis}</p>)}
       {sperre > world.day && <p className="km7-sperre">{t("welle_k7.m.sperre", { datum: addDays(world.date, sperre - world.day) })}</p>}
+    </section>
+  );
+}
+
+/** Die stehende Vollmacht für Syrien und den Irak: Frist, Monat der Verlängerung, letzte Abstimmung und der Plan für den Oktober. */
+export function VollmachtKarte({ world, onTat }: { world: World; onTat: () => void }) {
+  useSprache();
+  const vollmacht = vollmachtFuer(world, "SYR");
+  if (!vollmacht) return null;
+  const stand = vollmachtStand(world);
+  const letzte = stand.verlauf.filter((v) => v.angenommen).at(-1);
+  const plan = stand.plan ?? 3;
+  return (
+    <section className="km7 km7-vollmacht" aria-label={t("welle_k7.m.titel")}>
+      <h5>{t("welle_k7.m.titel")}</h5>
+      <dl className="km7-kern">
+        <div>
+          <dt>{t("welle_k7.m.v.bis")}</dt>
+          <dd>{datum(vollmacht.bis)}</dd>
+        </div>
+        <div>
+          <dt>{t("welle_k7.m.v.abstimmung")}</dt>
+          <dd>{t("welle_k7.m.v.monat", { jahr: vollmacht.bis.slice(0, 4) })}</dd>
+        </div>
+        {letzte && (
+          <div>
+            <dt>{t("welle_k7.m.v.letzte")}</dt>
+            <dd>{t("welle_k7.m.v.letzte_wert", { ja: n0(letzte.ja), nein: n0(letzte.nein) })}</dd>
+          </div>
+        )}
+        <p className="km7-urteil gut">{t("welle_k7.m.v.satz")}</p>
+      </dl>
+      {/* Der Plan für den Oktober: was die Regierung routinemäßig vorlegt (sim/ereignisse-mandat.ts) */}
+      <div className="km7-plan">
+        <span className="km7-plan-kopf">{t("welle_k7.m.v.plan", { jahr: vollmacht.bis.slice(0, 4) })}</span>
+        <div className="ks-knoepfe" role="group">
+          {([3, 1, 0] as const).map((p) => {
+            const m = p > 0 ? mandatSicht(world, { art: "verlaengerung", jahre: p }) : undefined;
+            return (
+              <button key={p} type="button" className={plan === p ? "on" : ""} disabled={plan === p} onClick={() => { vollmachtPlanSetzen(world, p); onTat(); }}>
+                <strong>{t(`welle_k7.plan.${p}`)}</strong>
+                {m && <span>{t("welle_k7.m.v.plan_erwartet", { ja: n0(m.ja), noetig: n0(m.noetig) })}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="km7-hinweis">{t("welle_k7.m.v.plan_hinweis")}</p>
+      </div>
     </section>
   );
 }

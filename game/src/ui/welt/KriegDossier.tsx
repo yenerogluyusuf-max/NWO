@@ -53,7 +53,8 @@ import { Fernkonflikt } from "../krieg/Fernkonflikt";
 import { Lagekarte } from "../krieg/Lagekarte";
 import { Operation } from "../krieg/Operation";
 // Welle 4, K7: Mandat der Nationalversammlung (Fraktionen, Zusagen, Vollmacht) und Heimatfront (Reservisten, Kritik)
-import { Heimatfront, Mandat } from "../krieg/Mandat";
+import { Heimatfront, Mandat, VollmachtKarte } from "../krieg/Mandat";
+import { VOLLMACHT_LAENDER } from "../../sim/krieg-recht";
 import { istFernkonflikt } from "../../sim/fernkonflikt";
 import { VersorgungsLage } from "../gueter/VersorgungsLage";
 import { UbVerweis } from "../akte/Uebersicht";
@@ -174,6 +175,8 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
           <span>{grund ?? t(preis.aufschlag ? "welle_k1.krise.preis_aufschlag" : "welle_k1.krise.preis", { ansehen: zahlZeichen1(preis.ansehen), vertrauen: zahlZeichen1(preis.vertrauen), land: land(landId).name, ab: KRISE_AB })}</span>
         </div>
         <p className="subtitle">{t("welle_k1.krise.erklaerung", { anlage: KRIEG.anlageAb })}</p>
+        {/* Welle 4, K7: Für Syrien und den Irak die stehende Vollmacht mit dem Plan für den Oktober */}
+        {VOLLMACHT_LAENDER.includes(landId) && <VollmachtKarte world={world} onTat={refresh} />}
         <Besatzung world={world} onTat={(text) => melde({ ok: true, text })} nurLand={landId} />
       </section>
     );
@@ -228,7 +231,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
       {streifen}
 
       {vorKrieg && <Leiter world={world} k={k} />}
-      {vorKrieg && <Mandat world={world} k={k} handlungen={handlungen} tun={tun} />}
+      {vorKrieg && <Mandat world={world} k={k} handlungen={handlungen} tun={tun} onTat={refresh} />}
 
       {vorKrieg && (
         <div className="kd-zeile" title={t("ui.welt.KriegDossier.c4f3a82")}>

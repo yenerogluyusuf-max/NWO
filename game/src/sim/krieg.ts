@@ -58,6 +58,7 @@ import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFestschre
 // Welle 4, K7: Mandat nach den belegten Haltungen der Fraktionen, Zusagen, Sperre nach dem Scheitern; Reservisten am Arbeitsmarkt
 import { MANDAT, haltungsSatz, mandatAbstimmen, mandatSicht, zusageAngebote, zusageBuchen, zusageSinnvoll, type MandatAnlass } from "./mandat";
 import { RESERVISTEN, reservistenLuecke, reservistenVon } from "./reservisten";
+import { vollmachtRoutineTag } from "./ereignisse-mandat";
 import { FERN, fernZielErreicht, fernZielVon, istFernkonflikt } from "./fernkonflikt";
 // Welle 3, K4 (krieg.md Schritt 7): der Friedenstisch mit Forderungen je Region (sim/friedenstisch.ts)
 import { uebergabenTag } from "./besatzung";
@@ -1930,6 +1931,8 @@ export function kriegTag(w: World, rng: Rng): void {
   if (!spiel || spiel.ende) return;
   // Welle 3, K4: Im Friedensvertrag zurückgegebene Regionen gehen am Tag der Übergabe an den Gegner
   uebergabenTag(w);
+  // Welle 4, K7: Routineverlängerung der Vollmacht für Syrien und den Irak (sim/ereignisse-mandat.ts)
+  vollmachtRoutineTag(w);
   for (const k of kriege(w)) {
     // Eskalation folgt träge der Konflikt-Dimension des Landes, solange ein Anlass sie nährt; danach klingt sie ab (KRIEG.naehrFrist)
     if (k.phase === "spannung" || k.phase === "drohkulisse") {

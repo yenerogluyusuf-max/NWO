@@ -48,6 +48,8 @@ export interface VollmachtZustand {
   /** Für diese Frist ist entschieden (verlängert, abgelehnt oder auslaufen lassen): keine zweite Vorlage */
   entschieden?: string;
   verlauf: VollmachtAbstimmung[];
+  /** Was die Regierung im Oktober routinemäßig vorlegt: Jahre (1 oder 3) oder 0 für „auslaufen lassen“; ohne Angabe drei Jahre wie 2025 */
+  plan?: 0 | 1 | 3;
 }
 
 export const VOLLMACHT_LAENDER = ["SYR", "IRQ"];

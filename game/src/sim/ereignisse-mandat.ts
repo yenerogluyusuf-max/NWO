@@ -1,7 +1,12 @@
 // Die Verlängerung der Vollmacht für Syrien und Irak (Welle 4, K7; krieg.md Schritt 11, Befund B7).
 //
-//   vollmacht_verlaengerung  Fester Termin im Oktober des Jahres, in dem die Vollmacht ausläuft (zuerst am 30.10.2028). Der Präsident legt
-//                            sie für drei oder für ein Jahr vor, mit oder ohne Zusage an eine Fraktion, oder lässt sie auslaufen.
+//   vollmacht_verlaengerung  Termin im Oktober des Jahres, in dem die Vollmacht ausläuft (zuerst am 30.10.2028), wenn etwas auf dem Spiel
+//                            steht: Die Mehrheit wackelt, oder es läuft ein Konflikt mit Syrien oder dem Irak. Der Präsident legt sie für
+//                            drei oder für ein Jahr vor, mit oder ohne Zusage an eine Fraktion, oder lässt sie auslaufen.
+//
+// Sonst ist die Verlängerung Routine, wie in der Wirklichkeit seit 2014: Die Regierung legt am 21. Oktober vor, was der Plan sagt (drei Jahre
+// wie 2025, ein Jahr oder auslaufen lassen; einstellbar in der Kriegsakte), und das Ergebnis steht als Hinweis und in der Zeitung. So kommt
+// keine Akte ohne Entscheidung auf den Schreibtisch („wenige echte Entscheidungen mit Einsatz“).
 //
 // Vorbild: Die TBMM tritt am 1. Oktober wieder zusammen und stimmte über die Vollmacht am 08.10.2019, 07.10.2020, 26.10.2021, 17.10.2023 und
 // 21.10.2025 ab (recherche_operationen.md C; Tutanak 21.10.2025). Der Termin öffnet am 5. Oktober mit 15 Tagen Frist (Spielparameter), so
@@ -34,6 +39,30 @@ export function verlaengerungFaellig(w: World): boolean {
   if (!w.spiel || w.spiel.ende) return false;
   const s = vollmachtStand(w);
   return w.date.slice(5, 7) === "10" && s.bis.slice(0, 4) === w.date.slice(0, 4) && w.date <= s.bis && s.entschieden !== s.bis;
+}
+
+/** Ob die Verlängerung eine Entscheidung verdient: Die Mehrheit für den Plan wackelt, oder ein Konflikt mit Syrien oder dem Irak läuft. */
+export function verlaengerungStrittig(w: World): boolean {
+  const s = vollmachtStand(w);
+  const jahre = s.plan ?? 3;
+  if (jahre > 0 && zusageSinnvoll(mandatSicht(w, { art: "verlaengerung", jahre }))) return true;
+  return (w.spiel?.kriege ?? []).some((k) => VOLLMACHT_LAENDER.includes(k.land) && k.phase !== "beendet");
+}
+
+/** Der Plan der Regierung für den Oktober (Kriegsakte): drei Jahre, ein Jahr oder auslaufen lassen. */
+export function vollmachtPlanSetzen(w: World, plan: 0 | 1 | 3): void {
+  vollmachtFestschreiben(w);
+  if (w.spiel?.vollmacht) w.spiel.vollmacht.plan = plan;
+}
+
+/** Routine am 21. Oktober: Liegt keine Entscheidung vor und kein Termin offen, legt die Regierung vor, was der Plan sagt. */
+export function vollmachtRoutineTag(w: World): void {
+  const sp = w.spiel;
+  if (!sp || sp.ende || !verlaengerungFaellig(w) || w.date.slice(8, 10) < "21") return;
+  if (sp.ereignisse.some((e) => e.vorlage === "vollmacht_verlaengerung")) return;
+  const plan = vollmachtStand(w).plan ?? 3;
+  const text = plan === 0 ? auslaufen(w, false) : abstimmenUndBuchen(w, { art: "verlaengerung", jahre: plan });
+  sp.hinweise.push({ id: `vollmacht-${w.date}`, titel: t("welle_k7.v.titel_routine"), szene: "parlament", text: [text] });
 }
 
 /** Ein Satz mit der erwarteten Abstimmung für die Antwortkarte (dieselbe Rechnung wie die Buchung). */
@@ -88,7 +117,7 @@ const VOLLMACHT_VERLAENGERUNG: Vorlage = {
   frist: VOLLMACHT_TERMIN.frist,
   abkuehlung: 300,
   wettbewerb: "aussitzen",
-  chance: (w) => (verlaengerungFaellig(w) ? 1 : 0),
+  chance: (w) => (verlaengerungFaellig(w) && verlaengerungStrittig(w) ? 1 : 0),
   erzeuge: (w) => ({ provinzen: [], staerke: 1, daten: { bis: vollmachtStand(w).bis, jahre: 3 } }),
   titel: () => t("welle_k7.v.titel"),
   text: (w, ev) => {
@@ -98,6 +127,7 @@ const VOLLMACHT_VERLAENGERUNG: Vorlage = {
       t("welle_k7.v.text1"),
       t("welle_k7.v.text1b", { bis: String(ev.daten?.bis ?? s.bis) }),
       letzte ? t("welle_k7.v.text2.letzte", { datum: letzte.datum, ja: letzte.ja, nein: letzte.nein }) : t("welle_k7.v.text2.start"),
+      t("welle_k7.v.text3", { plan: t(`welle_k7.plan.${s.plan ?? 3}`) }),
     ];
   },
   warum: () => t("welle_k7.v.warum"),
@@ -130,7 +160,11 @@ const VOLLMACHT_VERLAENGERUNG: Vorlage = {
     out.push(opt("auslaufen", t("welle_k7.v.opt.auslaufen.label"), t("welle_k7.v.opt.auslaufen.beschr"), 0, (ww) => auslaufen(ww, false)));
     return out;
   },
-  standard: (w) => auslaufen(w, true),
+  // Ohne Antwort legt die Regierung vor, was der Plan sagt (Routine seit 2014)
+  standard: (w) => {
+    const plan = vollmachtStand(w).plan ?? 3;
+    return plan === 0 ? auslaufen(w, true) : abstimmenUndBuchen(w, { art: "verlaengerung", jahre: plan });
+  },
 };
 
 export const MANDAT_VORLAGEN: Vorlage[] = [VOLLMACHT_VERLAENGERUNG];

@@ -32,3 +32,5 @@
   .km7-wort, .km7-zahlen { grid-column: 2 / -1; }
   .km7-zusage { grid-column: 2 / -1; justify-self: start; }
 }
+.km7-plan { display: grid; gap: 6px; padding-top: var(--abstand-2); border-top: 1px solid var(--linie); }
+.km7-plan-kopf { font: 600 var(--schrift-1)/1.2 var(--serif); color: var(--tinte-3); }
