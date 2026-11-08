@@ -37,6 +37,7 @@ import { addLog } from "./log";
 import { addDays } from "./dates";
 import { wirke } from "./wirkung";
 import { Rng } from "./rng";
+import { staatAnnektiert } from "./provinzen-neu"; // Welle 3, K5
 import type { World } from "./types";
 import { aktuelleLocale, aktuelleSprache, t as tx } from "../i18n";
 
@@ -646,12 +647,14 @@ export function weltModellMonat(w: World): void {
 
   // 3. Wahlen, Krisen, Machtwechsel
   for (const d of ALLE) {
+    // Welle 3, K5 (Befund A6): Ein ganz annektierter Staat hat nur noch eine Exilregierung: keine Wahlen, Machtwechsel und Handlungen
+    if (staatAnnektiert(w, d.id)) continue;
     wahlPruefen(w, m, d, rng);
     krisePruefen(w, m, d, rng);
   }
 
   // 4. Handeln der Staaten
-  for (const d of ALLE) handeln(w, m, d, rng);
+  for (const d of ALLE) if (!staatAnnektiert(w, d.id)) handeln(w, m, d, rng);
 
   // 5. Beziehungen driften zur Anfangslage zurück; Sanktionslast der Paare klingt ab
   for (const key of Object.keys(m.paare)) {

@@ -36,6 +36,7 @@ import { schwierig } from "./spiel";
 import { AUSSEN_VORLAGEN } from "./ereignisse-aussen";
 import { KRIEG_VORLAGEN } from "./ereignisse-krieg";
 import { WENDEPUNKT_VORLAGEN } from "./ereignisse-wendepunkte"; // Welle 3, K3: Wendepunkte im Krieg
+import { BESATZUNG_VORLAGEN } from "./ereignisse-besatzung"; // Welle 3, K5: Skandal der Stellvertreterverwaltung
 import { EU_VORLAGEN } from "./ereignisse-eu";
 import { WELT_VORLAGEN } from "./welt-ereignisse";
 import { VERMITTLUNG_VORLAGEN } from "./ereignisse-vermittlung";
@@ -1040,7 +1041,7 @@ export const VORLAGEN: Vorlage[] = [
   ERDBEBEN, DUERRE, WAEHRUNG, ENERGIE, HAUSHALT, KORRUPTION, STREIK, MIETE, FLUECHTLINGE, ANSCHLAG, WALDBRAND, STROM, AERZTE, PREISDECKEL, MIETDECKEL, KOALITION,
   ZUSAGE, START_HAUSHALT, START_PARTNER, START_WIEDERAUFBAU,
   ...KATASTROPHE_VORLAGEN,
-  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...MACHTKREIS_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...WENDEPUNKT_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
+  ...INNEN_VORLAGEN, ...AUSSEN_VORLAGEN, ...INITIATIVE_VORLAGEN, ...REICH_VORLAGEN, ...PERSONEN_VORLAGEN, ...MACHTKREIS_VORLAGEN, ...VERFASSUNG_VORLAGEN, ...WAHL_VORLAGEN, ...KRIEG_VORLAGEN, ...WENDEPUNKT_VORLAGEN, ...BESATZUNG_VORLAGEN, ...EU_VORLAGEN, ...VERMITTLUNG_VORLAGEN, ...WELT_VORLAGEN, ...SAISON_VORLAGEN,
   ...BEREICHE_VORLAGEN,
   // Welle E1: Gipfel, Einladung nach Istanbul, EU-Fortschrittsbericht (eigener Wurf, kein Zusatzplatz)
   ...DIPLOMATIE_VORLAGEN,

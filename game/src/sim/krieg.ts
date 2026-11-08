@@ -57,6 +57,7 @@ import { landFormen } from "./ereignisse-krieg";
 import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFuer } from "./krieg-recht";
 import { FERN, fernZielErreicht, fernZielVon, istFernkonflikt } from "./fernkonflikt";
 import { besatzung, regionenVon, schauplatzFuer, zielRegionen } from "./kriegsschauplatz";
+import { staatAnnektiert } from "./provinzen-neu"; // Welle 3, K5
 // Welle 3, K3: Operationsform und Wendepunkte (kleinste Stellen in kriegWoche, kriegsbeginn und kriegszielErreicht, jeweils mit „K3“ vermerkt)
 import { operationBeginn, operationNachSchauplatz, operationsTiefe, operationsVorstoss } from "./operationen";
 import { wendepunkteWoche } from "./ereignisse-wendepunkte";
@@ -1834,7 +1835,7 @@ export function kriegMonat(w: World, rng: Rng): void {
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
     // Nur ein akuter Anstieg über den Ruhewert legt einen Vorgang an; ein dauerhaft hoher Konflikt (Zypern mit härterer Führung) nicht
     if ((z[l.id]?.konflikt ?? 0) < konfliktRuhewert(w, l.id) + KRIEG.anlageUeberRuhe) continue;
-    if (ohneKriegsvorgang(l.id)) continue;
+    if (ohneKriegsvorgang(l.id) || staatAnnektiert(w, l.id)) continue; // K5: Ein ganz annektierter Staat greift nicht mehr an
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
     vorgangAnlegen(w, l.id, z[l.id]!.konflikt);
@@ -1904,6 +1905,7 @@ export function kriseGrund(w: World, landId: string): string | undefined {
   if (!spiel || spiel.ende) return t("krieg.k.x.keinspiel");
   if (kriegMit(w, landId)) return t("krieg.k.krise.schon");
   if (ohneKriegsvorgang(landId)) return t("krieg.k.krise.fern", { land: land(landId).name });
+  if (staatAnnektiert(w, landId)) return t("welle_k5.staat.krise", { land: land(landId).name }); // K5
   if (aktiveKriege(w).length >= KRIEG.maxAktiv) return t("krieg.k.krise.zuviele", { n: KRIEG.maxAktiv });
   if (w.day - (spiel.zuletzt[`krieg-${landId}`] ?? -1e9) < 30) return t("welle_k1.krise.eben");
   if (!kannZahlen(spiel.kapital, krisePreis(w, landId).pk)) return t("krieg.k.kapital");
