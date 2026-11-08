@@ -51,11 +51,14 @@ import type { World } from "./types";
 import { aktuelleSprache, liste, t, zahl } from "../i18n";
 import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
 import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
-import type { FriedensPaket, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
+import type { FriedensPaket, FriedensTisch, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
 import { besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBestandsFaktor, kriegsFaktoren, kriegsschauplatzMonat, regionenSetzen, schauplatzWoche, zielGeaendert } from "./kriegsschauplatz";
 import { landFormen } from "./ereignisse-krieg";
 import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFuer } from "./krieg-recht";
 import { FERN, fernZielErreicht, fernZielVon, istFernkonflikt } from "./fernkonflikt";
+// Welle 3, K4 (krieg.md Schritt 7): der Friedenstisch mit Forderungen je Region (sim/friedenstisch.ts)
+import { uebergabenTag } from "./besatzung";
+import { UEBERGABE_TAGE, tischBuchen, tischPreis, tischRegionen, vermittlerVon } from "./friedenstisch";
 import { besatzung, regionenVon, schauplatzFuer, zielRegionen } from "./kriegsschauplatz";
 import { staatAnnektiert } from "./provinzen-neu"; // Welle 3, K5
 // Welle 3, K3: Operationsform und Wendepunkte (kleinste Stellen in kriegWoche, kriegsbeginn und kriegszielErreicht, jeweils mit „K3“ vermerkt)
@@ -522,6 +525,11 @@ export function kriegszielErreicht(k: KriegVorgang): boolean {
  * nannte keinen). `basis` ist der Preis vor der Presse, `po` der Zustimmungsverlust danach; `nationalisten` die Bewegung dieser Gruppe.
  */
 export function paketPreis(w: World, k: KriegVorgang, p: FriedensPaket): { po: number; nationalisten: number } {
+  // Welle 3, K4: ein Paket vom Friedenstisch rechnet aus seinen Buchungen (dieselben, die friedenSchliessen bucht)
+  if (p.tisch) {
+    const tp = tischPreis(w, k, p.tisch);
+    return { po: tp.po, nationalisten: tp.nationalisten };
+  }
   let basis = 0;
   let nationalisten = 0;
   if (p.gebiet === 1) {
@@ -581,7 +589,42 @@ export const PAKETE: Record<string, { name: string; text: string; paket: (front:
     get text() { return t("welle_k1.paket.fern_zugestaendnisse.text"); },
     paket: () => ({ gebiet: 0, reparation: 1, garantien: true, rueckzug: true }),
   },
+  // Welle 3, K4: Pakete vom Friedenstisch. Ihr Inhalt steht im Feld `tisch` (sim/friedenstisch.ts); sie liegen nie als feste Bündel auf dem
+  // Tisch (paketeFuer nennt sie nicht), die Einträge geben nur Name und Text für Chronik und Protokoll.
+  paket_tisch: {
+    get name() { return t("welle_k4.paket.tisch"); },
+    get text() { return t("welle_k4.paket.tisch.text"); },
+    paket: () => ({ gebiet: 0, reparation: 0, garantien: false, rueckzug: false }),
+  },
+  paket_gegen: {
+    get name() { return t("welle_k4.paket.gegen"); },
+    get text() { return t("welle_k4.paket.gegen.text"); },
+    paket: () => ({ gebiet: 0, reparation: 0, garantien: false, rueckzug: false }),
+  },
+  paket_vermittler: {
+    get name() { return t("welle_k4.paket.vermittler"); },
+    get text() { return t("welle_k4.paket.vermittler.text"); },
+    paket: () => ({ gebiet: 0, reparation: 0, garantien: false, rueckzug: false }),
+  },
 };
+
+/**
+ * Welle 3, K4: Frieden mit einem Paket vom Friedenstisch. Die Forderungen je Region werden zu `forderungen` (für ältere Leser des Pakets)
+ * und zum Feld `tisch`, das friedenSchliessen bucht und über besatzungNachFrieden in die Besatzung schreibt.
+ */
+export function friedenMitTisch(w: World, k: KriegVorgang, tisch: FriedensTisch, paketId: "paket_tisch" | "paket_gegen" | "paket_vermittler"): Ergebnis {
+  const regs = tischRegionen(k, tisch);
+  const halten = regs.some((r) => r.form !== "rueckgabe");
+  const p: FriedensPaket = {
+    gebiet: halten ? 1 : 0,
+    reparation: tisch.reparation ? 1 : 0,
+    garantien: tisch.garantien,
+    rueckzug: !halten,
+    forderungen: Object.fromEntries(regs.map((r) => [r.region.id, r.form === "rueckgabe" ? "rueckgabe" : "halten"] as const)),
+    tisch,
+  };
+  return friedenSchliessen(w, k, p, paketId);
+}
 
 /**
  * Aussicht, dass der Gegner einem Ultimatum nachgibt (0 bis 0,6): Je klarer die Türkei überlegen ist (Stärke samt erwarteter
@@ -1381,7 +1424,32 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   phaseSetzen(w, k, "frieden");
   k.ausgang = p.gebiet === 1 || p.reparation === 1 ? "sieg" : p.gebiet === -1 || p.reparation === -1 ? "frieden" : "weisser_frieden";
   const teile: string[] = [];
-  if (p.gebiet === 1) {
+  // Welle 3, K4: Ein Paket vom Friedenstisch bucht seine Posten selbst (tischBuchungen, dieselben wie in der Anzeige) und schreibt die Form
+  // je Region in die Besatzung; die festen Blöcke darunter gelten nur für die alten Bündel.
+  if (p.tisch) {
+    tischBuchen(w, k, p.tisch);
+    const v = vermittlerVon(w, k);
+    const regs = tischRegionen(k, p.tisch);
+    // Eine Signatur mit K5: die Form je Region als `formen`, dazu die Auflagen und die Frist der Rückgabe
+    const gehalten = besatzungNachFrieden(w, k, p.gebiet, {
+      formen: Object.fromEntries(regs.map((r) => [r.region.id, r.form] as const)),
+      auflagen: { rueckzugKm: p.tisch.rueckzugKm, ...(p.tisch.patrouillen && v ? { patrouillen: v } : {}), ...(p.tisch.rueckkehr ? { rueckkehr: true } : {}) },
+      uebergabeTage: UEBERGABE_TAGE,
+    });
+    const zaehle = (f: string) => Object.values(p.tisch!.regionen).filter((x) => x === f).length;
+    if (gehalten.length) teile.push(t("welle_k4.fr.gehalten", { regionen: gehalten.join(", ") }));
+    if (zaehle("annexion")) teile.push(t("welle_k4.fr.abtretung", { n: zaehle("annexion") }));
+    if (zaehle("satellit")) teile.push(t("welle_k4.fr.satellit", { n: zaehle("satellit") }));
+    if (zaehle("zivil")) teile.push(t("welle_k4.fr.zivil", { n: zaehle("zivil") }));
+    const zurueck = regs.filter((r) => r.form === "rueckgabe" && r.lage === "eigen").length;
+    if (zurueck) teile.push(t("welle_k4.fr.rueckgabe", { n: zurueck, tage: UEBERGABE_TAGE }));
+    if (p.tisch.rueckzugKm) teile.push(t("welle_k4.fr.rueckzug", { km: p.tisch.rueckzugKm }));
+    if (p.tisch.patrouillen && v) teile.push(t("welle_k4.fr.patrouillen", { mit: landNameVon(v) }));
+    if (p.tisch.rueckkehr) teile.push(t("welle_k4.fr.rueckkehr"));
+    if (p.tisch.reparation) teile.push(t("krieg.k.fr.rep_an"));
+    if (p.tisch.garantien) teile.push(t("krieg.k.fr.garantien"));
+  }
+  if (p.gebiet === 1 && !p.tisch) {
     wirke(w, "nationalisten", 6);
     wirke(w, "konservative", 3);
     const ansehen = k.rahmung === "verteidigung" ? -4 : k.rahmung === "revision" ? -6 : -3;
@@ -1397,7 +1465,7 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     }
   }
   // Was die Front hält, wird besetzt (Pufferzone, später Verwaltung, Annexion oder Rückgabe); sonst kehren die Regionen zurück
-  const besetzt = besatzungNachFrieden(w, k, p.gebiet, p.forderungen ? { forderungen: p.forderungen } : {});
+  const besetzt = p.tisch ? [] : besatzungNachFrieden(w, k, p.gebiet, p.forderungen ? { forderungen: p.forderungen } : {});
   // Fernkonflikt: Abschreckung wirkt über die eigene Glaubwürdigkeit, Zugeständnisse über die Reparation (Welle 3, K1)
   if (paketId === "paket_fern_abschreckung") {
     wirke(w, "abschreckung", 3);
@@ -1410,7 +1478,7 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     wirke(w, "konservative", -4);
     teile.push(t("wort.krieg.teil_zugestaendnis"));
   }
-  if (p.reparation === 1) {
+  if (p.reparation === 1 && !p.tisch) {
     kosten(w, -0.8);
     wirke(w, "nationalisten", 2);
     teile.push(t("krieg.k.fr.rep_an"));
@@ -1421,11 +1489,11 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
     landAendern(w, k.land, { handel: 10 }, t("krieg.k.fr.gekauft.notiz"));
     teile.push(t("krieg.k.fr.rep_von"));
   }
-  if (p.garantien) {
+  if (p.garantien && !p.tisch) {
     landAendern(w, k.land, { konflikt: -15, vertrauen: 5, sicherheit: 6 }, t("krieg.k.fr.garantien.notiz"));
     teile.push(t("krieg.k.fr.garantien"));
   }
-  if (p.rueckzug) {
+  if (p.rueckzug && !p.tisch) {
     landAendern(w, k.land, { konflikt: -10 }, t("krieg.k.fr.rueckzug.notiz"));
     wirke(w, "truppenmoral", 2);
     teile.push(t("krieg.k.fr.rueckzug"));
@@ -1735,6 +1803,8 @@ export function spannungsVerlauf(w: World, k: KriegVorgang): SpannungsVerlauf | 
 export function kriegTag(w: World, rng: Rng): void {
   const spiel = w.spiel;
   if (!spiel || spiel.ende) return;
+  // Welle 3, K4: Im Friedensvertrag zurückgegebene Regionen gehen am Tag der Übergabe an den Gegner
+  uebergabenTag(w);
   for (const k of kriege(w)) {
     // Eskalation folgt träge der Konflikt-Dimension des Landes, solange ein Anlass sie nährt; danach klingt sie ab (KRIEG.naehrFrist)
     if (k.phase === "spannung" || k.phase === "drohkulisse") {

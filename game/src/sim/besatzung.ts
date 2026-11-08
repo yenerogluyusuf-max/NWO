@@ -70,7 +70,15 @@ export function besatzungNachFrieden(
   w: World,
   k: KriegVorgang,
   gebiet: -1 | 0 | 1,
-  opts: { forderungen?: Record<string, string>; formen?: Record<string, BesatzungsWahl>; grundlage?: "vertrag" | "linie" } = {},
+  opts: {
+    forderungen?: Record<string, string>;
+    formen?: Record<string, BesatzungsWahl>;
+    grundlage?: "vertrag" | "linie";
+    /** K4 (Friedenstisch): Auflagen des Vertrags je gehaltener Region (BesatzungsGebiet.vertrag) */
+    auflagen?: { rueckzugKm: number; patrouillen?: "USA" | "RUS"; rueckkehr?: boolean };
+    /** K4: Eine Rückgabe per Vertrag geht erst nach so vielen Tagen an den Gegner (uebergabenTag); ohne Angabe sofort */
+    uebergabeTage?: number;
+  } = {},
 ): string[] {
   const lage = k.regionen ?? {};
   const out: string[] = [];
@@ -82,24 +90,35 @@ export function besatzungNachFrieden(
     const gehalten = zielRegionen(k).filter((r) => lage[r.id] === "eigen").map((r) => r.id);
     // Auch was außerhalb des Zielraums schon besetzt war, zählt als gehalten (regionenSetzen hält es auf „eigen“)
     for (const r of regionenVon(k.land)) if (lage[r.id] === "eigen" && !gehalten.includes(r.id)) gehalten.push(r.id);
+    // K4: Eine umkämpfte Region, die der Gegner per Vertrag als Zone räumt, kommt dazu (Vorbild Pence–Erdoğan 17.10.2019, Pkt. 11)
+    for (const r of regionenVon(k.land)) if (lage[r.id] === "umkaempft" && opts.formen?.[r.id] === "zone" && !gehalten.includes(r.id)) gehalten.push(r.id);
     const mitAngabe = !!(opts.forderungen || opts.formen);
     let ids = mitAngabe ? gehalten.filter((id) => { const x = wahl(id); return x !== undefined && x !== "rueckgabe"; }) : gehalten;
     if (!ids.length && grundlage === "vertrag" && !mitAngabe) {
       const erste = zielRegionen(k)[0];
       if (erste) ids = [erste.id];
     }
-    // Ausdrücklich zurückgegeben: auch eine schon besetzte Region geht zurück
-    if (mitAngabe) for (const b of [...besatzung(w)]) if (b.land === k.land && wahl(b.region) === "rueckgabe") regionAufgeben(w, b, "vertrag");
+    // Ausdrücklich zurückgegeben: auch eine schon besetzte Region geht zurück. K4: mit Frist bleibt sie bis zur Übergabe besetzt
+    // (Vorbild Bergkarabach 09./10.11.2020: Kalbadschar, Agdam, Latschin binnen 5 bis 21 Tagen)
+    if (mitAngabe && opts.uebergabeTage !== undefined) {
+      for (const id of gehalten) {
+        if (wahl(id) !== "rueckgabe") continue;
+        const b = besatzungAnlegen(w, { region: id, land: k.land, grundlage });
+        if (b.grundlage === "linie") delete b.grundlage;
+        b.vertrag = { tag: w.day, rueckzugKm: 0, uebergabe: w.day + opts.uebergabeTage };
+      }
+    } else if (mitAngabe) for (const b of [...besatzung(w)]) if (b.land === k.land && wahl(b.region) === "rueckgabe") regionAufgeben(w, b, "vertrag");
     for (const id of ids) {
       const form = (wahl(id) ?? "zone") as BesatzungsForm;
       const da = besatzung(w).find((b) => b.region === id);
+      const b = da ?? besatzungAnlegen(w, { region: id, land: k.land, grundlage });
+      if (opts.auflagen) b.vertrag = { tag: w.day, ...opts.auflagen, ...(form === "annexion" ? { abtretung: true } : {}) };
       if (da) {
         // Eine eingefrorene Linie, die ein Vertrag nun festschreibt
         if (grundlage === "vertrag" && da.grundlage === "linie") delete da.grundlage;
         if (form !== da.form && form !== "zone") formSetzen(w, da, form, { vertrag: grundlage === "vertrag", angriff: tuerkeiBegann(k) });
         continue;
       }
-      const b = besatzungAnlegen(w, { region: id, land: k.land, grundlage });
       if (form !== "zone") formSetzen(w, b, form, { vertrag: grundlage === "vertrag", angriff: tuerkeiBegann(k) });
       out.push(t(`krieg.region.${id}`));
     }
@@ -137,6 +156,18 @@ function formSetzen(w: World, b: BesatzungsGebiet, ziel: BesatzungsForm, opts: {
   const a = FORM[ziel].ansehenWechsel;
   if (a) wirke(w, "ansehen", a);
   if (ziel === "satellit") satellitAusrufen(w, b);
+}
+
+/**
+ * K4: Täglich die im Vertrag zurückgegebenen Regionen am Tag der Übergabe an den Gegner geben (sim/krieg.ts kriegTag). Nur lesen, solange
+ * nichts fällig ist.
+ */
+export function uebergabenTag(w: World): void {
+  const faellig = besatzungLesen(w).filter((b) => b.vertrag?.uebergabe !== undefined && w.day >= b.vertrag.uebergabe);
+  for (const b of faellig) {
+    regionAufgeben(w, b, "vertrag");
+    addLog(w, "ereignis", t("welle_k4.uebergabe.log", { region: t(`krieg.region.${b.region}`), land: land(b.land).name }), t("welle_k4.uebergabe.warum"));
+  }
 }
 
 /** Eine Region aufgeben: Rückgabe per Vertrag, Rückeroberung im Krieg oder Aufstand. Eine Provinz geht dabei verloren. */

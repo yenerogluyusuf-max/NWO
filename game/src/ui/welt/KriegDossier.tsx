@@ -46,6 +46,9 @@ import { Schauplatz } from "../krieg/Schauplatz";
 import { Besatzung } from "../krieg/Besatzung";
 import { Kriegsziel, Leiter } from "../krieg/Leiter";
 import { Pakete } from "../krieg/Pakete";
+// K4: der Friedenstisch mit Forderungen je Region ersetzt in einem Landkrieg mit gehaltenem Gebiet die festen Pakete
+import { Friedenstisch } from "../krieg/Friedenstisch";
+import { tischMoeglich } from "../../sim/friedenstisch";
 import { Fernkonflikt } from "../krieg/Fernkonflikt";
 import { Lagekarte } from "../krieg/Lagekarte";
 import { Operation } from "../krieg/Operation";
@@ -251,7 +254,7 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
       {/* Welle 3, K3: die Operationsform (Luftschlag, begrenzte Bodenoperation, Großoffensive, Landung) mit der Wahl der Verbündeten */}
       {k.phase !== "frieden" && k.phase !== "beendet" && k.phase !== "waffenruhe" && <Operation world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
 
-      {k.phase === "waffenruhe" && <Pakete world={world} k={k} handlungen={handlungen} tun={tun} />}
+      {k.phase === "waffenruhe" && (tischMoeglich(k) ? <Friedenstisch world={world} k={k} handlungen={handlungen} tun={tun} onTat={melde} /> : <Pakete world={world} k={k} handlungen={handlungen} tun={tun} />)}
 
       {haupt.length > 0 && (
         <ul className="we-aktionen kd-handlungen">
@@ -287,7 +290,8 @@ export function KriegDossier({ world, landId, refresh, onTab }: { world: World; 
 
       {/* Nach dem Frieden gibt es keine Einsatzart mehr zu wählen; es zählt, wie der Krieg endete und was die Türkei hält (Welle 3, K1) */}
       {k.phase === "frieden" && k.ausgang && AUSGANG_TEXT.has(k.ausgang) && <p className={`kz-erreicht kd-ausgang-${k.ausgang}`}>{t(`welle_k1.ausgang.${k.ausgang}`)}</p>}
-      {k.phase !== "frieden" && <Schauplatz world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
+      {/* K4: Am Friedenstisch steht die Karte schon oben; der Schauplatz entfällt dann in der Waffenruhe */}
+      {k.phase !== "frieden" && !(k.phase === "waffenruhe" && tischMoeglich(k)) && <Schauplatz world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
       {k.phase !== "frieden" && <Fernkonflikt world={world} k={k} onTat={(text) => melde({ ok: true, text })} />}
 
       <details className="kd-lagebild">

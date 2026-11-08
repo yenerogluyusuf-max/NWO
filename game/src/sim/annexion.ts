@@ -50,6 +50,24 @@ export const ANNEXION_SOFORT = {
   deckel: 1.5,
 };
 
+/**
+ * Die Sofortfolgen einer Annexion, wie `annektiere` sie bucht (K4: der Friedenstisch zeigt sie vor dem Klick aus derselben Rechnung und
+ * bucht sie nicht selbst). Ein Vertrag nach einem Angriff auf die Türkei kostet ein Viertel, ein erzwungener Vertrag wie eine Annexion.
+ */
+export function annexionSofortWerte(opts: { vertrag?: boolean; angriff?: boolean } = {}): { ansehen: number; netz: Record<string, number>; land: { vertrauen: number; konflikt: number }; eu: { konflikt: number; vertrauen: number }; usa: { konflikt: number; vertrauen: number }; ohneUn: boolean } {
+  const ohneUn = !!opts.vertrag && !(opts.angriff ?? true);
+  const f = ohneUn ? 0.25 : 1;
+  const S = ANNEXION_SOFORT;
+  return {
+    ansehen: ohneUn ? -1 : FORM.annexion.ansehenWechsel,
+    netz: Object.fromEntries(Object.entries(S.netz).map(([k, d]) => [k, k === "nationalisten" || k === "konservative" ? d : d * f])),
+    land: { vertrauen: S.land.vertrauen * f, konflikt: S.land.konflikt * f },
+    eu: { konflikt: S.eu.konflikt * f, vertrauen: S.eu.vertrauen * f },
+    usa: { konflikt: S.usa.konflikt * f, vertrauen: S.usa.vertrauen * f },
+    ohneUn,
+  };
+}
+
 export const annexionen = (w: World): AnnexionsVorgang[] => w.spiel?.annexionen ?? [];
 export const laufendeAnnexion = (w: World, landId: string): AnnexionsVorgang | undefined => annexionen(w).find((a) => a.land === landId && a.art === "annexion" && a.stufeMax >= 0 && !istBeendet(w, a));
 
@@ -266,19 +284,20 @@ export function annektiere(w: World, b: BesatzungsGebiet, opts: { vertrag?: bool
   if (!sp) return;
   const vertrag = !!opts.vertrag;
   const angriff = opts.angriff ?? true;
-  const ohneUn = vertrag && !angriff;
   const name = t(`krieg.region.${b.region}`);
   b.form = "annexion";
   b.formSeit = w.day;
   // Wer mitzieht, steht wie in der Vorschau vor dem Schock fest (Konflikt nach dem Schock gerechnet)
   const traeger = traegerNach(w, b.land);
   // Sofortfolgen: Ein erzwungener Vertrag kostet wie eine Annexion, ein Vertrag nach einem Angriff auf die Türkei fast nichts
-  const f = ohneUn ? 0.25 : 1;
-  wirke(w, "ansehen", ohneUn ? -1 : FORM.annexion.ansehenWechsel);
-  for (const [knoten, d] of Object.entries(ANNEXION_SOFORT.netz)) wirke(w, knoten, knoten === "nationalisten" || knoten === "konservative" ? d : d * f);
-  landAendern(w, b.land, { vertrauen: ANNEXION_SOFORT.land.vertrauen * f, konflikt: ANNEXION_SOFORT.land.konflikt * f }, t("krieg.besatzung.grund_annexion", { region: name }));
-  landAendern(w, "EU", { konflikt: ANNEXION_SOFORT.eu.konflikt * f, vertrauen: ANNEXION_SOFORT.eu.vertrauen * f }, t("krieg.besatzung.grund_annexion", { region: name }));
-  landAendern(w, "USA", { konflikt: ANNEXION_SOFORT.usa.konflikt * f, vertrauen: ANNEXION_SOFORT.usa.vertrauen * f }, t("krieg.besatzung.grund_annexion", { region: name }));
+  // (K4: aus annexionSofortWerte, dieselbe Rechnung zeigt der Friedenstisch vor dem Klick)
+  const s = annexionSofortWerte({ vertrag, angriff });
+  const ohneUn = s.ohneUn;
+  wirke(w, "ansehen", s.ansehen);
+  for (const [knoten, d] of Object.entries(s.netz)) wirke(w, knoten, d);
+  landAendern(w, b.land, s.land, t("krieg.besatzung.grund_annexion", { region: name }));
+  landAendern(w, "EU", s.eu, t("krieg.besatzung.grund_annexion", { region: name }));
+  landAendern(w, "USA", s.usa, t("krieg.besatzung.grund_annexion", { region: name }));
   b.widerstand = clamp(b.widerstand + ANNEXION_SOFORT.widerstand * (ohneUn ? 0.5 : 1), 0, 100);
   const p = provinzAnlegen(w, { region: b.region, land: b.land, widerstand: b.widerstand, vertrag });
   b.plaka = p.plaka;

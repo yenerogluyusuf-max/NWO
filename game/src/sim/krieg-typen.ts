@@ -100,9 +100,37 @@ export interface FriedensPaket {
    * geht zurück. Fehlt das Feld, gilt die alte Regel: Bei `gebiet` = 1 hält die Türkei, was die Front hält.
    */
   forderungen?: Record<string, RegionForderung>;
+  /** Welle 3, K4 (krieg.md Schritt 7): das Paket vom Friedenstisch mit Forderungen je Region (sim/friedenstisch.ts). Fehlt es, gilt das feste Bündel. */
+  tisch?: FriedensTisch;
 }
 
 export type RegionForderung = "halten" | "rueckgabe";
+
+/**
+ * Welle 3, K4: Was der Friedenstisch je Region verlangt. „zone“ Sicherheitszone unter türkischer Kontrolle (Sotschi 22.10.2019, Pkt. 3),
+ * „satellit“ Sonderstatus unter türkischem Schutz (Moskauer Abkommen über Transnistrien, 21.07.1992), „annexion“ Abtretung per Vertrag
+ * (Hatay, Vertrag vom 23.06.1939), „zivil“ Zivilverwaltung über die Grenzprovinzen (Gouverneure von Hatay, Kilis, Gaziantep, Şanlıurfa;
+ * HRW 29.02.2024), „rueckgabe“ Übergabe an den Gegner mit Frist (Bergkarabach-Erklärung vom 09./10.11.2020). Die vier ersten sind die
+ * Formen von K5 (`BesatzungsGebiet.form`); der Tisch übergibt sie als `formen` an besatzungNachFrieden.
+ */
+export type TischForm = "zone" | "zivil" | "satellit" | "annexion" | "rueckgabe";
+
+/** Der Entwurf am Friedenstisch (Welle 3, K4): je gehaltener oder umkämpfter Region eine Form, dazu die Auflagen des Vertrags. */
+export interface FriedensTisch {
+  regionen: Record<string, TischForm>;
+  /** Der Gegner zieht seine Kräfte so viele Kilometer hinter die Linie zurück (Sotschi Pkt. 5: 30 km binnen 150 Stunden) */
+  rueckzugKm: 0 | 10 | 30;
+  /** Gemeinsame Patrouillen mit dem Vermittler (Sotschi Pkt. 5: 10 km tief) */
+  patrouillen: boolean;
+  /** Rückkehr von Geflüchteten in die Zone (Sotschi Pkt. 8; Bergkarabach Pkt. 7 unter Aufsicht des UNHCR) */
+  rueckkehr: boolean;
+  /** Reparationen an die Türkei */
+  reparation: boolean;
+  /** Sicherheitsgarantien und Entmilitarisierung der Grenze (Adana-Abkommen, in Sotschi Pkt. 4 bekräftigt) */
+  garantien: boolean;
+  /** Wer das Paket geschnürt hat: der Präsident, der Gegner (Gegenangebot) oder ein Vermittler */
+  von?: "eigen" | "gegner" | "USA" | "RUS";
+}
 
 /** Ziele eines Fernkonflikts ohne gemeinsame Grenze (sim/fernkonflikt.ts): kein Gebiet, sondern ein Ergebnis am Verhandlungstisch. */
 export type FernZiel = "abschreckung" | "zugestaendnisse" | "waffenstillstand";
@@ -231,6 +259,10 @@ export interface KriegVorgang {
   operationWoche?: number;
   /** Wendepunkte dieses Krieges (sim/ereignisse-wendepunkte.ts): Kennung → Kriegswoche, in der er kam. Keiner kommt zweimal. */
   wendepunkte?: Record<string, number>;
+  /** Welle 3, K4: der Entwurf des Präsidenten am Friedenstisch (fehlt, solange er nichts verändert hat; dann gilt der Vorschlag der Lage) */
+  tisch?: FriedensTisch;
+  /** Welle 3, K4: Tag der letzten Ablehnung am Friedenstisch und das Gegenangebot des Gegners, das er dann vorlegt */
+  tischAbgelehnt?: { tag: number; gegen: FriedensTisch };
 }
 
 export type EinsatzWahl = "luft" | "boden" | "see" | "stellvertreter" | "cyber";
@@ -248,6 +280,7 @@ export interface BesatzungsGebiet {
   region: string;
   land: string;
   seit: number;
+  /** Welle 3, K5: zone, zivil, satellit, annexion (data/besatzung.ts); der Friedenstisch (K4) setzt sie über besatzungNachFrieden */
   form: import("../data/besatzung").BesatzungsForm;
   /** 0 bis 100 */
   widerstand: number;
@@ -258,6 +291,12 @@ export interface BesatzungsGebiet {
    * Waffenstillstandslinie ohne Vertrag (Vorbild Zypern 1974). Ältere Einträge haben das Feld nicht und gelten als „vertrag“.
    */
   grundlage?: "vertrag" | "linie";
+  /**
+   * Welle 3, K4: Auflagen des Friedensvertrags für diese Region (nur bei Einträgen vom Friedenstisch): Rückzug des Gegners in km, Patrouillen
+   * mit dem Vermittler, Rückkehr von Geflüchteten, Abtretung mit Zustimmung (Hatay-Weg) und bei einer Rückgabe der Tag der Übergabe (bis dahin bleibt
+   * die Region besetzt, sim/besatzung.ts uebergabenTag).
+   */
+  vertrag?: { tag: number; rueckzugKm: number; patrouillen?: "USA" | "RUS"; rueckkehr?: boolean; abtretung?: boolean; uebergabe?: number };
   /** Welle 3, K5: Tag des letzten Formwechsels (fehlt: seit der Besetzung) */
   formSeit?: number;
   /** Welle 3, K5: zurückgekehrte Geflüchtete in diese Region, Personen (fehlt: 0) */
