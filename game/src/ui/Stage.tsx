@@ -3,8 +3,10 @@ import { geldAusBip } from "../sim/staatsgeld";
 import { defizitJetzt } from "../sim/wirtschaft";
 import type { VersorgungsProgramm } from "../sim/versorgungspolitik";
 import { TransportTafel, transportKartenDaten } from "./gueter/TransportKarte";
-import { kriegsKarte } from "../sim/kriegsschauplatz";
-import { kriege } from "../sim/krieg";
+import { kriegsLage } from "./atlas/front";
+import { OrtswahlStart, SEITENFENSTER_BREITE, ortStil, umschalten, zielTeile, type OrtswahlAnfrage, type OrtswahlZustand } from "./atlas/ortswahl";
+import { OrtswahlLeiste } from "./atlas/OrtswahlLeiste";
+import { frontKamera } from "./linsen/front-linse";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ressourcenMarken, strategieMarken } from "./gueter/linsen";
 import type { World } from "../sim/types";
@@ -197,6 +199,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     if (dossier !== "netze") setNetzeStart(null);
   }, [dossier]);
   const [selected, setSelected] = useState<number | undefined>(undefined);
+  /**
+   * Welle 3, K6 (karte.md K1): laufende Ortswahl. Die Akte bleibt dabei erhalten, ruht aber unsichtbar; das Seitenfenster steht rechts,
+   * die Karte ist frei. Esc oder „Zurück zur Akte“ holt die Akte unverändert zurück, „Übernehmen“ ebenso, mit der Meldung des Ergebnisses.
+   */
+  const [ortswahl, setOrtswahl] = useState<OrtswahlZustand | null>(null);
   /** Kamerafahrt der Karte, etwa zu einem fertigen Wunder */
   /** Reiter der Reich-Akte, den eine Marke der Karte vorgibt (sonst beginnt die Akte bei der Lage) */
   const [reichStart, setReichStart] = useState<"lage" | "bestand" | "neu" | undefined>(undefined);
@@ -362,6 +369,19 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  // Esc beendet die Ortswahl und holt die Akte zurück (vor allen anderen Tasten, die sonst Fenster schließen würden)
+  useEffect(() => {
+    if (!ortswahl) return;
+    const taste = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      setOrtswahl(null);
+    };
+    window.addEventListener("keydown", taste, true);
+    return () => window.removeEventListener("keydown", taste, true);
+  }, [ortswahl]);
+
   // Marken: offene Ereignisse mit Ort und die drei schwersten akuten Probleme
   const marken = useMemo(() => {
     const out: { id: string; plaka: number; art: "ereignis" | "frist" | "krise"; text: string }[] = [];
@@ -424,11 +444,32 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
   // Vorkommen und strategische Orte als kleine Marken unter den Städten, nur in ihrer Linse
   const fundorte = useMemo(() => (ebene === "ressourcen" ? ressourcenMarken() : ebene === "strategie" ? strategieMarken() : []), [ebene]);
 
-  const { fill, legende } = useMemo(
+  const { fill: ebenenFill, legende } = useMemo(
     () => farbenFuerEbene(w, ebene, problemId, netNode),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ebene, problemId, netNode, w.net.month, w.parliament, w.day - (w.day % 30)],
   );
+  // Ortswahl (K6): Stil jedes Ziels aus Bewertung und Auswahl; Provinzen färbt die Karte über `fill`, Regionen zeichnet die Effektschicht
+  const ortZiele = useMemo(() => {
+    if (!ortswahl) return null;
+    const bew = ortswahl.anfrage.bewerte(ortswahl.auswahl);
+    return ortswahl.anfrage.ziele.map((ziel) => {
+      const teile = zielTeile(ziel);
+      const name = teile?.art === "r" ? t(`krieg.region.${teile.id}`) : teile?.art === "p" ? PROVINZEN.find((p) => p.plaka === Number(teile.id))?.name ?? ziel : teile ? landName(teile.id) : ziel;
+      return { ziel, name, stil: ortStil(bew[ziel], ortswahl.auswahl.includes(ziel)) };
+    });
+  }, [ortswahl]);
+  const fill = useMemo(() => {
+    if (!ortZiele?.some((z) => z.ziel.startsWith("p:"))) return ebenenFill;
+    const farbe = { gewaehlt: "#8e2a22", gut: "#d6a848", moeglich: "#ecd6a0", erfuellt: "#a8604a", gesperrt: "#b8b0a2" } as const;
+    const out: Record<number, string> = {};
+    for (const z of ortZiele) if (z.ziel.startsWith("p:")) out[Number(z.ziel.slice(2))] = farbe[z.stil];
+    return out;
+  }, [ortZiele, ebenenFill]);
+  // Front entlang der Regionsgrenzen, Zielraum und Verbände für beide Karten (K6); dieselbe Rechnung für 3D und 2D
+  const lageKrieg = kriegsLage(w);
+  // Ortswahl und Linse „Front und Besatzung“: Die Karte zeigt nur, worum es geht (keine Stadtbanner, Bau- und Länderzeichen)
+  const kriegsBuehne = !!ortswahl || ebene === "front";
 
   const inflation = w.published.inflation.value;
   const own = w.player?.partei.kurz;
@@ -846,21 +887,39 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
     } else gehe(z as Ziel);
   };
   const zeigeKarte = (problemId?: string) => geheVorlage({ art: "karte", ...(problemId ? { problemId } : {}) });
+  // Ortswahl (K6): aus einer Akte gestartet; die Zeit hält an, die Provinzkarte schließt, die Kamera fliegt zum Ort der Frage
+  const starteOrtswahl = (anfrage: OrtswahlAnfrage) => {
+    beendeZeit();
+    setSelected(undefined);
+    setLandAuswahl(null);
+    setOrtswahl({ anfrage, auswahl: anfrage.start.filter((z) => anfrage.ziele.includes(z)) });
+    if (anfrage.kamera) setKamera({ ...anfrage.kamera });
+  };
+  const ortKlick = (ziel: string) => setOrtswahl((o) => (o ? { ...o, auswahl: umschalten(o.anfrage, o.auswahl, ziel) } : o));
+  const ortUebernehmen = () => {
+    if (!ortswahl) return;
+    const r = ortswahl.anfrage.uebernehmen(ortswahl.auswahl);
+    melde({ titel: r.text, ton: r.ok ? "ereignis" : "markt" });
+    if (!r.ok) return;
+    setOrtswahl(null);
+    refresh();
+    sichere(true);
+  };
 
   return (
-    <div className="stage">
+    <div className={`stage${ortswahl ? " ortswahl-an" : ""}`}>
       <AtlasMap
         className="stage-map"
-        sparsam={!!dossier}
+        sparsam={!!dossier && !ortswahl}
         fill={fill}
         fillAlpha={ebene === "wahl" ? 0.56 : 0.62}
         selected={selected}
-        labels={ebene === "versorgung" ? [] : ALLE_PROVINZEN}
+        labels={ebene === "versorgung" || kriegsBuehne ? [] : ALLE_PROVINZEN}
         stadtInfo={stadtInfo}
-        neubau={neubauLinien(w)}
+        neubau={kriegsBuehne ? [] : neubauLinien(w)}
         geoLabels={geoLabels}
-        onSelect={(p) => setSelected(p)}
-        orte={ebene === "versorgung" ? [] : orte}
+        onSelect={(p) => { if (!ortswahl) setSelected(p); }}
+        orte={ebene === "versorgung" || kriegsBuehne ? [] : orte}
         onOrt={(id, ort) => {
           // Klick auf eine Marke: die Akte des Reiches öffnen, im Reiter, den die Tafel genannt hat (Lage oder Pflegen)
           setReichStart(ort?.klickTab);
@@ -882,7 +941,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             if (plaka) { setSelected(plaka); setEbene("probleme"); }
           }
         }}
-        laenderPins={ebene === "versorgung" ? [] : laenderPins}
+        laenderPins={ebene === "versorgung" || kriegsBuehne ? [] : laenderPins}
         {...(landAuswahl ? { landAuswahl: landAuswahl.iso } : {})}
         onLand={(iso, pos) => setLandAuswahl({ iso, x: pos?.x ?? window.innerWidth / 2, y: pos?.y ?? window.innerHeight / 2 })}
         fundorte={fundorte}
@@ -892,7 +951,11 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         }}
         {...(ebene === "welt" ? { laenderFarben: laenderKarte } : {})}
         ebene={ebene}
-        krieg={kriegsKarte(w, kriege(w), provinceLonLat)}
+        krieg={lageKrieg.karte}
+        front={lageKrieg}
+        ortswahl={ortZiele ? { ziele: ortZiele } : null}
+        onOrtswahl={ortKlick}
+        randRechts={ortswahl ? SEITENFENSTER_BREITE + 32 : 0}
         {...(ebene === "versorgung" ? { versorgung: transportKartenDaten(w, transportGas, transportAuswahl), onTransport: waehleTransport } : {})}
         {...(ebene === "belastung" ? { hoverZeilen: (p: number) => belastungZeilen(w, p) } : {})}
         datum={w.date}
@@ -947,7 +1010,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
 
 
       {dossier && (
-        <section className={`dossier frame${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "strasse" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "medien" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
+        <section className={`dossier frame${ortswahl ? " ortswahl-ruht" : ""}${gruppe?.akte || dossier === "wirtschaft" ? " dossier--bereich" : ""}${dossier === "netz" ? " full" : dossier === "schreibtisch" || dossier === "gespraech" || dossier === "waehler" || dossier === "strasse" || dossier === "wahlkampf" || dossier === "katastrophe" || dossier === "welt" || dossier === "wirtschaft" || dossier === "entscheidungen" || dossier === "parlament" || dossier === "gesetze" || dossier === "verfassung" || dossier === "personen" || dossier === "chronik" || dossier === "bereiche" || dossier === "politik" || dossier === "beschluesse" || dossier === "programme" || dossier === "wissensbaum" || dossier === "fokusbaum" || dossier === "grosseziele" || dossier === "zeitung" || dossier === "medien" || dossier === "speicher" || dossier === "wirkungsbericht" || dossier?.startsWith("reich_") ? " wide" : ""}${dossier === "politik" || dossier === "schreibtisch" ? " po-breit" : ""}`} aria-label={gruppe?.titel}>
           {/* Alle Akten im selben Leder- und Goldrahmen (GESTALTUNG_2026-11-04, G1) */}
           <Corners />
           <header className="dossier-head">
@@ -973,6 +1036,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
             )}
             <Fehlergrenze titel={gruppe?.titel ?? tx("ui2.ui.Stage.de4742a")} onZu={() => setDossier(null)} zuruecksetzen={dossier}>
             <SprungKontext.Provider value={gehe}>
+            <OrtswahlStart.Provider value={starteOrtswahl}>
             <AkteRahmen
               bereich={gruppe?.akte}
               world={w}
@@ -1216,10 +1280,20 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
               />
             )}
             </AkteRahmen>
+            </OrtswahlStart.Provider>
             </SprungKontext.Provider>
             </Fehlergrenze>
           </div>
         </section>
+      )}
+
+      {ortswahl && (
+        <OrtswahlLeiste
+          zustand={ortswahl}
+          onStreichen={(ziel) => setOrtswahl((o) => (o ? { ...o, auswahl: o.anfrage.bereinige ? o.anfrage.bereinige(o.auswahl.filter((z) => z !== ziel)) : o.auswahl.filter((z) => z !== ziel) } : o))}
+          onUebernehmen={ortUebernehmen}
+          onAbbrechen={() => setOrtswahl(null)}
+        />
       )}
 
       <LinsenWahl
@@ -1228,7 +1302,12 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
         netName={ebene === "netz" ? NET.nodes[NET.index.get(netNode)!]!.name : undefined}
         problemId={problemId}
         legende={ebene === "versorgung" ? undefined : legende}
-        onEbene={(e) => setEbene(e)}
+        onEbene={(e) => {
+          setEbene(e);
+          // K6: Die Linse „Front und Besatzung“ fliegt zum Schauplatz
+          const ziel = e === "front" ? frontKamera(w) : undefined;
+          if (ziel) setKamera({ ...ziel });
+        }}
         onProblem={(id) => setProblemId(id)}
         gesperrt={!!dossier || !!bilanz || !!standDerD || !!intro || zielWahlOffen || !!hinweis || !!offen || !!spiel?.reich?.feier[0] || !!landAuswahl}
       />
@@ -1237,7 +1316,7 @@ export function Stage({ world: initial, onNeu, geladen }: { world: World; onNeu:
       <Plakette world={w} ebene={ebene} />
       <img className="compass" src="/ui/kompass.png" alt="" />
       <div className="karten-werkzeuge" hidden={ebene === "versorgung"}>
-        <MarkenLegende fund={ebene === "ressourcen" || ebene === "strategie" ? ebene : undefined} krieg={!!kriegsKarte(w, kriege(w), provinceLonLat)} />
+        <MarkenLegende fund={ebene === "ressourcen" || ebene === "strategie" ? ebene : undefined} krieg={!!lageKrieg.karte} />
         <Effekte />
       </div>
 

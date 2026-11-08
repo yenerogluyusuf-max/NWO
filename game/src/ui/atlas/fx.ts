@@ -12,7 +12,7 @@ import type { KFlaeche } from "./daten";
 import { huelle } from "./tinte";
 import type { AtlasScene } from "./scene";
 import type { VectorLayer } from "./vector";
-import { zeichneKrieg, type KriegUv } from "./kriegsfx";
+import { zeichneKrieg, zeichneOrtswahl, type KriegUv, type OrtswahlUvRegion } from "./kriegsfx";
 
 export interface FxZiel {
   hover?: number;
@@ -73,6 +73,8 @@ export class FxLayer {
   private gezeichnet = false;
   /** Lage laufender Kriege und Besatzungen (kriegsfx.ts); null = nichts zu zeigen */
   private krieg: KriegUv | null = null;
+  /** Ortswahl (Welle 3, K6): wählbare Regionen nach Bewertung über der Kriegslage; null = keine Ortswahl */
+  private ortswahl: OrtswahlUvRegion[] | null = null;
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -124,6 +126,12 @@ export class FxLayer {
   /** Kriegslage setzen (Regionen, Front, Vorstöße); null blendet sie aus. */
   setKrieg(k: KriegUv | null): void {
     this.krieg = k;
+    this.gezeichnet = true;
+  }
+
+  /** Ortswahl setzen (Regionen mit Bewertung, Auswahl, Zeiger); null blendet sie aus. */
+  setOrtswahl(o: OrtswahlUvRegion[] | null): void {
+    this.ortswahl = o;
     this.gezeichnet = true;
   }
 
@@ -197,7 +205,7 @@ export class FxLayer {
     const ctx = this.ctx;
     const dt = this.letzteZeit ? Math.min(100, jetztMs - this.letzteZeit) : 16;
     this.letzteZeit = jetztMs;
-    const etwas = this.aktiv(stufe) || !!this.krieg;
+    const etwas = this.aktiv(stufe) || !!this.krieg || !!this.ortswahl;
     if (!etwas && !this.gezeichnet) return;
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     ctx.clearRect(0, 0, this.cssW, this.cssH);
@@ -223,6 +231,7 @@ export class FxLayer {
 
     // Kriegslage unter allem Übrigen (Regionen, Front, Vorstöße)
     if (this.krieg) zeichneKrieg(ctx, this.atlas, this.krieg, jetztMs, z, zierBewegung(stufe, true));
+    if (this.ortswahl) zeichneOrtswahl(ctx, this.atlas, this.ortswahl, z);
 
     // Tinte (Besitzerwechsel)
     for (let i = this.tinten.length - 1; i >= 0; i--) {

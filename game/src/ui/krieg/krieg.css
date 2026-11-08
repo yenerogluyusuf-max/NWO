@@ -117,3 +117,8 @@
 .kf-zeile { display: grid; grid-template-columns: 11em 1fr auto; gap: var(--abstand-2); align-items: center; font: var(--schrift-2) var(--serif); color: var(--tinte-2); }
 .kf-zeile b { font: 600 var(--schrift-2) var(--serif); color: var(--tinte-1); font-variant-numeric: tabular-nums; }
 @container (max-width: 520px) { .kf-zeile { grid-template-columns: 1fr auto; } .kf-zeile .kp-balken { grid-column: 1 / -1; grid-row: 2; } }
+/* K6: Kriegsziel auf der Karte (Ortswahl) und eigene Auswahl der Regionen */
+.kz-reihe > .kz-karte { grid-column: 2; display: flex; flex-wrap: wrap; align-items: center; gap: var(--abstand-2) var(--abstand-3); }
+.kz-eigen { margin: 0; padding: 6px 10px; border: 1.5px solid var(--siegel); border-radius: var(--rund-2); background: var(--papier-1); font: 400 var(--schrift-2)/1.35 var(--serif); color: var(--tinte-2); }
+.kz-eigen strong { color: var(--tinte-1); font-weight: 600; }
+.kz-karte-knopf .icon { flex: none; }
