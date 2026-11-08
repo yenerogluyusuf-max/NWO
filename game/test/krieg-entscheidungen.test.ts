@@ -17,7 +17,10 @@ describe("Ein Krieg von drei bis sechs Monaten hat acht bis zwölf echte Entsche
   const faelle: [string, () => World, Parameters<typeof fuehreKrieg>[1]][] = [
     ["Syrien frisch, begrenzt mit der SNA", () => frisch(), { land: "SYR", zielraum: "syr_grenzstreifen", form: "begrenzt", mit: "sna" }],
     ["Syrien frisch, Luftschlag, dann Boden", () => frisch(), { land: "SYR", zielraum: "syr_grenzstreifen", form: "luftschlag" }],
-    ["Syrien frisch, Großoffensive", () => frisch(), { land: "SYR", zielraum: "syr_tief", form: "grossoffensive", mobil: true }],
+    // Nachauftrag 08.11.: Mit K2s Fläche statt Regionenzahl ist der tiefe Zielraum (syr_tief, 37.357 km², Schwierigkeit 1,2) ein Krieg von über
+    // einem Jahr (384 km² je Woche, nach 57 Wochen 47 %); er liegt außerhalb der drei bis sechs Monate, um die es hier geht. Die Großoffensive
+    // läuft deshalb mit der SNA im Grenzstreifen (10.485 km²): 15 Kriegswochen.
+    ["Syrien frisch, Großoffensive mit der SNA im Grenzstreifen", () => frisch(), { land: "SYR", zielraum: "syr_grenzstreifen", form: "grossoffensive", mit: "sna", mobil: true }],
     ["Griechenland frisch, Landung auf den Inseln", () => frisch(), { land: "GRC", zielraum: "grc_inseln", form: "landung", mobil: true }],
   ];
   if (existsSync(SAVE43)) faelle.push(["Griechenland im Stand des Inhabers 2043, Landung", () => load(JSON.stringify(JSON.parse(readFileSync(SAVE43, "utf8")).welt)), { land: "GRC", zielraum: "grc_inseln", form: "landung", mobil: true }]);
