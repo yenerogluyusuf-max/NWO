@@ -3,6 +3,7 @@
 // Tagarbeit 6. November (T4): Instrumente in einer Reihe, die Züge der Opposition neben ihrer Führung, Rathäuser als kompakte Zeilen
 // je Region mit der Handlung auf Klick, und die ruhige Straße zeigt, welche Bewegung als nächste entstehen könnte.
 
+import { NeueProvinzenListe } from "../krieg/NeueProvinzen"; // Welle 3, K5
 import { useState } from "react";
 import type { World } from "../../sim/types";
 import { gesellschaftLage, gesellschaftVon, milieuLage } from "../../sim/gesellschaft";
@@ -327,6 +328,8 @@ function Kommunen({ world, onAktion }: { world: World; onAktion: (text: string) 
         {letzte ? " " + t("ges.kom.letzte", { d: formatDateDe(letzte.datum), vorher: letzte.lagerVorher, nachher: letzte.lagerNachher }) : ""}{" "}
         {t("ges.kom.verwalter_hinweis", { k: VERWALTER_KOSTEN.kapital })} <span className="ges-legende">{t("tag_t4.kom.legende")}</span>
       </p>
+      {/* Welle 3, K5: neue Provinzen aus annektierten Regionen (Gouverneur statt Rathaus, sim/provinzen-neu.ts) */}
+      <NeueProvinzenListe world={world} />
       <div className="ges-regionen">
         {SPALTEN.map((spalte, i) => (
           <div key={i} className="ges-spalte">

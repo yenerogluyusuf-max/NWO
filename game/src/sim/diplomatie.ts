@@ -184,6 +184,7 @@ function tageSeit(heute: string, damals: string): number {
  */
 export { SANKTION_GEZIELT, breiteSanktionVon } from "./sanktion-art";
 import { kraenke } from "./kraenkung";
+import { annexionsLast } from "./annexion"; // Welle 3, K5
 
 export const SANKTION_LAST = {
   caatsa: { risiko: 25, nachfrage: 0 },
@@ -199,8 +200,14 @@ export const SANKTION_LAST = {
   einlenkenJeMonat: 0.05,
 } as const;
 
-function sanktionsLastBerechnen(a: AussenZustand): { risiko: number; nachfrage: number } {
+function sanktionsLastBerechnen(a: AussenZustand, w?: World): { risiko: number; nachfrage: number } {
   let risiko = 0, nachfrage = 0;
+  // Welle 3, K5: Sanktionen nach einer Annexion (sim/annexion.ts, Krim-Stufen); der Teil der EU zählt neben einer EU-Handelssanktion nicht doppelt
+  if (w?.spiel?.annexionen?.length) {
+    const x = annexionsLast(w);
+    risiko += x.risiko;
+    nachfrage += x.nachfrage;
+  }
   const start = a.startSanktionen ?? [];
   for (const s of a.sanktionen) if (!start.includes(s.id)) { risiko += SANKTION_LAST[s.id].risiko; nachfrage += SANKTION_LAST[s.id].nachfrage; }
   // Aufgehobene Startsanktion: Der eingepreiste Aufschlag fällt weg (Entlastung gegenüber dem Start)
@@ -411,7 +418,7 @@ export function aussenMonat(w: World, m: WeltModell): void {
     addLog(w, "ereignis", t("aussen.sanktion.eingelenkt_titel", { land: akteurName(id) }), t("aussen.sanktion.eingelenkt", { land: akteurName(id) }));
   }
   // Die Last aller Sanktionen auf Märkte und Nachfrage (economy.ts liest sie täglich bzw. monatlich)
-  w.economy.sanktionsLast = sanktionsLastBerechnen(a);
+  w.economy.sanktionsLast = sanktionsLastBerechnen(a, w);
 
   // 8. Partner können Verträge brechen (heute brach nur die Türkei)
   for (const v of alleLaufenden(w)) {
@@ -688,12 +695,12 @@ export function fuehreInstrumentAus(w: World, id: InstrumentId, landId?: string,
         hinweis(w, `aussen-gegensanktion-${landId}-${w.day}`, t("aussen.sanktion.gegen_titel", { land: akteurName(landId!) }), [t("aussen.sanktion.gegen", { land: akteurName(landId!) })]);
         addLog(w, "ereignis", t("aussen.sanktion.gegen_titel", { land: akteurName(landId!) }), t("aussen.sanktion.gegen", { land: akteurName(landId!) }));
       }
-      w.economy.sanktionsLast = sanktionsLastBerechnen(a);
+      w.economy.sanktionsLast = sanktionsLastBerechnen(a, w);
       break;
     case "sanktion_aufheben":
       a.eigeneSanktionen = a.eigeneSanktionen.filter((x) => x !== landId);
       a.gegenSanktionen = (a.gegenSanktionen ?? []).filter((x) => x !== landId);
-      w.economy.sanktionsLast = sanktionsLastBerechnen(a);
+      w.economy.sanktionsLast = sanktionsLastBerechnen(a, w);
       landAendern(w, landId!, { handel: 6, konflikt: -5 }, t("aussen.notiz.sanktion_ende"));
       break;
     case "rueckfuehrung":

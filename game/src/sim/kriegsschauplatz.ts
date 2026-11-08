@@ -10,15 +10,11 @@
 // `besatzungNachFrieden` und `kriegsschauplatzMonat` auf. Alle Zahlen sind Spielparameter, außer den in data/schauplaetze.ts belegten.
 
 import {
-  BESATZUNG,
   EINSATZ,
   GEGNER_BESTAND,
   GEGNER_BESTAND_STANDARD,
-  REGIONEN,
   REGION_NACH_ID,
-  SCHAUPLATZ_NACH_LAND,
   TEMPO,
-  ZIELRAUM_REGIONEN,
   type BesatzungsForm,
   type EinsatzArt,
   type GegnerBestandDef,
@@ -28,7 +24,9 @@ import {
   type Region,
   type Schauplatz,
 } from "../data/schauplaetze";
-import type { BesatzungsGebiet, FriedensTisch, KriegVorgang, RegionLage } from "./krieg-typen";
+import type { KriegVorgang, RegionLage } from "./krieg-typen";
+import { regionenVon, schauplatzFuer, zielRegionen } from "./schauplatz-regionen";
+import { besatzungLesen, besatzungMonat, revancheLage } from "./besatzung";
 import type { GattungId } from "../data/streitkraefte";
 import { einsatzGeneration, einsatzIndex, kriegsVerluste, verbraucheMunition, streitkraefte } from "./streitkraefte";
 import { wirke } from "./wirkung";
@@ -37,7 +35,6 @@ import { kosten } from "./ereignis-hilfen";
 import { kannZahlen } from "./kapital";
 import { land, landAendern, weltZustand } from "./laender";
 import { eigenVon } from "./welt-modell";
-import { aussenZustand } from "./diplomatie";
 import { FERN, cyberFaktor, istFernkonflikt } from "./fernkonflikt";
 import { t } from "../i18n";
 import type { World } from "./types";
@@ -117,22 +114,8 @@ const GEMISCHT_GELAENDE: Record<Gelaende, number> = { ebene: 1.1, berge: 0.75, s
 // ---------------------------------------------------------------------------
 // Daten des Vorgangs
 
-export function schauplatzFuer(landId: string): Schauplatz | undefined {
-  return SCHAUPLATZ_NACH_LAND[landId];
-}
-
-export function regionenVon(landId: string): Region[] {
-  const s = schauplatzFuer(landId);
-  return s ? REGIONEN.filter((r) => r.schauplatz === s.id) : [];
-}
-
-/** Die Zielregionen des Vorgangs in der Reihenfolge, in der die Front sie nimmt (Tiefe, dann Lage im Datensatz). */
-export function zielRegionen(k: KriegVorgang): Region[] {
-  const ids = k.zielraum ? ZIELRAUM_REGIONEN[k.zielraum] : undefined;
-  const alle = regionenVon(k.land);
-  const liste = ids ? ids.map((id) => REGION_NACH_ID[id]).filter((r): r is Region => !!r) : alle.filter((r) => r.tiefe === 1);
-  return [...liste].sort((a, b) => a.tiefe - b.tiefe);
-}
+// Welle 3, K5: in sim/schauplatz-regionen.ts herausgelöst (sim/besatzung.ts braucht sie ohne Ladezyklus); hier weitergereicht
+export { regionenVon, schauplatzFuer, zielRegionen };
 
 export function einsatzVon(k: KriegVorgang): EinsatzArt | "gemischt" {
   return k.einsatz ?? "gemischt";
@@ -475,14 +458,15 @@ export function regionenSetzen(w: World, k: KriegVorgang): void {
   if (k.phase === "krieg" && k.front > 50 && n < ziel.length) lage[ziel[n]!.id] = "umkaempft";
   // Was die Türkei schon besetzt hält (Frieden oder eingefrorene Linie), bleibt türkisch: Ein neuer Krieg erobert es nicht ein zweites Mal
   // (krieg.md Befund A6; die Eingliederung baut Schritt 9)
-  for (const b of w.spiel?.besatzung ?? []) if (b.land === k.land && lage[b.region] !== undefined) lage[b.region] = "eigen";
+  // Welle 3, K5 (Revanche): Ist der Gegner im Vorteil, holt er sich zuerst die gehaltenen Regionen zurück (sim/besatzung.ts)
+  const haeltNoch = revancheLage(w, k, lage, SCHAUPLATZ.bedrohtAb, SCHAUPLATZ.bedrohtSpanne);
   k.regionen = lage;
   const s = schauplatzFuer(k.land);
   // Der Landkrieg beginnt an der Grenze (Welle 3, K2): Die Überlegenheit zeigt sich im Tempo, nicht in Fläche am ersten Tag. Vorher
   // begann die Front je nach Stärke bei bis zu 75 und nahm in einem Lauf gegen Syrien gleich zu Beginn ein Viertel des Zielraums.
   if (k.phase === "krieg" && k.woche === 0 && s && !istFernkonflikt(k.land)) k.front = Math.min(k.front, SCHAUPLATZ.frontStart);
   const druck = clamp((SCHAUPLATZ.bedrohtAb - k.front) / SCHAUPLATZ.bedrohtSpanne, 0, 1);
-  k.bedroht = s && k.phase === "krieg" && druck > 0 ? s.grenzprovinzen.slice(0, Math.ceil(druck * s.grenzprovinzen.length)) : [];
+  k.bedroht = s && k.phase === "krieg" && druck > 0 && !haeltNoch ? s.grenzprovinzen.slice(0, Math.ceil(druck * s.grenzprovinzen.length)) : [];
 }
 
 /** Einen Zielraum wechseln oder setzen: Die Regionen ordnen sich neu (Bereits Genommenes bleibt, solange die Front es deckt). */
@@ -509,227 +493,18 @@ export function kriegsschauplatzMonat(w: World, kriege: KriegVorgang[]): void {
 }
 
 // ---------------------------------------------------------------------------
-// Besatzung
+// Besatzung: seit Welle 3, K5 in sim/besatzung.ts (fünf Formen, Annexion als Provinz); hier weitergereicht, damit sim/krieg.ts, der
+// Friedenstisch (K4) und ältere Aufrufer unverändert bleiben
 
-export function besatzung(w: World): BesatzungsGebiet[] {
-  const sp = w.spiel;
-  if (!sp) return [];
-  sp.besatzung ??= [];
-  return sp.besatzung;
-}
-
-/**
- * Nach einem Frieden mit Gebietsgewinn (Paket mit `gebiet` = 1): Was die Türkei hält, wird besetzt (Form „Pufferzone“, die der Spieler
- * später ändern kann). Hält sie nichts, wird die umkämpfte Grenzregion zur Pufferzone (der frühere Sinn des Pakets). Ohne Gebietsgewinn
- * kehren alle Regionen zurück. Rückgabe: die Namen der besetzten Regionen (für den Friedenstext).
- *
- * Welle 3, K1: Ein Paket mit `forderungen` hält genau die Regionen mit „halten“ (Schritt 7 baut die Forderungen je Region aus). Mit
- * `grundlage` „linie“ (eingefrorener Konflikt ohne Vertrag) bleibt nur, was die Front tatsächlich hält, und nichts wird ersatzweise besetzt.
- */
-export function besatzungNachFrieden(
-  w: World,
-  k: KriegVorgang,
-  gebiet: -1 | 0 | 1,
-  opts: { forderungen?: Record<string, string>; grundlage?: "vertrag" | "linie"; tisch?: FriedensTisch; patrouillen?: "USA" | "RUS" } = {},
-): string[] {
-  const lage = k.regionen ?? {};
-  const liste = besatzung(w);
-  const out: string[] = [];
-  const grundlage = opts.grundlage ?? "vertrag";
-  // Welle 3, K4: das Paket vom Friedenstisch schreibt je Region die Form (Schnittstelle zu K5, `BesatzungsGebiet.form` und `vertrag`)
-  if (opts.tisch) {
-    tischInBesatzung(w, k, opts.tisch, opts.patrouillen, out);
-    const jetzt = besatzung(w);
-    k.regionen = Object.fromEntries(regionenVon(k.land).map((r) => [r.id, jetzt.some((b) => b.region === r.id) ? "eigen" : "gegner"] as const));
-    k.bedroht = [];
-    return out;
-  }
-  if (gebiet === 1) {
-    const gehalten = zielRegionen(k).filter((r) => lage[r.id] === "eigen").map((r) => r.id);
-    // Auch was außerhalb des Zielraums schon besetzt war, zählt als gehalten (regionenSetzen hält es auf „eigen“)
-    for (const r of regionenVon(k.land)) if (lage[r.id] === "eigen" && !gehalten.includes(r.id)) gehalten.push(r.id);
-    let ids = opts.forderungen ? gehalten.filter((id) => opts.forderungen![id] === "halten") : gehalten;
-    if (!ids.length && grundlage === "vertrag" && !opts.forderungen) {
-      const erste = zielRegionen(k)[0];
-      if (erste) ids = [erste.id];
-    }
-    for (const id of ids) {
-      const da = liste.find((b) => b.region === id);
-      if (da) {
-        // Eine eingefrorene Linie, die ein Vertrag nun festschreibt
-        if (grundlage === "vertrag" && da.grundlage === "linie") delete da.grundlage;
-        continue;
-      }
-      liste.push({ region: id, land: k.land, seit: w.day, form: "pufferzone", widerstand: 30, aufstand: 0, ...(grundlage === "linie" ? { grundlage } : {}) });
-      out.push(t(`krieg.region.${id}`));
-    }
-  }
-  if (gebiet !== 1 && grundlage === "vertrag") {
-    // Ein Frieden ohne Gebiet gibt auch eine eingefrorene Linie zurück
-    w.spiel!.besatzung = liste.filter((b) => !(b.land === k.land && b.grundlage === "linie"));
-  }
-  const jetzt = besatzung(w);
-  k.regionen = Object.fromEntries(regionenVon(k.land).map((r) => [r.id, jetzt.some((b) => b.region === r.id) ? "eigen" : "gegner"] as const));
-  k.bedroht = [];
-  return out;
-}
-
-/**
- * Welle 3, K4: Tage bis zur Übergabe einer Region, die der Friedensvertrag zurückgibt. Spielparameter nach dem Vorbild der Erklärung zu
- * Bergkarabach vom 09./10.11.2020: Kalbadschar bis 15.11., Agdam bis 20.11., Latschin bis 01.12.2020, also 5 bis 21 Tage
- * (https://en.wikipedia.org/wiki/2020_Nagorno-Karabakh_ceasefire_agreement). Sotschi gab dem Rückzug 150 Stunden (Pkt. 5).
- */
-export const UEBERGABE_TAGE = 21;
-
-/** Welle 3, K4: Die Form je Region aus dem Friedenstisch in die Besatzung schreiben (über diese Anlage-Funktion, wie K5 es erwartet). */
-function tischInBesatzung(w: World, k: KriegVorgang, tisch: FriedensTisch, patrouillen: "USA" | "RUS" | undefined, out: string[]): void {
-  const lage = k.regionen ?? {};
-  const liste = besatzung(w);
-  for (const r of regionenVon(k.land)) {
-    const l = lage[r.id];
-    const form = tisch.regionen[r.id] ?? (l === "eigen" ? "zone" : undefined);
-    if (!form) continue;
-    // Eine umkämpfte Region kommt nur als Zone dazu (der Gegner räumt sie), alles andere nur, was die Türkei hält
-    if (l !== "eigen" && !(l === "umkaempft" && form === "zone")) continue;
-    const vertrag: NonNullable<BesatzungsGebiet["vertrag"]> = {
-      tag: w.day,
-      rueckzugKm: form === "rueckgabe" ? 0 : tisch.rueckzugKm,
-      ...(tisch.patrouillen && patrouillen && form !== "rueckgabe" ? { patrouillen } : {}),
-      ...(tisch.rueckkehr && form !== "rueckgabe" ? { rueckkehr: true } : {}),
-      ...(form === "annexion" ? { abtretung: true } : {}),
-      ...(form === "rueckgabe" ? { uebergabe: w.day + UEBERGABE_TAGE } : {}),
-    };
-    const da = liste.find((b) => b.region === r.id);
-    if (da) {
-      da.form = form;
-      da.vertrag = vertrag;
-      delete da.grundlage;
-    } else {
-      liste.push({ region: r.id, land: k.land, seit: w.day, form, widerstand: 30, aufstand: 0, vertrag });
-    }
-    if (form !== "rueckgabe") out.push(t(`krieg.region.${r.id}`));
-  }
-  w.spiel!.besatzung = liste;
-}
-
-/**
- * Welle 3, K4, Übergang bis K5: Die neuen Formen vom Friedenstisch rechnen bis zur Überführung durch K5 mit den Werten der alten
- * (Zone wie Pufferzone, Sonderstatus und Zivilverwaltung wie Zivilverwaltung, die Übergabe wie eine Pufferzone bis zum Tag der Übergabe).
- */
-export function formAlt(f: BesatzungsGebiet["form"]): BesatzungsForm {
-  if (f === "zone" || f === "rueckgabe") return "pufferzone";
-  if (f === "zivil" || f === "satellit") return "verwaltung";
-  return f;
-}
-
-export interface BesatzungsSicht extends BesatzungsGebiet {
-  kostenMonat: number;
-  widerstandZiel: number;
-  gelaende: Gelaende;
-  ressource?: Region["ressource"];
-}
-
-function widerstandZiel(w: World, b: BesatzungsGebiet): number {
-  const r = REGION_NACH_ID[b.region];
-  const konflikt = weltZustand(w)[b.land]?.konflikt ?? 50;
-  return clamp(BESATZUNG.widerstandZiel[formAlt(b.form)] + (r ? BESATZUNG.gelaendeWiderstand[r.gelaende] : 0) + 0.2 * (konflikt - 50), 0, 100);
-}
-
-function kostenMonat(b: BesatzungsGebiet): number {
-  const r = REGION_NACH_ID[b.region];
-  // Ölfelder unter Kontrolle tragen einen Teil der Kosten selbst (Spielparameter)
-  return BESATZUNG.kosten[formAlt(b.form)] - (r?.ressource === "oel" ? 0.008 : 0);
-}
-
-export function besatzungsSicht(w: World): BesatzungsSicht[] {
-  return besatzung(w).map((b) => {
-    const r = REGION_NACH_ID[b.region];
-    return { ...b, kostenMonat: r1(kostenMonat(b) * 1000) / 1000, widerstandZiel: Math.round(widerstandZiel(w, b)), gelaende: r?.gelaende ?? "ebene", ...(r?.ressource ? { ressource: r.ressource } : {}) };
-  });
-}
-
-/** Die Form einer Besatzung ändern (Pufferzone, Zivilverwaltung mit Wiederaufbau, Annexion) oder die Region zurückgeben. */
-export function aendereBesatzung(w: World, regionId: string, ziel: BesatzungsForm | "rueckgabe"): { ok: boolean; text: string } {
-  const sp = w.spiel;
-  const liste = besatzung(w);
-  const b = liste.find((x) => x.region === regionId);
-  if (!sp || !b) return { ok: false, text: t("krieg.besatzung.unbekannt") };
-  const name = t(`krieg.region.${regionId}`);
-  const l = land(b.land);
-  if (ziel === "rueckgabe") {
-    sp.besatzung = liste.filter((x) => x !== b);
-    landAendern(w, b.land, { vertrauen: 8, konflikt: -10 }, t("krieg.besatzung.grund_rueckgabe", { region: name }));
-    wirke(w, "ansehen", 2);
-    wirke(w, "nationalisten", -3);
-    const text = t("krieg.besatzung.zurueck", { region: name, land: l.name });
-    addLog(w, "entscheidung", text, t("krieg.besatzung.zurueck_why"));
-    return { ok: true, text };
-  }
-  if (b.form === ziel) return { ok: false, text: t("krieg.besatzung.schon") };
-  const pk = ziel === "annexion" ? BESATZUNG.pkAnnexion : BESATZUNG.pkWechsel;
-  if (!kannZahlen(sp.kapital, pk)) return { ok: false, text: t("krieg.besatzung.kapital", { pk }) };
-  sp.kapital -= pk;
-  b.form = ziel;
-  if (ziel === "annexion") {
-    // Annexion: innen ein Triumph für Hardliner, außen ein Bruch des Völkerrechts mit Sanktionsfolgen (sim/diplomatie.ts Sanktionsregeln)
-    wirke(w, "ansehen", -8);
-    wirke(w, "beziehungen_eu", -6);
-    wirke(w, "nationalisten", 4);
-    wirke(w, "konservative", 1);
-    wirke(w, "staedtische_saekulare", -2);
-    landAendern(w, b.land, { vertrauen: -25, konflikt: 20 }, t("krieg.besatzung.grund_annexion", { region: name }));
-    landAendern(w, "EU", { konflikt: 15, vertrauen: -8 }, t("krieg.besatzung.grund_annexion", { region: name }));
-    landAendern(w, "USA", { konflikt: 8, vertrauen: -5 }, t("krieg.besatzung.grund_annexion", { region: name }));
-    b.widerstand = clamp(b.widerstand + 15, 0, 100);
-  } else if (ziel === "verwaltung") {
-    wirke(w, "ansehen", 1);
-  }
-  const text = t(`krieg.besatzung.form_gesetzt.${ziel}`, { region: name, land: l.name });
-  addLog(w, "entscheidung", text, t(`krieg.besatzung.form.${ziel}.text`));
-  return { ok: true, text };
-}
-
-/** Monatlich: Kosten, Widerstand, Anschläge, Aufstand; Zivilverwaltung in Syrien bringt Rückkehr von Geflüchteten. */
-function besatzungMonat(w: World): void {
-  const sp = w.spiel;
-  if (!sp?.besatzung?.length) return;
-  let summe = 0;
-  for (const b of [...sp.besatzung]) {
-    // Welle 3, K4: Eine im Vertrag zurückgegebene Region geht am Tag der Übergabe an den Gegner (Kosten bis dahin)
-    if (b.form === "rueckgabe" && b.vertrag?.uebergabe !== undefined && w.day >= b.vertrag.uebergabe) {
-      sp.besatzung = sp.besatzung.filter((x) => x !== b);
-      addLog(w, "ereignis", t("welle_k4.uebergabe.log", { region: t(`krieg.region.${b.region}`), land: land(b.land).name }), t("welle_k4.uebergabe.warum"));
-      continue;
-    }
-    summe += kostenMonat(b);
-    const ziel = widerstandZiel(w, b);
-    b.widerstand = r1(clamp(b.widerstand + 0.15 * (ziel - b.widerstand), 0, 100));
-    const name = t(`krieg.region.${b.region}`);
-    if (b.widerstand >= BESATZUNG.anschlagAb) {
-      // Deterministisch aus Tag und Region: etwa jeder zweite bis vierte Monat bei hohem Widerstand
-      const wurf = ((w.day * 31 + b.region.length * 17) % 100) / 100;
-      if (wurf < (b.widerstand - 40) / 100) {
-        sp.umfrage.zustimmung = Math.max(0, sp.umfrage.zustimmung - 0.3);
-        wirke(w, "truppenmoral", -0.5);
-        addLog(w, "ereignis", t("krieg.besatzung.anschlag", { region: name }), t("krieg.besatzung.anschlag_why", { widerstand: Math.round(b.widerstand) }));
-      }
-    }
-    if (b.form === "annexion") wirke(w, "ansehen", -0.15);
-    if (b.form === "verwaltung" && b.land === "SYR") {
-      const a = aussenZustand(w);
-      a.flucht.bestand = Math.max(0.2, Math.round((a.flucht.bestand - 0.01) * 100) / 100);
-    }
-    b.aufstand = b.widerstand >= BESATZUNG.aufstand ? b.aufstand + 1 : 0;
-    if (b.aufstand >= 3) {
-      sp.besatzung = sp.besatzung.filter((x) => x !== b);
-      wirke(w, "nationalisten", -2);
-      wirke(w, "truppenmoral", -2);
-      sp.hinweise.push({ id: `krieg-besatzung-aufstand-${b.region}-${w.day}`, titel: t("krieg.besatzung.aufstand_titel", { region: name }), text: [t("krieg.besatzung.aufstand_text", { region: name })], szene: "istanbul" });
-      addLog(w, "ereignis", t("krieg.besatzung.aufstand_titel", { region: name }), "");
-    }
-  }
-  if (summe !== 0) kosten(w, summe);
-}
+export {
+  aendereBesatzung,
+  besatzung,
+  besatzungAnlegen,
+  besatzungNachFrieden,
+  besatzungsSicht,
+  migriereEingefroreneLinien,
+  type BesatzungsSicht,
+} from "./besatzung";
 
 // ---------------------------------------------------------------------------
 // Lage für Karte und Akte
@@ -740,6 +515,8 @@ export interface KarteRegion {
   lat: number;
   lage: RegionLage | "besetzt";
   form?: BesatzungsForm;
+  /** Welle 3, K5: Kennziffer der neuen Provinz, wenn die Region annektiert ist */
+  plaka?: number;
   gelaende: Gelaende;
   wert: number;
 }
@@ -854,33 +631,11 @@ export function kriegsKarte(w: World, kriege: KriegVorgang[], grenzpunkt: (plaka
     });
     verbaende.push({ land: k.land, seite: "gegner", art: "heer", staerke: Math.round(gegnerBestandsFaktor(w, k) * 100), lon: punkt[0] + richtung[0] * 0.5, lat: punkt[1] + richtung[1] * 0.5 });
   }
-  for (const b of besatzung(w)) {
+  for (const b of besatzungLesen(w)) {
     if (gesehen.has(b.region)) continue;
     const r = REGION_NACH_ID[b.region];
-    if (r) regionen.push({ id: r.id, lon: r.lon, lat: r.lat, lage: "besetzt", /* K4: alte Form bis K5 */  form: formAlt(b.form), gelaende: r.gelaende, wert: r.wert });
+    if (r) regionen.push({ id: r.id, lon: r.lon, lat: r.lat, lage: "besetzt", form: b.form, ...(b.plaka ? { plaka: b.plaka } : {}), gelaende: r.gelaende, wert: r.wert });
   }
   if (!regionen.length) return null;
   return { regionen, pfeile, bedroht, aktiv, ...(fronten.length ? { fronten, verbaende } : {}) };
-}
-
-/**
- * Ältere Spielstände (Welle 3, K1): Ein eingefrorener Konflikt warf früher alle gehaltenen Regionen weg, ließ sie aber im Vorgang als
- * „eigen“ stehen (Spielstand 2045 des Inhabers: Lesbos, Chios, Kos und Alexandroupoli nach dem Einfrieren mit Griechenland). Beim Laden
- * werden sie zur De-facto-Linie, wie es das Einfrieren jetzt tut, sofern kein späterer Vorgang mit demselben Land sie neu geordnet hat.
- */
-export function migriereEingefroreneLinien(w: World): void {
-  const sp = w.spiel;
-  if (!sp?.kriege?.length) return;
-  // Nur lesen, bis wirklich eine Linie zurückkommt: Laden legt sonst ein leeres Feld an, und der geladene Stand gliche dem gespeicherten nicht mehr
-  const liste = sp.besatzung ?? [];
-  const vorher = liste.length;
-  for (const k of sp.kriege) {
-    if (k.ausgang !== "eingefroren" || !k.regionen) continue;
-    if (sp.kriege.some((x) => x !== k && x.land === k.land && x.seit > k.seit)) continue;
-    for (const [id, lage] of Object.entries(k.regionen)) {
-      if (lage !== "eigen" || !REGION_NACH_ID[id] || liste.some((b) => b.region === id)) continue;
-      liste.push({ region: id, land: k.land, seit: k.seit, form: "pufferzone", widerstand: 30, aufstand: 0, grundlage: "linie" });
-    }
-  }
-  if (liste.length > vorher) sp.besatzung = liste;
 }

@@ -43,7 +43,17 @@ import { land, landAendern } from "./laender";
 import { wirke } from "./wirkung";
 import { kosten } from "./ereignis-hilfen";
 import { marktErholung } from "./kriegspreis";
-import { kriegZu, poVerlustFuer, zielraumVon, friedenMitTisch, type Ergebnis } from "./krieg";
+import { kriegZu, poVerlustFuer, tuerkeiBeginnt, zielraumVon, friedenMitTisch, type Ergebnis } from "./krieg";
+// Welle 3, K5: Folgen der Formen (Zusammenführung K4/K5)
+import { FORM } from "../data/besatzung";
+import { annexionSofortWerte } from "./annexion";
+
+/**
+ * Tage bis zur Übergabe einer Region, die der Friedensvertrag zurückgibt. Spielparameter nach dem Vorbild der Erklärung zu Bergkarabach
+ * vom 09./10.11.2020: Kalbadschar bis 15.11., Agdam bis 20.11., Latschin bis 01.12.2020, also 5 bis 21 Tage
+ * (https://en.wikipedia.org/wiki/2020_Nagorno-Karabakh_ceasefire_agreement). Sotschi gab dem Rückzug 150 Stunden (Pkt. 5).
+ */
+export const UEBERGABE_TAGE = 21;
 import { addLog } from "./log";
 import { t } from "../i18n";
 import type { World } from "./types";
@@ -64,7 +74,7 @@ export const TISCH = {
   regionJeWert: 3,
   regionEinwohnerMax: 20,
   /** Faktor je Form; eine gehaltene Zone kostet die Hälfte (HOI4: eigene Besetzung 0,8; Sotschi Pkt. 3: der Status quo bleibt) */
-  faktor: { zone: 0.5, zoneUmkaempft: 1, satellit: 1.6, annexion: 3, rueckgabe: -0.3 } as const,
+  faktor: { zone: 0.5, zoneUmkaempft: 1, zivil: 1.2, satellit: 1.6, annexion: 3, rueckgabe: -0.3 } as const,
   /** Abtretung nur unter echtem Druck: Rückhalt des Gegners höchstens so hoch, oder er hat den Rückzug angetreten */
   abtretungUhr: 30,
   /** Sonderstatus erst, wenn der Gegner deutlich erschöpft ist (Moldau unterschrieb 1992 nach den Kämpfen um Bender) */
@@ -94,9 +104,15 @@ export interface TischRegion {
 }
 
 /** Ein Posten des Außen- oder Innenpreises, so wie er gebucht wird. */
+/**
+ * Wer bucht was (Zusammenführung mit K5): Der Tisch bucht die Folgen des Friedensvertrags (Gebiet gehalten, Auflagen, Rückgabe,
+ * Vermittler). Die Folgen einer Form bucht K5 beim Setzen der Form (sim/besatzung.ts formSetzen, sim/annexion.ts annektiere): Ansehen,
+ * Netz, Gegner, EU und USA der Abtretung, Ansehen von Zivilverwaltung und Satellit, danach UN-Vorgang und Sanktionsstufen. Diese Posten
+ * stehen hier mit `extern`, damit der Tisch sie vor dem Klick zeigt, und `tischBuchen` überspringt sie. Jede Größe wird so genau einmal gebucht.
+ */
 export type Buchung =
-  | { art: "knoten"; id: string; wert: number }
-  | { art: "land"; id: string; delta: { konflikt?: number; vertrauen?: number; sicherheit?: number } }
+  | { art: "knoten"; id: string; wert: number; extern?: true }
+  | { art: "land"; id: string; delta: { konflikt?: number; vertrauen?: number; sicherheit?: number }; extern?: true }
   | { art: "kosten"; bip: number }
   | { art: "zustimmung"; wert: number }
   /** Innenpreis vor der Presse (sim/krieg.ts poVerlustFuer), gebucht über friedenSchliessen */
@@ -184,7 +200,7 @@ export function abtretungsDruck(k: KriegVorgang): boolean {
 /** Warum eine Form für eine Region nicht geht (oder undefined). */
 function formGrund(k: KriegVorgang, r: Region, lage: TischLage, form: TischForm): string | undefined {
   const name = land(k.land).name;
-  if (lage === "umkaempft" && (form === "satellit" || form === "annexion")) return t("welle_k4.grund.umkaempft", { land: name });
+  if (lage === "umkaempft" && (form === "zivil" || form === "satellit" || form === "annexion")) return t("welle_k4.grund.umkaempft", { land: name });
   if (form === "annexion" && HAUPTSTADT.has(r.id)) return t("welle_k4.grund.hauptstadt", { land: name });
   if (form === "annexion" && !abtretungsDruck(k)) return t("welle_k4.grund.druck", { land: name, uhr: TISCH.abtretungUhr });
   if (form === "satellit" && !(k.uhrGegner <= TISCH.sonderstatusUhr || k.rueckzugGegner)) return t("welle_k4.grund.sonderstatus", { land: name, uhr: TISCH.sonderstatusUhr });
@@ -198,7 +214,7 @@ export function tischRegionen(k: KriegVorgang, tisch: FriedensTisch): TischRegio
     const l = k.regionen?.[r.id];
     if (l !== "eigen" && l !== "umkaempft") continue;
     const form = tisch.regionen[r.id] ?? (l === "eigen" ? "zone" : "rueckgabe");
-    const formen = (["zone", "satellit", "annexion", "rueckgabe"] as TischForm[]).map((f) => {
+    const formen = (["zone", "zivil", "satellit", "annexion", "rueckgabe"] as TischForm[]).map((f) => {
       const grund = formGrund(k, r, l, f);
       return { form: f, punkte: regionPunkte(r, l, f), ...(grund ? { grund } : {}) };
     });
@@ -243,11 +259,17 @@ export function tischBuchungen(w: World, k: KriegVorgang, tisch: FriedensTisch):
     b.push({ art: "knoten", id: "beziehungen_eu", wert: -3 }, { art: "land", id: L, delta: { konflikt: 25, vertrauen: -10 } });
     if (k.rahmung !== "verteidigung") b.push({ art: "basis", wert: 3 });
   }
+  // Die Folgen der Form bucht K5 (extern): dieselben Zahlen wie sim/besatzung.ts formSetzen und sim/annexion.ts annektiere
   for (const x of gehalten) {
-    if (x.form === "satellit") b.push({ art: "knoten", id: "ansehen", wert: -1.5 }, { art: "knoten", id: "nationalisten", wert: 1 }, { art: "land", id: "EU", delta: { konflikt: 2 } });
+    if (x.form === "zivil" || x.form === "satellit") {
+      const a = FORM[x.form].ansehenWechsel;
+      if (a) b.push({ art: "knoten", id: "ansehen", wert: a, extern: true });
+    }
     if (x.form === "annexion") {
-      b.push({ art: "knoten", id: "ansehen", wert: -4 }, { art: "knoten", id: "nationalisten", wert: 3 }, { art: "knoten", id: "konservative", wert: 1 }, { art: "knoten", id: "staedtische_saekulare", wert: -1 });
-      b.push({ art: "land", id: "EU", delta: { konflikt: 3 } }, { art: "land", id: "USA", delta: { konflikt: 2 } });
+      const s = annexionSofortWerte({ vertrag: true, angriff: tuerkeiBeginnt(k) });
+      b.push({ art: "knoten", id: "ansehen", wert: s.ansehen, extern: true });
+      for (const [id, wert] of Object.entries(s.netz)) b.push({ art: "knoten", id, wert, extern: true });
+      b.push({ art: "land", id: L, delta: s.land, extern: true }, { art: "land", id: "EU", delta: s.eu, extern: true }, { art: "land", id: "USA", delta: s.usa, extern: true });
     }
   }
   for (const _ of zurueck) {
@@ -306,6 +328,7 @@ export function tischPreis(w: World, k: KriegVorgang, tisch: FriedensTisch): Tis
 /** Bucht die Buchungen eines Pakets (ohne den Innenpreis „basis“, den friedenSchliessen über die Presse bucht). */
 export function tischBuchen(w: World, k: KriegVorgang, tisch: FriedensTisch): void {
   for (const x of tischBuchungen(w, k, tisch)) {
+    if ((x.art === "knoten" || x.art === "land") && x.extern) continue;
     if (x.art === "knoten") wirke(w, x.id, x.wert);
     else if (x.art === "land") landAendern(w, x.id, x.delta, t("welle_k4.notiz", { land: land(k.land).name }));
     else if (x.art === "kosten") kosten(w, x.bip);
@@ -344,7 +367,8 @@ export function kuerzen(w: World, k: KriegVorgang, tisch: FriedensTisch, grenze:
   const schritte: (() => boolean)[] = [
     () => (vermittlerVon(w, k) && !x.patrouillen && tischRegionen(k, x).some((r) => behalten(r.form)) ? ((x.patrouillen = true), true) : false),
     teuerste((r) => r.form === "annexion", "satellit"),
-    teuerste((r) => r.form === "satellit", "zone"),
+    teuerste((r) => r.form === "satellit", "zivil"),
+    teuerste((r) => r.form === "zivil", "zone"),
     () => (x.reparation ? ((x.reparation = false), true) : false),
     () => (x.rueckzugKm === 30 ? ((x.rueckzugKm = 10), true) : false),
     () => (x.rueckzugKm === 10 ? ((x.rueckzugKm = 0), true) : false),

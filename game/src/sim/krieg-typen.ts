@@ -109,10 +109,11 @@ export type RegionForderung = "halten" | "rueckgabe";
 /**
  * Welle 3, K4: Was der Friedenstisch je Region verlangt. „zone“ Sicherheitszone unter türkischer Kontrolle (Sotschi 22.10.2019, Pkt. 3),
  * „satellit“ Sonderstatus unter türkischem Schutz (Moskauer Abkommen über Transnistrien, 21.07.1992), „annexion“ Abtretung per Vertrag
- * (Hatay, Vertrag vom 23.06.1939), „rueckgabe“ Übergabe an den Gegner mit Frist (Bergkarabach-Erklärung vom 09./10.11.2020).
- * Dieselben Werte trägt `BesatzungsGebiet.form` (Schnittstelle zu K5, sim/besatzung.ts); „zivil“ wählt erst die Verwaltung danach.
+ * (Hatay, Vertrag vom 23.06.1939), „zivil“ Zivilverwaltung über die Grenzprovinzen (Gouverneure von Hatay, Kilis, Gaziantep, Şanlıurfa;
+ * HRW 29.02.2024), „rueckgabe“ Übergabe an den Gegner mit Frist (Bergkarabach-Erklärung vom 09./10.11.2020). Die vier ersten sind die
+ * Formen von K5 (`BesatzungsGebiet.form`); der Tisch übergibt sie als `formen` an besatzungNachFrieden.
  */
-export type TischForm = "zone" | "satellit" | "annexion" | "rueckgabe";
+export type TischForm = "zone" | "zivil" | "satellit" | "annexion" | "rueckgabe";
 
 /** Der Entwurf am Friedenstisch (Welle 3, K4): je gehaltener oder umkämpfter Region eine Form, dazu die Auflagen des Vertrags. */
 export interface FriedensTisch {
@@ -165,6 +166,11 @@ export interface KriegVorgang {
   kriegszielDeklariert?: boolean;
   /** Gewählter Zielraum (data/streitkraefte.ts ZIELRAEUME); Vorstufe der Regionen mit Besitzerwechsel */
   zielraum?: string;
+  /**
+   * Welle 3, K6: eigene Auswahl der Zielregionen (auf der Karte gesetzt, sim/zielwahl.ts), in der Reihenfolge der Front. Fehlt das Feld,
+   * gelten die Regionen des Zielraums. `zielraum` nennt dann den kleinsten festen Zielraum, der die Auswahl enthält (Gegenwehr, Bedeutung).
+   */
+  zielRegionen?: string[];
   beschluss?: KriegBeschluss;
   /** Abstrakte Frontlage 0–100: 100 = die Türkei siegt, 0 = Zusammenbruch (kein Taktikspiel) */
   front: number;
@@ -265,16 +271,17 @@ export type GegnerGattungId = "heer" | "luft" | "luftabwehr" | "see" | "drohnen"
 /** Lage einer Region im Krieg: beim Gegner, umkämpft (die Front steht dort) oder unter türkischer Kontrolle */
 export type RegionLage = "gegner" | "umkaempft" | "eigen";
 
-/** Eine besetzte Region nach dem Frieden (sim/kriegsschauplatz.ts): Form, Widerstand, Kosten. */
+/**
+ * Eine besetzte Region nach dem Frieden (sim/besatzung.ts): Form, Widerstand, Kosten. Welle 3, K5: vier Formen nach Vorbild
+ * („zone“ Sicherheitszone, „zivil“ Zivilverwaltung, „satellit“ Satellitenstaat, „annexion“; data/besatzung.ts). Ältere Spielstände mit
+ * „pufferzone“ und „verwaltung“ werden beim Laden umbenannt.
+ */
 export interface BesatzungsGebiet {
   region: string;
   land: string;
   seit: number;
-  /**
-   * Welle 3, K4: Der Friedenstisch schreibt die Formen von K5 („zone“, „satellit“, „annexion“, „rueckgabe“; „zivil“ setzt die Verwaltung);
-   * ältere Einträge tragen die alten Namen „pufferzone“ und „verwaltung“, bis K5 sie überführt.
-   */
-  form: "pufferzone" | "verwaltung" | "annexion" | "zone" | "zivil" | "satellit" | "rueckgabe";
+  /** Welle 3, K5: zone, zivil, satellit, annexion (data/besatzung.ts); der Friedenstisch (K4) setzt sie über besatzungNachFrieden */
+  form: import("../data/besatzung").BesatzungsForm;
   /** 0 bis 100 */
   widerstand: number;
   /** Monate in Folge über der Aufstandsschwelle */
@@ -286,9 +293,72 @@ export interface BesatzungsGebiet {
   grundlage?: "vertrag" | "linie";
   /**
    * Welle 3, K4: Auflagen des Friedensvertrags für diese Region (nur bei Einträgen vom Friedenstisch): Rückzug des Gegners in km, Patrouillen
-   * mit dem Vermittler, Rückkehr von Geflüchteten, Abtretung mit Zustimmung (Hatay-Weg) und bei einer Rückgabe der Tag der Übergabe.
+   * mit dem Vermittler, Rückkehr von Geflüchteten, Abtretung mit Zustimmung (Hatay-Weg) und bei einer Rückgabe der Tag der Übergabe (bis dahin bleibt
+   * die Region besetzt, sim/besatzung.ts uebergabenTag).
    */
   vertrag?: { tag: number; rueckzugKm: number; patrouillen?: "USA" | "RUS"; rueckkehr?: boolean; abtretung?: boolean; uebergabe?: number };
+  /** Welle 3, K5: Tag des letzten Formwechsels (fehlt: seit der Besetzung) */
+  formSeit?: number;
+  /** Welle 3, K5: zurückgekehrte Geflüchtete in diese Region, Personen (fehlt: 0) */
+  rueckkehr?: number;
+  /** Welle 3, K5: Kfz-Kennziffer der Provinz, wenn die Region annektiert ist */
+  plaka?: number;
+}
+
+/**
+ * Eine neue türkische Provinz aus einer annektierten Region (Welle 3, K5; ENTSCHEIDUNGEN AA 1): nächste freie Kennziffer ab 82, Einwohner,
+ * Steuern, Wahlberechtigte; Sitze erst nach der nächsten Parlamentswahl (sim/provinzen-neu.ts).
+ */
+export interface NeueProvinz {
+  plaka: number;
+  region: string;
+  land: string;
+  /** Tag des Beschlusses */
+  seit: number;
+  /** Einwohner beim Beschluss (Daten der Region, data/schauplaetze.ts) */
+  einwohner: number;
+  /** Anteil, der die Staatsangehörigkeit ablehnt (Vorbild Krim 2014: Frist von einem Monat; Spielparameter aus dem Widerstand) */
+  ablehnung: number;
+  /** Ende der Eingliederung (Tag) */
+  eingliederungBis: number;
+  /** Abtretung per Vertrag (Hatay-Weg) */
+  vertrag?: true;
+  /** Sitze in der TBMM; erst ab der nächsten Parlamentswahl gesetzt */
+  sitze?: number;
+  /** Tag, an dem die Provinz verloren ging (Rückeroberung, Rückgabe, Aufstand); bleibt für die Kennziffer stehen */
+  verloren?: number;
+}
+
+/** Abstimmung in einem UN-Organ. */
+export interface UnAbstimmung {
+  tag: number;
+  ja: number;
+  nein: number;
+  enth: number;
+  abwesend?: number;
+  /** Sicherheitsrat: ständige Mitglieder mit Veto */
+  veto?: string[];
+  angenommen: boolean;
+}
+
+/** Die internationale Reaktion auf eine Annexion oder einen Satellitenstaat (sim/annexion.ts). */
+export interface AnnexionsVorgang {
+  id: string;
+  land: string;
+  regionen: string[];
+  art: "annexion" | "satellit";
+  seit: number;
+  /** Abtretung per Friedensvertrag (Hatay-Weg) */
+  vertrag?: true;
+  /** Die Türkei hatte den Krieg begonnen (erzwungener Vertrag nach Art. 52 WVK nichtig) */
+  angriff?: true;
+  sr?: UnAbstimmung;
+  gv?: UnAbstimmung;
+  /** Erreichte Sanktionsstufe (0 bis 4) und die Träger (EU, USA) mit ihrem Anteil */
+  stufe: number;
+  traeger?: Record<string, number>;
+  /** Höchste Stufe dieses Vorgangs */
+  stufeMax: number;
 }
 
 // Gebietsübertragung (Welle 2, noch nicht gebaut): Der Hebel liegt in sim/krieg.ts, Funktion `friedenSchliessen`: Dort steht heute

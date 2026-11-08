@@ -27,6 +27,10 @@
  "welle_k4.form.satellit.name": "Sonderstatus",
  "welle_k4.form.satellit.kurz": "Sonderstatus unter türkischem Schutz",
  "welle_k4.form.satellit.text": "Eine eigene Verwaltung unter türkischem Schutz, mit Sicherheitszone und gemeinsamer Kommission. Teurer als eine Zone, außen kaum anerkannt.",
+ "welle_k4.form.zivil.name": "Zivilverwaltung",
+ "welle_k4.form.zivil.kurz": "Zivilverwaltung über die Grenzprovinz",
+ "welle_k4.form.zivil.text": "Türkische Gouverneure verwalten die Region mit Schulen, Strom und Lira, wie Hatay und Kilis die Zonen in Nordsyrien. Teurer als eine Zone.",
+ "welle_k4.fr.zivil": "{n, plural, one {eine Region} other {# Regionen}} unter türkischer Zivilverwaltung",
  "welle_k4.form.annexion.name": "Abtretung",
  "welle_k4.form.annexion.kurz": "Abtretung an die Türkei",
  "welle_k4.form.annexion.text": "Der Gegner tritt die Region per Vertrag ab, wie Frankreich 1939 Hatay. Das tut ein Staat nur, wenn er am Ende ist.",
@@ -89,7 +93,6 @@
  "welle_k4.fr.rueckzug": "der Gegner zieht sich {km} km zurück",
  "welle_k4.fr.patrouillen": "gemeinsame Patrouillen mit {mit}",
  "welle_k4.fr.rueckkehr": "Geflüchtete können zurückkehren",
- "welle_k4.besatzung.rueckzug": "Gegner {km} km hinter der Linie",
  "welle_k4.notiz": "Friedensvertrag mit {land}",
  "welle_k4.uebergabe.log": "{region} ist an {land} übergeben.",
  "welle_k4.uebergabe.warum": "Der Friedensvertrag sah die Rückgabe mit Frist vor.",
@@ -99,13 +102,5 @@
  "welle_k4.x.gesetzt": "Der Entwurf ist geändert.",
  "welle_k4.x.abgelehnt": "{land} lehnt ab: {zuviel, plural, one {ein Punkt} other {# Punkte}} über dem, was es tragen kann.",
  "welle_k4.x.abgelehnt_sperre": "{land} lehnt ab: Eine Forderung ist nicht verhandelbar.",
- "welle_k4.x.abgelehnt.warum": "{land} legt ein Gegenangebot mit {punkte} Punkten vor. Die Spannung steigt.",
- "krieg.besatzung.form.zone.name": "Sicherheitszone",
- "krieg.besatzung.form.zone.text": "Militärisch gesichert nach dem Friedensvertrag, zivil kaum verwaltet; außen hingenommen, nicht anerkannt.",
- "krieg.besatzung.form.satellit.name": "Sonderstatus",
- "krieg.besatzung.form.satellit.text": "Eigene Verwaltung unter türkischem Schutz nach dem Friedensvertrag; außen kaum anerkannt.",
- "krieg.besatzung.form.zivil.name": "Zivilverwaltung",
- "krieg.besatzung.form.zivil.text": "Schulen, Strom, Wasser, Gerichte über die Grenzprovinzen: teuer, aber der Widerstand sinkt.",
- "krieg.besatzung.form.rueckgabe.name": "Übergabe",
- "krieg.besatzung.form.rueckgabe.text": "Der Friedensvertrag gibt die Region zurück; die Übergabe läuft."
+ "welle_k4.x.abgelehnt.warum": "{land} legt ein Gegenangebot mit {punkte} Punkten vor. Die Spannung steigt."
 }

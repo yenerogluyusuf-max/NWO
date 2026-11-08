@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "../icons";
 import { LegendeKompakt } from "../Kartenlegende";
 import { KARTENEBENEN, ebeneName, type Kartenebene, type Legende } from "../ebenen";
-import { LINSEN_TASTEN, linseFuerTaste, linsenGruppen, tasteDarfWaehlen } from "./linsen";
+import { LINSEN_TASTEN, SITUATIVE_TASTEN, linseFuerTaste, linsenGruppen, tasteDarfWaehlen } from "./linsen";
 import type { World } from "../../sim/types";
 import { t } from "../../i18n";
 import { t as tx } from "../../i18n";
@@ -101,7 +101,7 @@ export function LinsenWahl({ world, ebene, netName, problemId, legende, onEbene,
   // Zifferntasten 1 bis 9 und 0 wählen die Linsen, solange kein Textfeld Fokus hat und nichts offen ist
   useEffect(() => {
     const taste = (ev: KeyboardEvent) => {
-      if (ev.key.length !== 1 || !LINSEN_TASTEN.includes(ev.key.toLowerCase())) return;
+      if (ev.key.length !== 1 || !(LINSEN_TASTEN + SITUATIVE_TASTEN).includes(ev.key.toLowerCase())) return;
       if (!tasteDarfWaehlen(ev.target as HTMLElement | null, ev, gesperrt)) return;
       const e = linseFuerTaste(world, ev.key);
       if (!e) return;

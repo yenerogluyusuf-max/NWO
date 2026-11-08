@@ -11,19 +11,45 @@
 .karte2d-hinweis{position:absolute;left:50%;top:104px;transform:translateX(-50%);margin:0;padding:4px 12px;border-radius:6px;background:#2a1f18cc;color:var(--papier-3);font:italic var(--schrift-2)/1.3 var(--serif);pointer-events:none}
 /* Kriegslage wie in der 3D-Karte (kriegsfx.ts): eigen Siegelrot, umkämpft Ocker mit pulsierendem Rand, beim Gegner graue Strichlinie, besetzt schraffiert */
 .karte2d-provinzen path.bedroht{stroke:var(--siegel);stroke-width:1.6;stroke-dasharray:4 3}
-.karte2d-krieg circle{stroke-width:1.6;pointer-events:visiblePainted}
-.karte2d-krieg circle.eigen{fill:#8e2a22b3;stroke:#5c1a14}
-.karte2d-krieg circle.umkaempft{fill:#c69a4a99;stroke:var(--messing-3)}
-.karte2d-krieg circle.gegner{fill:#5a4a3a33;stroke:var(--tinte-2);stroke-dasharray:3 2}
-.karte2d-krieg circle.besetzt{fill:url(#k2d-schraffur);stroke:var(--siegel)}
-#k2d-schraffur line{stroke:var(--siegel);stroke-width:2}
-.karte2d-krieg .pfeil{fill:none;stroke-width:2.4;stroke-linecap:round;stroke-dasharray:7 5}
+/* Welle 3, K6: Regionen als echte Flächen. Gehalten bündig in der Farbe der Türkei auf dem Blatt (Pergament wie die Provinzen) mit
+   Schraffur in Siegelrot, annektiert ohne Schraffur; umkämpft Ocker; Zielregionen beim Gegner getönt und gestrichelt, der übrige
+   Schauplatz nur angedeutet. Linien bleiben bei jedem Ausschnitt gleich breit (non-scaling-stroke), Schrift mindestens 13 px. */
+.karte2d-krieg .region{stroke-width:1;vector-effect:non-scaling-stroke;pointer-events:visiblePainted}
+.karte2d-krieg .region.eigen,.karte2d-krieg .region.besetzt{fill:url(#k2d-schraffur);stroke:#8e2a2255}
+.karte2d-krieg .region.annexion{fill:var(--warnung-flaeche);stroke:#8e2a2255}
+.karte2d-krieg .region.umkaempft{fill:#c69a4a8c;stroke:var(--warnung);stroke-width:1.6;stroke-dasharray:6 4}
+.karte2d-krieg .region.gegner{fill:none;stroke:#5a4a3a66;stroke-dasharray:3 3}
+.karte2d-krieg .region.gegner.ziel{fill:#5a4a3a24;stroke:#4a3e32b3;stroke-width:1.2;stroke-dasharray:5 3}
+#k2d-schraffur rect{fill:var(--warnung-flaeche)}
+#k2d-schraffur line{stroke:#8e2a2266;stroke-width:1.6}
+.karte2d-krieg .frontlinie path{fill:none;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.karte2d-krieg .frontlinie .grund{stroke:#f6eedbd9;stroke-width:6}
+.karte2d-krieg .frontlinie .strich{stroke:#7a1a12;stroke-width:2.6}
+.karte2d-krieg .frontlinie .zaehne{fill:#7a1a12;stroke:none}
+.karte2d-krieg .frontlinie.waffenruhe .strich{stroke-dasharray:9 6}
+.karte2d-krieg .frontlinie.linie .grund{stroke-width:3.4;stroke:#f6eedb99}
+.karte2d-krieg .frontlinie.linie .strich{stroke-width:1.5;stroke-dasharray:4 4;stroke:#7a1a12b3}
+.karte2d-krieg .regionname,.karte2d-ortswahl .ortname{font:italic 600 calc(14px * var(--e, 1)) var(--display);text-anchor:middle;dominant-baseline:middle;paint-order:stroke;stroke:#faf4e4eb;stroke-width:calc(3.5px * var(--e, 1));fill:#5c1a12;pointer-events:none}
+.karte2d-krieg .regionname.umkaempft{fill:#6a4410}
+.karte2d-krieg .regionname.gegner{fill:#4a3e32;font-weight:500}
+/* Ortswahl: Farben der Bewertung wie in der 3D-Karte (ortswahl.ts BEWERTUNG_FARBE) */
+.karte2d-ortswahl path{cursor:pointer;vector-effect:non-scaling-stroke;transition:fill .15s,stroke-width .15s}
+.karte2d-ortswahl path.gewaehlt{fill:#8e2a2280;stroke:#6e1a14;stroke-width:2.4}
+.karte2d-ortswahl path.gut{fill:#d6a84852;stroke:#8a6420;stroke-width:1.8}
+.karte2d-ortswahl path.moeglich{fill:#ecd6a042;stroke:#8a6420b3;stroke-width:1.3;stroke-dasharray:5 3}
+.karte2d-ortswahl path.erfuellt{fill:#a8604a80;stroke:#783c2cbf;stroke-width:1.2;cursor:default}
+.karte2d-ortswahl path.gesperrt{fill:#5a544c2e;stroke:#5a544c59;stroke-width:.9;cursor:not-allowed}
+.karte2d-ortswahl path:hover:not(.gesperrt):not(.erfuellt){stroke-width:3.2;filter:brightness(1.06)}
+.karte2d-ortswahl .ortname.gewaehlt{font-weight:700}
+.karte2d-ortswahl .ortname.gesperrt{fill:#5a4a38;font-weight:500}
+.karte2d-ortswahl .ortname.gut,.karte2d-ortswahl .ortname.moeglich{fill:#3a2a12}
+.karte2d-krieg .pfeil{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-dasharray:8 6;vector-effect:non-scaling-stroke}
 .karte2d-krieg .pfeil.eigen{stroke:var(--siegel)}
 .karte2d-krieg .pfeil.gegner{stroke:var(--tinte-1)}
 marker path.eigen{fill:var(--siegel)} marker path.gegner{fill:var(--tinte-1)}
 @media (prefers-reduced-motion:no-preference){
   .karte2d-krieg.aktiv .pfeil{animation:k2d-lauf 1.6s linear infinite}
-  .karte2d-krieg.aktiv circle.umkaempft{animation:k2d-puls 1.8s ease-in-out infinite}
+  .karte2d-krieg.aktiv .region.umkaempft{animation:k2d-puls 1.8s ease-in-out infinite}
 }
 @keyframes k2d-lauf{to{stroke-dashoffset:-24}}
 @keyframes k2d-puls{50%{stroke-width:3.4}}
@@ -38,7 +64,7 @@ marker path.eigen{fill:var(--siegel)} marker path.gegner{fill:var(--tinte-1)}
 .karte2d-krieg .front-linie{fill:none;stroke:#8e2a22;stroke-width:2.4;stroke-linejoin:round;pointer-events:visibleStroke}
 .karte2d-krieg .verband rect{stroke-width:1.6}
 .karte2d-krieg .verband path{fill:none;stroke-width:1.6;stroke-linecap:round}
-.karte2d-krieg .verband text{font:600 10.5px var(--serif,Georgia,serif);text-anchor:middle;paint-order:stroke;stroke:#f6eedb;stroke-width:3px}
+.karte2d-krieg .verband text{font:600 12px var(--serif,Georgia,serif);text-anchor:middle;paint-order:stroke;stroke:#f6eedb;stroke-width:3px}
 .karte2d-krieg .verband.eigen rect{fill:#f6eedb;stroke:#8e2a22}
 .karte2d-krieg .verband.eigen path{stroke:#8e2a22}
 .karte2d-krieg .verband.eigen text{fill:#5c1a12}

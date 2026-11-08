@@ -14,6 +14,10 @@ import { rahmungWerte } from "../../sim/krieg";
 import { addDays } from "../../sim/dates";
 import { datum, t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
+import { useContext } from "react";
+import { OrtswahlStart } from "../atlas/ortswahl";
+import { Icon } from "../icons";
+import { kriegszielAnfrage, kriegszielKarteMoeglich, zielBeschreibung } from "./kriegsziel-karte";
 import "./krieg.css";
 
 const zz = (x: number): string => (x > 0 ? "+" : x < 0 ? "−" : "") + zahl(Math.abs(x), 0);
@@ -68,7 +72,10 @@ export function Kriegsziel({ world, k, ziele, tun, onTat }: { world: World; k: K
   const fern = istFernkonflikt(k.land);
   const raeume = zielraeumeFuer(k.land);
   const offen = k.phase !== "frieden" && k.phase !== "beendet" && k.phase !== "waffenruhe";
-  const standard = zielRegionen({ ...k, zielraum: undefined } as KriegVorgang).length;
+  const standard = zielRegionen({ ...k, zielraum: undefined, zielRegionen: undefined } as KriegVorgang).length;
+  // K6: Kriegsziel auf der großen Karte setzen (Ortswahl); ohne Stage (Tests) gibt es den Knopf nicht
+  const ortswahl = useContext(OrtswahlStart);
+  const karte = !!ortswahl && kriegszielKarteMoeglich(world, k);
   return (
     <section className="kz" aria-label={t("welle_k1.ziel.kopf")}>
       <h5>{t("welle_k1.ziel.kopf")}</h5>
@@ -97,9 +104,9 @@ export function Kriegsziel({ world, k, ziele, tun, onTat }: { world: World; k: K
           <span className="kz-etikett">{t("welle_k1.ziel.raum")}</span>
           <div className="ks-knoepfe" role="group">
             {raeume.map((z) => {
-              const an = k.zielraum === z.id;
+              const an = k.zielraum === z.id && !k.zielRegionen;
               const n = ZIELRAUM_REGIONEN[z.id]?.length ?? 0;
-              const wechsel = k.phase === "krieg" && !!k.zielraum && !an;
+              const wechsel = k.phase === "krieg" && (!!k.zielraum || !!k.zielRegionen) && !an;
               return (
                 <button key={z.id} type="button" className={an ? "on" : ""} disabled={an || !offen} onClick={() => onTat(waehleZielraum(world, k.id, z.id).text)}>
                   <strong>{t(`militaer.zielraum.${z.id}`)}</strong>
@@ -111,6 +118,17 @@ export function Kriegsziel({ world, k, ziele, tun, onTat }: { world: World; k: K
               );
             })}
           </div>
+          {(k.zielRegionen || karte) && (
+            <div className="kz-karte">
+              {k.zielRegionen && <p className="kz-eigen"><strong>{zielBeschreibung(k)}</strong> · {t("welle_k6.ziel.eigene_zeile", { n: k.zielRegionen.length, raum: t(`militaer.zielraum.${k.zielraum}`) })}</p>}
+              {karte && (
+                <button type="button" className="knopf kz-karte-knopf" onClick={() => ortswahl!(kriegszielAnfrage(world, k))}>
+                  <Icon name="karte" size={16} />
+                  {t("welle_k6.ziel.karte_knopf")}
+                </button>
+              )}
+            </div>
+          )}
           {!k.zielraum && <p className="kz-hinweis">{t("welle_k1.ziel.raum_standard", { n: standard })}</p>}
         </div>
       )}

@@ -362,11 +362,17 @@ export function electParliament(profile: PlayerProfile, rng: Rng): Parliament {
 }
 
 /** D'Hondt je Provinz (Wahlkreis): Die Sitze jeder Provinz gehen an die zugelassenen Parteien nach ihren örtlichen Stimmen. */
-export function verteileSitze(local: Record<string, number>[], eligible: string[]): { seats: Record<string, number>; byProvince: Record<number, Record<string, number>> } {
+export function verteileSitze(
+  local: Record<string, number>[],
+  eligible: string[],
+  /** Welle 3, K5: Sitze je Provinz nach Gesetz Nr. 2839, wenn neue Provinzen mitwählen (sim/provinzen-neu.ts), und deren Stimmen */
+  neu?: { plan: Map<number, number>; provinzen: { plaka: number; sh: Record<string, number> }[] },
+): { seats: Record<string, number>; byProvince: Record<number, Record<string, number>> } {
   const seats: Record<string, number> = Object.fromEntries(eligible.map((p) => [p, 0]));
   const byProvince: Record<number, Record<string, number>> = {};
-  PROVINZEN.forEach((p, i) => {
-    const sh = local[i]!;
+  const kreise = [...PROVINZEN.map((p, i) => ({ plaka: p.plaka, sitze: neu?.plan.get(p.plaka) ?? p.sitze, sh: local[i]! })), ...(neu?.provinzen ?? []).map((x) => ({ plaka: x.plaka, sitze: neu!.plan.get(x.plaka) ?? 0, sh: x.sh }))];
+  kreise.forEach((p) => {
+    const sh = p.sh;
     const got: Record<string, number> = Object.fromEntries(eligible.map((x) => [x, 0]));
     for (let s = 0; s < p.sitze; s++) {
       let best = eligible[0]!;

@@ -1,5 +1,6 @@
 // Jedes Ereignis lässt sich öffnen, hat lesbare Texte, benennt seine Akteure und rechnet seine Antworten fehlerfrei durch.
 
+import { besatzungAnlegen } from "../src/sim/besatzung";
 import { laufende as laufendeVertraege, verhandle as verhandleVertrag } from "../src/sim/abkommen";
 import { describe, expect, test } from "vitest";
 import { createWorld } from "../src/sim/world";
@@ -63,6 +64,8 @@ function machtkreisFaelle(w: ReturnType<typeof welt>): void {
 /** Welle E2: Forschung und Große Ziele brauchen eine Lage (erschöpfte Verwaltung; verfolgte Ziele mit voller Vorbereitung). */
 function forschungsLage(w: ReturnType<typeof welt>, id: string): void {
   if (id === "forschung_verwaltung") w.spiel!.reich!.verwaltung = 0;
+  // Welle 3, K5: Der Skandal der Stellvertreter braucht eine Sicherheitszone mit Verbündeten, die seit über 90 Tagen besteht
+  if (id === "besatzung_skandal") besatzungAnlegen(w, { region: "syr_asas", land: "SYR", seit: w.day - 100 });
   if (id === "grossziel_gelegenheit") {
     const ziele = ["nahostordnung", "drehscheibe", "turkunion", "weltbuehne", "kornkammer", "seemacht", "technologie"];
     w.spiel!.grosseZiele = { verfolgt: ziele, stand: Object.fromEntries(ziele.map((z) => [z, { stufe: 0, vorbereitung: 30, versuche: 0 }])), vertretungen: {} };

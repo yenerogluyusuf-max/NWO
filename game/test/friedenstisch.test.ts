@@ -23,7 +23,10 @@ import {
   vermittlerPaket,
   vermittlerVon,
 } from "../src/sim/friedenstisch";
-import { besatzung, UEBERGABE_TAGE } from "../src/sim/kriegsschauplatz";
+import { besatzung } from "../src/sim/kriegsschauplatz";
+import { UEBERGABE_TAGE } from "../src/sim/friedenstisch";
+import { neueProvinzen } from "../src/sim/provinzen-neu";
+import { netz } from "../src/sim/ereignis-hilfen";
 import { landSicht } from "../src/sim/laender";
 import { setzePaar, weltModell } from "../src/sim/welt-modell";
 import type { FriedensTisch, KriegVorgang } from "../src/sim/krieg-typen";
@@ -66,7 +69,7 @@ describe("Friedenstisch", () => {
     // Gehaltene Regionen stehen am Tisch, mit allen vier Formen samt Preis
     const regs = tischRegionen(kk, tischDerLage(kk));
     expect(regs.filter((r) => r.lage === "eigen").map((r) => r.region.id)).toEqual(expect.arrayContaining(["syr_asas", "syr_manbidsch", "syr_qamischli"]));
-    for (const r of regs) expect(r.formen.map((f) => f.form)).toEqual(["zone", "satellit", "annexion", "rueckgabe"]);
+    for (const r of regs) expect(r.formen.map((f) => f.form)).toEqual(["zone", "zivil", "satellit", "annexion", "rueckgabe"]);
   });
 
   it("ein Sieg bekommt eine 30-km-Zone ohne Annexion, und gebucht wird, was der Tisch zeigt", () => {
@@ -129,6 +132,12 @@ describe("Friedenstisch", () => {
     const asas = besatzung(w).find((x) => x.region === "syr_asas")!;
     expect(asas.form).toBe("annexion");
     expect(asas.vertrag?.abtretung).toBe(true);
+    // Hatay-Weg bei K5: Die Region wird eine Provinz ab Kennziffer 82, der Vorgang trägt den Vertrag
+    expect(asas.plaka).toBeGreaterThanOrEqual(82);
+    const p = neueProvinzen(w).find((x) => x.region === "syr_asas")!;
+    expect(p.plaka).toBe(asas.plaka);
+    expect(p.vertrag).toBe(true);
+    expect(w.spiel!.annexionen?.some((a) => a.land === "SYR" && a.vertrag && a.regionen.includes("syr_asas"))).toBe(true);
   });
 
   it("der Vermittler ist, wer dem Gegner näher steht, und sein Paket nimmt der Gegner an", () => {
@@ -159,10 +168,12 @@ describe("Friedenstisch", () => {
     const k = kriegMit(w, "SYR")!;
     expect(tischSetzen(w, k.id, { region: "syr_qamischli", form: "rueckgabe" }).ok).toBe(true);
     expect(tischVorlegen(w, k.id, "eigen").ok).toBe(true);
+    // Bis zur Übergabe bleibt Qamischli besetzt (Form von K5), dann geht es zurück
     const q = besatzung(w).find((x) => x.region === "syr_qamischli")!;
-    expect(q.form).toBe("rueckgabe");
     expect(q.vertrag?.uebergabe).toBe(w.day + UEBERGABE_TAGE);
-    advance(w, UEBERGABE_TAGE + 35);
+    advance(w, UEBERGABE_TAGE - 1);
+    expect(besatzung(w).some((x) => x.region === "syr_qamischli")).toBe(true);
+    advance(w, 2);
     expect(besatzung(w).some((x) => x.region === "syr_qamischli")).toBe(false);
     expect(besatzung(w).some((x) => x.region === "syr_asas")).toBe(true);
   });
@@ -175,6 +186,32 @@ describe("Friedenstisch", () => {
     const b = kuerzen(kopie(w), kriegMit(kopie(w), "SYR")!, max, 10);
     expect(a).toEqual(b);
     expect(a.reparation).toBe(false);
+  });
+
+  it("Abtretung von Asas per Vertrag: Ansehen, EU und USA bewegen sich genau um den angezeigten Wert (jede Größe einmal gebucht)", () => {
+    const w = kopie(basis.w);
+    const k = kriegMit(w, "SYR")!;
+    k.uhrGegner = 15;
+    expect(tischSetzen(w, k.id, { region: "syr_asas", form: "annexion" }).ok).toBe(true);
+    const preis = tischPreis(w, k, k.tisch!);
+    // Die Folgen der Abtretung stehen in der Anzeige, gebucht von K5 (extern), nicht vom Tisch
+    const extern = preis.buchungen.filter((b) => (b.art === "knoten" || b.art === "land") && b.extern);
+    expect(extern.some((b) => b.art === "knoten" && b.id === "ansehen")).toBe(true);
+    expect(extern.some((b) => b.art === "land" && b.id === "EU")).toBe(true);
+    expect(extern.some((b) => b.art === "land" && b.id === "USA")).toBe(true);
+    const ansehen = netz(w, "ansehen"), eu = landSicht(w, "EU").konflikt, usa = landSicht(w, "USA").konflikt;
+    expect(tischVorlegen(w, k.id, "eigen").ok).toBe(true);
+    expect(netz(w, "ansehen") - ansehen).toBeCloseTo(preis.ansehen, 1);
+    expect(landSicht(w, "EU").konflikt - eu).toBeCloseTo(preis.konflikt.EU ?? 0, 1);
+    expect(landSicht(w, "USA").konflikt - usa).toBeCloseTo(preis.konflikt.USA ?? 0, 1);
+  });
+
+  it("die Zivilverwaltung steht am Tisch und landet als Form von K5 in der Besatzung", () => {
+    const w = kopie(basis.w);
+    const k = kriegMit(w, "SYR")!;
+    expect(tischSetzen(w, k.id, { region: "syr_manbidsch", form: "zivil" }).ok).toBe(true);
+    expect(tischVorlegen(w, k.id, "eigen").ok).toBe(true);
+    expect(besatzung(w).find((x) => x.region === "syr_manbidsch")!.form).toBe("zivil");
   });
 
   it("Speichern und Laden mit Entwurf und Gegenangebot sind exakt", () => {

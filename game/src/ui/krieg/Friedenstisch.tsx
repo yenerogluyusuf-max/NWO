@@ -30,7 +30,7 @@ import "./krieg.css";
 import "./schauplatz-karte.css";
 import "./friedenstisch.css";
 
-const FORMEN: TischForm[] = ["zone", "satellit", "annexion", "rueckgabe"];
+const FORMEN: TischForm[] = ["zone", "zivil", "satellit", "annexion", "rueckgabe"];
 const zz = (x: number, d = 1): string => (x > 0 ? "+" : x < 0 ? "−" : "±") + zahl(Math.abs(x), d);
 const pz = (x: number): string => (x > 0 ? "" : x < 0 ? "−" : "") + zahl(Math.abs(x), 0);
 

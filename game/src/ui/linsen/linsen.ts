@@ -4,6 +4,7 @@
 import { BEZIEHUNG_FARBEN, KARTENEBENEN, LINSEN_GRUPPEN, ebeneKurz, ebeneName, farbenFuerEbene, type Kartenebene, type LinsenGruppe } from "../ebenen";
 import type { IconName } from "../icons";
 import type { World } from "../../sim/types";
+import { frontLinseVerfuegbar } from "./front-linse";
 import { t } from "../../i18n";
 
 /**
@@ -18,6 +19,8 @@ const REGELN: Partial<Record<Kartenebene, (w: World) => boolean>> = {
   welt: (w) => !!w.spiel,
   belastung: (w) => !!w.spiel,
   versorgung: (w) => !!w.spiel,
+  // Welle 3, K6 (karte.md K8): nur bei einem Krieg auf einem Schauplatz oder einer Besatzung
+  front: frontLinseVerfuegbar,
 };
 
 /** Alle verfügbaren Linsen in der Reihenfolge der Tafel (Politiknetz gehört nicht dazu, es hat seinen eigenen Weg). */
@@ -33,7 +36,9 @@ export function linsenVerfuegbar(w: World): Kartenebene[] {
  * (E5) fehlen 2, 8 und S: Regionen, Ressourcen und Strategische Orte stehen nicht mehr in der Tafel. Die übrigen Tasten bleiben, wie sie waren.
  */
 export const LINSEN_TASTEN = "1345679v0rkb";
-const TASTE: Partial<Record<Kartenebene,string>> = {gelaende:"1",wahl:"3",rueckhalt:"4",wirtschaft:"5",arbeitslosigkeit:"6",infrastruktur:"7",belastung:"9",versorgung:"V",probleme:"0",risiko:"R",erbe:"K",welt:"B"};
+/** Tasten situativer Linsen, die nur bei ihrem Anlass in der Tafel stehen (Welle 3, K6: F für „Front und Besatzung“) */
+export const SITUATIVE_TASTEN = "f";
+const TASTE: Partial<Record<Kartenebene,string>> = {front:"F",gelaende:"1",wahl:"3",rueckhalt:"4",wirtschaft:"5",arbeitslosigkeit:"6",infrastruktur:"7",belastung:"9",versorgung:"V",probleme:"0",risiko:"R",erbe:"K",welt:"B"};
 
 export interface Linse {
   id: Kartenebene;

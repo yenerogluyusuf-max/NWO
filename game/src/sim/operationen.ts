@@ -25,9 +25,15 @@ export function operationVon(k: KriegVorgang): OperationsForm | undefined {
   return k.operation ? OPERATIONSFORMEN[k.operation] : undefined;
 }
 
-/** Die Einsatzart, auf deren Grundwerte die Form rechnet: Trägt die SNA die begrenzte Operation, die der Stellvertreter. */
-export function einsatzFuer(form: OperationsFormId, mit: VerbuendeteId = "allein"): EinsatzArt {
-  if (mit === "sna" && form === "begrenzt") return VERBUENDETE.sna.einsatzBegrenzt;
+/**
+ * Die Einsatzart, auf deren Grundwerte die Form rechnet. Die SNA kämpft neben dem Heer und ändert sie nicht (data/operationen.ts VERBUENDETE).
+ * Eine Landung auf Zypern kämpft nach dem Brückenkopf am Boden: 1974 landeten die Truppen bei Kyrenia, danach trugen rund 40.000 Mann mit
+ * 160 bis 180 Panzern die Operation (recherche_operationen.md B). Dafür gilt „boden“, an dem K2 Zypern 1974 kalibriert hat
+ * (test/krieg-kalibrierung.test.ts); den Preis der Landung trägt dort SCHAUPLATZ.landung. Mit „see“ (Seeblockade) kam die Front auf Zypern
+ * nur 72 km² je Woche voran (Beleg 863 bis 887). Auf den Inseln der Ägäis bleibt es „see“: Ein Heer ohne Schiffe nimmt keine Insel.
+ */
+export function einsatzFuer(form: OperationsFormId, _mit: VerbuendeteId = "allein", schauplatz?: string): EinsatzArt {
+  if (form === "landung" && schauplatz === "zypern") return "boden";
   return OPERATIONSFORMEN[form].einsatz;
 }
 
@@ -48,7 +54,7 @@ export function operationsFaktoren(k: KriegVorgang): { verlust: number; uhr: num
   if (!f) return { verlust: 1, uhr: 1, druck: 0, welt: 1 };
   const sna = k.verbuendete === "sna";
   return {
-    verlust: f.verlust * (sna && f.id === "grossoffensive" ? VERBUENDETE.sna.verlustGross : 1),
+    verlust: f.verlust * (sna ? VERBUENDETE.sna.verlust : 1),
     uhr: f.uhr,
     druck: f.druck,
     welt: f.welt * (sna ? VERBUENDETE.sna.welt : 1),
@@ -133,7 +139,7 @@ export function waehleOperation(w: World, k: KriegVorgang, id: OperationsFormId,
   if (imKrieg && !sicht.aktiv) wirke(w, "ansehen", f.ansehen);
   k.operation = id;
   k.verbuendete = verb;
-  k.einsatz = einsatzFuer(id, verb);
+  k.einsatz = einsatzFuer(id, verb, schauplatzFuer(k.land)?.id);
   k.einsatzSeit = w.day;
   k.operationSeit = w.day;
   k.operationWoche = k.woche;
@@ -147,7 +153,7 @@ export function waehleOperation(w: World, k: KriegVorgang, id: OperationsFormId,
 export function operationBeginn(w: World, k: KriegVorgang): void {
   const f = operationVon(k);
   if (!f) return;
-  k.einsatz = einsatzFuer(f.id, k.verbuendete);
+  k.einsatz = einsatzFuer(f.id, k.verbuendete, schauplatzFuer(k.land)?.id);
   k.operationSeit = w.day;
   k.operationWoche = 0;
   wirke(w, "ansehen", f.ansehen);
@@ -163,7 +169,12 @@ export function operationNachSchauplatz(w: World, k: KriegVorgang, vor: { uhr: n
   const f = operationVon(k);
   if (!f) return;
   const of = operationsFaktoren(k);
-  if (k.letzteWoche) k.letzteWoche.eigen = r2(k.letzteWoche.eigen * of.verlust);
+  // Beide Größen, aus denen sim/kriegspreis.ts die Gefallenen rechnet: im Landkrieg die Gefechtslast `last` (K2), sonst `eigen`. Vorher wirkte
+  // der Faktor nur auf `eigen` und erreichte im Landkrieg die Gefallenen nicht mehr
+  if (k.letzteWoche) {
+    k.letzteWoche.eigen = r2(k.letzteWoche.eigen * of.verlust);
+    if (k.letzteWoche.last !== undefined) k.letzteWoche.last = k.letzteWoche.last * of.verlust;
+  }
   const verlust = vor.uhr - k.uhr;
   if (verlust > 0) k.uhr = vor.uhr - verlust * of.uhr;
   k.uhrGegner -= of.druck;

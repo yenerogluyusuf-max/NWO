@@ -19,6 +19,7 @@ import { addLog } from "./log";
 import { wirke } from "./wirkung";
 import { Rng } from "./rng";
 import { PROVINZEN } from "./regional";
+import { sitzPlan, sitzeFestschreiben, verwaltendeProvinz, waehlendeProvinzen } from "./provinzen-neu"; // Welle 3, K5
 import { verfassungAktiv } from "./verfassung";
 import { versprechensschuldMalus } from "./katastrophe";
 import { angriffsAussicht, gegnerPartei, wahlEffekte, type AngriffsAussicht } from "./wahlkampf";
@@ -425,7 +426,11 @@ export function parlamentswahlMitMuster(w: World, rng: Rng, praesDelta: number):
   const lokal = lokaleAnteile(neu, eigene);
   const lagerLand = lagerVorher.reduce((s, p) => s + (neu[p] ?? 0), 0);
   const muster = lokal.map((sh) => rund1(lagerVorher.reduce((s, p) => s + (sh[p] ?? 0), 0) - lagerLand));
-  const { seats, byProvince } = verteileSitze(lokal, zugelassen);
+  // Welle 3, K5: Neue Provinzen wählen mit (Sitze nach Gesetz Nr. 2839, Stimmenmuster der verwaltenden Provinz; sim/provinzen-neu.ts)
+  const neue = waehlendeProvinzen(w);
+  const plan = neue.length ? sitzPlan(neue) : undefined;
+  const { seats, byProvince } = verteileSitze(lokal, zugelassen, plan ? { plan, provinzen: neue.map((p) => ({ plaka: p.plaka, sh: lokal[verwaltendeProvinz(p.region) - 1]! })) } : undefined);
+  if (plan) sitzeFestschreiben(w, plan);
   const unterHuerde = parteien.filter((p) => p !== "Andere" && !zugelassen.includes(p) && (alt.seats[p] ?? 0) > 0);
   const gerundet: Record<string, number> = {};
   for (const p of parteien) gerundet[p] = rund1(neu[p]!);

@@ -632,6 +632,9 @@ export interface SpielZustand {
   grosseZiele?: import("./grosseziele").GrosseZieleZustand;
   /** Besetzte Regionen nach einem Frieden (sim/kriegsschauplatz.ts); ältere Spielstände haben keine */
   besatzung?: import("./krieg-typen").BesatzungsGebiet[];
+  /** Welle 3, K5: neue Provinzen aus annektierten Regionen und die internationale Reaktion (sim/provinzen-neu.ts, sim/annexion.ts) */
+  provinzenNeu?: import("./krieg-typen").NeueProvinz[];
+  annexionen?: import("./krieg-typen").AnnexionsVorgang[];
   /** Bestand der Streitkräfte (sim/streitkraefte.ts); ältere Spielstände legen ihn passend zu ihren Bereitschaftswerten beim ersten Zugriff an */
   streitkraefte?: import("./streitkraefte").StreitkraefteZustand;
   gueter?: import("./gueter").GueterZustand;

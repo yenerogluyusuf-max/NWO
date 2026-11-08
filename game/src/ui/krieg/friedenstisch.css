@@ -14,11 +14,13 @@
 
 /* Regionen nach Forderung */
 .skk-ft-zone path { fill: var(--siegel); fill-opacity: 0.55; }
+.skk-ft-zivil path { fill: var(--daten-6); fill-opacity: 0.7; }
 .skk-ft-satellit path { fill: var(--daten-5); fill-opacity: 0.7; }
 .skk-ft-annexion path { fill: var(--siegel); fill-opacity: 0.92; stroke: var(--tinte-1); stroke-width: 1.4; }
 .skk-ft-rueckgabe path { fill: var(--daten-4); fill-opacity: 0.45; stroke: var(--daten-4); stroke-dasharray: 3 2; }
-.skk-punkt-ft-zone, .skk-punkt-ft-satellit, .skk-punkt-ft-annexion { fill: var(--papier-1); stroke: var(--siegel); stroke-width: 1.5; }
+.skk-punkt-ft-zone, .skk-punkt-ft-zivil, .skk-punkt-ft-satellit, .skk-punkt-ft-annexion { fill: var(--papier-1); stroke: var(--siegel); stroke-width: 1.5; }
 .ft-l-zone::before { background: var(--siegel); opacity: 0.55; }
+.ft-l-zivil::before { background: var(--daten-6); opacity: 0.7; }
 .ft-l-satellit::before { background: var(--daten-5); opacity: 0.7; }
 .ft-l-annexion::before { background: var(--siegel); box-shadow: inset 0 0 0 1.5px var(--tinte-1); }
 .ft-l-rueckgabe::before { background: var(--daten-4); opacity: 0.45; }
@@ -59,6 +61,7 @@
 .ft-form:hover:not(:disabled) { border-color: var(--linie-stark); background: var(--papier-1); }
 .ft-form.on { border-color: var(--siegel); background: var(--papier-1); box-shadow: inset 0 -3px 0 var(--siegel); cursor: default; }
 .ft-form.on.ft-form-rueckgabe { border-color: var(--daten-4); box-shadow: inset 0 -3px 0 var(--daten-4); }
+.ft-form.on.ft-form-zivil { border-color: var(--daten-6); box-shadow: inset 0 -3px 0 var(--daten-6); }
 .ft-form.on.ft-form-satellit { border-color: var(--daten-5); box-shadow: inset 0 -3px 0 var(--daten-5); }
 .ft .ft-form:disabled, .ft .ft-schalt:disabled { opacity: 1; color: var(--tinte-1); }
 .ft-form.on span { color: var(--tinte-2); }

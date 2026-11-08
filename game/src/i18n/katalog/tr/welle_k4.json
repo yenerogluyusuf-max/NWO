@@ -27,6 +27,10 @@
  "welle_k4.form.satellit.name": "Özel statü",
  "welle_k4.form.satellit.kurz": "Türk koruması altında özel statü",
  "welle_k4.form.satellit.text": "Türk koruması altında ayrı bir yönetim, güvenli bölge ve ortak komisyonla. Güvenli bölgeden pahalıdır, dışarıda pek tanınmaz.",
+ "welle_k4.form.zivil.name": "Sivil yönetim",
+ "welle_k4.form.zivil.kurz": "sınır ili üzerinden sivil yönetim",
+ "welle_k4.form.zivil.text": "Türk valiler bölgeyi okul, elektrik ve lirayla yönetir; Hatay ile Kilis'in Kuzey Suriye'deki bölgeleri yönettiği gibi. Güvenli bölgeden pahalıdır.",
+ "welle_k4.fr.zivil": "{n} bölge Türk sivil yönetiminde",
  "welle_k4.form.annexion.name": "Devir",
  "welle_k4.form.annexion.kurz": "Türkiye'ye devir",
  "welle_k4.form.annexion.text": "Karşı taraf bölgeyi antlaşmayla devreder; Fransa'nın 1939'da Hatay'ı devretmesi gibi. Bir devlet bunu ancak tükendiğinde yapar.",
@@ -89,7 +93,6 @@
  "welle_k4.fr.rueckzug": "karşı taraf {km} km geri çekiliyor",
  "welle_k4.fr.patrouillen": "{mit} ile ortak devriyeler",
  "welle_k4.fr.rueckkehr": "mülteciler dönebiliyor",
- "welle_k4.besatzung.rueckzug": "karşı taraf hattın {km} km gerisinde",
  "welle_k4.notiz": "{land} ile barış antlaşması",
  "welle_k4.uebergabe.log": "{region} {land} tarafına teslim edildi.",
  "welle_k4.uebergabe.warum": "Barış antlaşması süreli iadeyi öngörüyordu.",
@@ -99,13 +102,5 @@
  "welle_k4.x.gesetzt": "Taslak değiştirildi.",
  "welle_k4.x.abgelehnt": "{land} reddediyor: kaldırabileceğinden {zuviel} puan fazla.",
  "welle_k4.x.abgelehnt_sperre": "{land} reddediyor: Taleplerden biri pazarlığa kapalı.",
- "welle_k4.x.abgelehnt.warum": "{land} {punkte} puanlık bir karşı teklif sunuyor. Gerilim artıyor.",
- "krieg.besatzung.form.zone.name": "Güvenli bölge",
- "krieg.besatzung.form.zone.text": "Barış antlaşmasıyla askerî olarak güvence altında, sivil yönetimi zayıf; dışarıda hoş görülür, tanınmaz.",
- "krieg.besatzung.form.satellit.name": "Özel statü",
- "krieg.besatzung.form.satellit.text": "Barış antlaşmasıyla Türk koruması altında ayrı bir yönetim; dışarıda pek tanınmaz.",
- "krieg.besatzung.form.zivil.name": "Sivil yönetim",
- "krieg.besatzung.form.zivil.text": "Okul, elektrik, su ve mahkemeler sınır illeri üzerinden: pahalı, ama direniş azalır.",
- "krieg.besatzung.form.rueckgabe.name": "Teslim",
- "krieg.besatzung.form.rueckgabe.text": "Barış antlaşması bölgeyi iade ediyor; teslim sürüyor."
+ "welle_k4.x.abgelehnt.warum": "{land} {punkte} puanlık bir karşı teklif sunuyor. Gerilim artıyor."
 }

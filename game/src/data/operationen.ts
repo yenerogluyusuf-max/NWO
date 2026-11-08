@@ -65,10 +65,11 @@ export interface OperationsForm {
 }
 
 export const OPERATIONSFORMEN: Record<OperationsFormId, OperationsForm> = {
-  // Klauenschwert 2022: eine Woche, ein Gefallener, kein Gelände, keine Sanktionen
+  // Klauenschwert 2022: eine Woche, ein Gefallener, kein Gelände, keine Sanktionen. Die Verluste trägt die Einsatzart „luft“ des Schauplatzes,
+  // die K2 an Klauenschwert kalibriert hat (test/krieg-kalibrierung.test.ts): Faktor 1, sonst zählte das Vorbild doppelt
   luftschlag: {
     id: "luftschlag", einsatz: "luft", tiefe: 0,
-    vorstoss: 0, rueckschlag: 0.3, verlust: 0.1, uhr: 0.6, druck: 1.2, welt: 0.4,
+    vorstoss: 0, rueckschlag: 0.3, verlust: 1, uhr: 0.6, druck: 1.2, welt: 0.4,
     ansehen: -0.5, sammlung: 0, pk: 4, mobil: 0, wellenWochen: 1,
   },
   // Schutzschild Euphrat, Olivenzweig, Friedensquelle: 2.000 bis 4.820 km², eine Zone von 32 km, Dutzende Gefallene; die Grundwerte des
@@ -84,10 +85,12 @@ export const OPERATIONSFORMEN: Record<OperationsFormId, OperationsForm> = {
     vorstoss: 1.15, rueckschlag: 1, verlust: 1.6, uhr: 1.4, druck: 0.3, welt: 2,
     ansehen: -3, sammlung: 0, pk: 10, mobil: 1,
   },
-  // Zypern 1974: schneller Brückenkopf, Hunderte Gefallene, Resolution 353 am selben Tag, dreieinhalb Jahre US-Waffenembargo
+  // Zypern 1974: schneller Brückenkopf, Hunderte Gefallene, Resolution 353 am selben Tag, dreieinhalb Jahre US-Waffenembargo. Den Blutzoll
+  // des Kampfs um Inseln und Zypern trägt schon der Grundwert des Schauplatzes (sim/kriegsschauplatz.ts SCHAUPLATZ.landung, an Zypern 1974
+  // kalibriert): Faktor 1, sonst zählte das Vorbild doppelt
   landung: {
     id: "landung", einsatz: "see", tiefe: 2,
-    vorstoss: 1.2, rueckschlag: 1.2, verlust: 2.2, uhr: 1.2, druck: 0.3, welt: 2.5,
+    vorstoss: 1.2, rueckschlag: 1.2, verlust: 1, uhr: 1.2, druck: 0.3, welt: 2.5,
     ansehen: -4, sammlung: 0, pk: 10, mobil: 1, nur: ["aegaeis", "zypern"],
   },
 };
@@ -95,19 +98,19 @@ export const OPERATIONSFORMEN: Record<OperationsFormId, OperationsForm> = {
 export const OPERATIONSFORM_IDS = Object.keys(OPERATIONSFORMEN) as OperationsFormId[];
 
 /**
- * Verbündete am Boden. Die SNA kämpft nur in Nordsyrien und nur mit einer Bodenoperation. Bei der begrenzten Operation trägt sie die Front:
- * Dann gilt die Einsatzart „stellvertreter“ des Schauplatzes mit deren Grundwerten (Vorbild Friedensquelle: 12 türkische Gefallene bei rund
- * 14.000 SNA-Kämpfern). Bei der Großoffensive kämpft sie neben dem Heer und spart einen Teil der eigenen Verluste. In beiden Fällen steigt der
- * Weltpreis, weil die Übergriffe der Fraktionen der Türkei angelastet werden (Amnesty 2018, HRW 2024). Faktoren: Spielparameter.
+ * Verbündete am Boden. Die SNA kämpft nur in Nordsyrien und nur mit einer Bodenoperation, und zwar neben dem Heer: So liefen Olivenzweig
+ * (rund 2.000 km² in 63 Tagen) und Friedensquelle (2.419 bis 4.820 km² in 9 Tagen, rund 15.000 türkische Soldaten neben rund 14.000 der SNA).
+ * Die Einsatzart bleibt deshalb „boden“ mit deren Grundwerten. Die Einsatzart „stellvertreter“ des Schauplatzes steht für Schutzschild Euphrat
+ * (Verbündete führen, 4.000 bis 8.000 türkische Soldaten, 65 km² je Woche); als Operationsform mit der SNA machte sie den Grenzstreifen zu einem
+ * Krieg von fast zwei Jahren (Nachauftrag K3, 08.11.). Die SNA spart einen Teil der türkischen Verluste, und der Weltpreis steigt, weil die
+ * Übergriffe der Fraktionen der Türkei angelastet werden (Amnesty 2018, HRW 2024). Beide Faktoren sind Spielparameter.
  */
 export const VERBUENDETE = {
   sna: {
     land: "SYR",
     formen: ["begrenzt", "grossoffensive"] as OperationsFormId[],
-    /** Einsatzart, wenn die SNA die begrenzte Operation trägt */
-    einsatzBegrenzt: "stellvertreter" as EinsatzArt,
-    /** Faktor auf die eigenen Verluste in der Großoffensive (bei der begrenzten Operation trägt das schon die Einsatzart) */
-    verlustGross: 0.6,
+    /** Faktor auf die eigenen Verluste (Spielparameter) */
+    verlust: 0.6,
     /** Faktor auf den Weltpreis je Woche */
     welt: 1.25,
   },

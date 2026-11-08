@@ -52,13 +52,15 @@ import { aktuelleSprache, liste, t, zahl } from "../i18n";
 import { bestandsFaktor, streitkraefteMonat } from "./streitkraefte";
 import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte";
 import type { FriedensPaket, FriedensTisch, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
-import { UEBERGABE_TAGE, besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBestandsFaktor, kriegsFaktoren, kriegsschauplatzMonat, regionenSetzen, schauplatzWoche, zielGeaendert } from "./kriegsschauplatz";
+import { besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBestandsFaktor, kriegsFaktoren, kriegsschauplatzMonat, regionenSetzen, schauplatzWoche, zielGeaendert } from "./kriegsschauplatz";
 import { landFormen } from "./ereignisse-krieg";
 import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFuer } from "./krieg-recht";
 import { FERN, fernZielErreicht, fernZielVon, istFernkonflikt } from "./fernkonflikt";
 // Welle 3, K4 (krieg.md Schritt 7): der Friedenstisch mit Forderungen je Region (sim/friedenstisch.ts)
-import { tischBuchen, tischPreis, tischRegionen, vermittlerVon } from "./friedenstisch";
+import { uebergabenTag } from "./besatzung";
+import { UEBERGABE_TAGE, tischBuchen, tischPreis, tischRegionen, vermittlerVon } from "./friedenstisch";
 import { besatzung, regionenVon, schauplatzFuer, zielRegionen } from "./kriegsschauplatz";
+import { staatAnnektiert } from "./provinzen-neu"; // Welle 3, K5
 // Welle 3, K3: Operationsform und Wendepunkte (kleinste Stellen in kriegWoche, kriegsbeginn und kriegszielErreicht, jeweils mit „K3“ vermerkt)
 import { operationBeginn, operationNachSchauplatz, operationsTiefe, operationsVorstoss } from "./operationen";
 import { wendepunkteWoche } from "./ereignisse-wendepunkte";
@@ -1427,12 +1429,18 @@ function friedenSchliessen(w: World, k: KriegVorgang, p: FriedensPaket, paketId:
   if (p.tisch) {
     tischBuchen(w, k, p.tisch);
     const v = vermittlerVon(w, k);
-    const gehalten = besatzungNachFrieden(w, k, p.gebiet, { tisch: p.tisch, ...(v ? { patrouillen: v } : {}) });
     const regs = tischRegionen(k, p.tisch);
+    // Eine Signatur mit K5: die Form je Region als `formen`, dazu die Auflagen und die Frist der Rückgabe
+    const gehalten = besatzungNachFrieden(w, k, p.gebiet, {
+      formen: Object.fromEntries(regs.map((r) => [r.region.id, r.form] as const)),
+      auflagen: { rueckzugKm: p.tisch.rueckzugKm, ...(p.tisch.patrouillen && v ? { patrouillen: v } : {}), ...(p.tisch.rueckkehr ? { rueckkehr: true } : {}) },
+      uebergabeTage: UEBERGABE_TAGE,
+    });
     const zaehle = (f: string) => Object.values(p.tisch!.regionen).filter((x) => x === f).length;
     if (gehalten.length) teile.push(t("welle_k4.fr.gehalten", { regionen: gehalten.join(", ") }));
     if (zaehle("annexion")) teile.push(t("welle_k4.fr.abtretung", { n: zaehle("annexion") }));
     if (zaehle("satellit")) teile.push(t("welle_k4.fr.satellit", { n: zaehle("satellit") }));
+    if (zaehle("zivil")) teile.push(t("welle_k4.fr.zivil", { n: zaehle("zivil") }));
     const zurueck = regs.filter((r) => r.form === "rueckgabe" && r.lage === "eigen").length;
     if (zurueck) teile.push(t("welle_k4.fr.rueckgabe", { n: zurueck, tage: UEBERGABE_TAGE }));
     if (p.tisch.rueckzugKm) teile.push(t("welle_k4.fr.rueckzug", { km: p.tisch.rueckzugKm }));
@@ -1795,6 +1803,8 @@ export function spannungsVerlauf(w: World, k: KriegVorgang): SpannungsVerlauf | 
 export function kriegTag(w: World, rng: Rng): void {
   const spiel = w.spiel;
   if (!spiel || spiel.ende) return;
+  // Welle 3, K4: Im Friedensvertrag zurückgegebene Regionen gehen am Tag der Übergabe an den Gegner
+  uebergabenTag(w);
   for (const k of kriege(w)) {
     // Eskalation folgt träge der Konflikt-Dimension des Landes, solange ein Anlass sie nährt; danach klingt sie ab (KRIEG.naehrFrist)
     if (k.phase === "spannung" || k.phase === "drohkulisse") {
@@ -1895,7 +1905,7 @@ export function kriegMonat(w: World, rng: Rng): void {
     if ((z[l.id]?.konflikt ?? 0) < KRIEG.anlageAb) continue;
     // Nur ein akuter Anstieg über den Ruhewert legt einen Vorgang an; ein dauerhaft hoher Konflikt (Zypern mit härterer Führung) nicht
     if ((z[l.id]?.konflikt ?? 0) < konfliktRuhewert(w, l.id) + KRIEG.anlageUeberRuhe) continue;
-    if (ohneKriegsvorgang(l.id)) continue;
+    if (ohneKriegsvorgang(l.id) || staatAnnektiert(w, l.id)) continue; // K5: Ein ganz annektierter Staat greift nicht mehr an
     if (kriegMit(w, l.id)) continue;
     if (w.day - (spiel.zuletzt[`krieg-${l.id}`] ?? -1e9) < KRIEG.anlageAbkuehlung) continue;
     vorgangAnlegen(w, l.id, z[l.id]!.konflikt);
@@ -1965,6 +1975,7 @@ export function kriseGrund(w: World, landId: string): string | undefined {
   if (!spiel || spiel.ende) return t("krieg.k.x.keinspiel");
   if (kriegMit(w, landId)) return t("krieg.k.krise.schon");
   if (ohneKriegsvorgang(landId)) return t("krieg.k.krise.fern", { land: land(landId).name });
+  if (staatAnnektiert(w, landId)) return t("welle_k5.staat.krise", { land: land(landId).name }); // K5
   if (aktiveKriege(w).length >= KRIEG.maxAktiv) return t("krieg.k.krise.zuviele", { n: KRIEG.maxAktiv });
   if (w.day - (spiel.zuletzt[`krieg-${landId}`] ?? -1e9) < 30) return t("welle_k1.krise.eben");
   if (!kannZahlen(spiel.kapital, krisePreis(w, landId).pk)) return t("krieg.k.kapital");
@@ -2067,13 +2078,15 @@ export function waehleZielraum(w: World, kriegId: string, zielId: string): Ergeb
   const z = ZIELRAEUME.find((x) => x.id === zielId);
   if (!k || !z || z.land !== k.land) return { ok: false, text: t("militaer.ziel.ungueltig") };
   if (k.phase === "frieden" || k.phase === "beendet") return { ok: false, text: t("militaer.ziel.vorbei") };
-  const wechsel = !!k.zielraum && k.zielraum !== zielId && k.phase === "krieg";
+  // K6: Auch der Schritt von einer eigenen Auswahl (zielRegionen) zurück auf einen festen Zielraum ist ein Wechsel
+  const wechsel = !!k.zielraum && (k.zielraum !== zielId || !!k.zielRegionen) && k.phase === "krieg";
   if (wechsel) {
     if (!kannZahlen(w.spiel!.kapital, ZIELRAUM_WECHSEL.pk)) return { ok: false, text: t("militaer.grund.kapital") };
     w.spiel!.kapital -= ZIELRAUM_WECHSEL.pk;
     wirke(w, "truppenmoral", ZIELRAUM_WECHSEL.moral);
   }
   k.zielraum = zielId;
+  delete k.zielRegionen;
   zielGeaendert(w, k);
   const text = t(wechsel ? "militaer.ziel.gewechselt" : "militaer.ziel.gesetzt", { ziel: t(`militaer.zielraum.${zielId}`) });
   addLog(w, "entscheidung", text);
