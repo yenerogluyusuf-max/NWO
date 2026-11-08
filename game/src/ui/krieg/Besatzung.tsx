@@ -4,7 +4,7 @@
 import type { World } from "../../sim/types";
 import { t, zahl } from "../../i18n";
 import { useSprache } from "../../i18n/react";
-import { aendereBesatzung, besatzungsSicht } from "../../sim/kriegsschauplatz";
+import { aendereBesatzung, besatzungsSicht, formAlt } from "../../sim/kriegsschauplatz";
 import { land } from "../../sim/laender";
 import { BESATZUNG, type BesatzungsForm } from "../../data/schauplaetze";
 import "./krieg.css";
@@ -31,6 +31,8 @@ export function Besatzung({ world, onTat, nurLand }: { world: World; onTat: (tex
                 {land(b.land).name} · {t(`krieg.besatzung.form.${b.form}.name`)}
                 {/* Welle 3, K1: eine eingefrorene Waffenstillstandslinie ohne Vertrag (Schritt 8 verwaltet sie) */}
                 {b.grundlage === "linie" ? ` · ${t("welle_k1.besatzung.linie")}` : ""}
+                {/* K4: Auflagen des Friedensvertrags (Rückzug des Gegners, Übergabe mit Frist) */}
+                {b.vertrag?.rueckzugKm ? ` · ${t("welle_k4.besatzung.rueckzug", { km: b.vertrag.rueckzugKm })}` : ""}
               </span>
             </div>
             <div className="ks-zeile" title={t("krieg.besatzung.widerstand_hilfe", { ziel: b.widerstandZiel })}>
@@ -42,7 +44,8 @@ export function Besatzung({ world, onTat, nurLand }: { world: World; onTat: (tex
             </div>
             <p className="ks-hilfe">{t(`krieg.besatzung.form.${b.form}.text`)}</p>
             <div className="ks-knoepfe" role="group">
-              {FORMEN.filter((f) => f !== b.form).map((f) => (
+              {/* K4: Formen vom Friedenstisch (Zone, Sonderstatus) zählen bis K5 wie ihre alten Gegenstücke */}
+              {FORMEN.filter((f) => f !== formAlt(b.form)).map((f) => (
                 <button key={f} type="button" onClick={() => onTat(aendereBesatzung(world, b.region, f).text)}>
                   <strong>{t(`krieg.besatzung.form.${f}.name`)}</strong>
                   <span>{t("krieg.besatzung.preis", { pk: f === "annexion" ? BESATZUNG.pkAnnexion : BESATZUNG.pkWechsel })}</span>

@@ -55,8 +55,11 @@ function einwohnerKurz(n: number): string {
 
 type Lage = "eigen" | "umkaempft" | "gegner" | "aussen" | "besetzt";
 
-/** Die Karte des Schauplatzes: alle Regionen mit ihren Umrissen, flächentreu genug für das Auge (Längengrad mit dem Kosinus gestaucht). */
-function SchauplatzKarte({ regionen, lage, umk }: { regionen: Region[]; lage: (r: Region) => Lage; umk?: Region }) {
+/**
+ * Die Karte des Schauplatzes: alle Regionen mit ihren Umrissen, flächentreu genug für das Auge (Längengrad mit dem Kosinus gestaucht).
+ * K4: exportiert für den Friedenstisch (ui/krieg/Friedenstisch.tsx), der die Regionen nach ihrer Forderung färbt (Klasse `skk-<lage>`).
+ */
+export function SchauplatzKarte({ regionen, lage, umk }: { regionen: Region[]; lage: (r: Region) => Lage | string; umk?: Region }) {
   const ringe = regionen.flatMap((r) => FLAECHEN[r.id] ?? []);
   if (!ringe.length) return null;
   let lon0 = Infinity, lon1 = -Infinity, lat0 = Infinity, lat1 = -Infinity;
