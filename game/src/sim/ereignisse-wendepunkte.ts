@@ -25,7 +25,7 @@
 // Weltpreis, Zustimmung); die Zeilen unter einer Antwort entstehen aus denselben Werten, die sie bucht (`wirksam`).
 // Alle Schwellen und Wirkungen sind Spielparameter, wo im Kopf keine Quelle steht.
 
-import { PREIS } from "./kriegspreis";
+import { MARKT_DROHUNG, PREIS } from "./kriegspreis";
 import { schauplatzFuer, umkaempfteRegion } from "./kriegsschauplatz";
 import type { KriegsTempo } from "../data/schauplaetze";
 import { OPERATIONSFORMEN } from "../data/operationen";
@@ -159,7 +159,10 @@ function buche(w: World, k: KriegVorgang, roh: Werte): void {
   for (const [id, d] of Object.entries(v.netz ?? {})) wirke(w, id, d);
   if (v.zustimmung && w.spiel) w.spiel.umfrage.zustimmung = clamp(w.spiel.umfrage.zustimmung + v.zustimmung, 0, 100);
   if (v.kosten) kosten(w, v.kosten);
-  if (v.lira) w.economy.usdTry *= 1 + v.lira / 100;
+  if (v.lira) {
+    w.economy.usdTry *= 1 + v.lira / 100;
+    w.economy.eurTry *= 1 + v.lira / 100;
+  }
   if (v.risiko) w.economy.riskPremium = Math.max(0, w.economy.riskPremium + v.risiko);
 }
 
@@ -351,7 +354,8 @@ const WP_VERMITTLUNG: Vorlage = {
 
 const EU_MITGLIED = new Set(["GRC", "CYP"]);
 const SANKTION = {
-  einlenken: (von: string): Werte => ({ tempo: "vorsichtig", konflikt: { [von]: -3 }, risiko: -20, netz: { nationalisten: -1 } }),
+  // Einlenken wie die Pause vom 17.10.2019: Es bleiben 1,5 % des Sprungs (MARKT_DROHUNG.bleibt in sim/kriegspreis.ts)
+  einlenken: (von: string): Werte => ({ tempo: "vorsichtig", konflikt: { [von]: -3 }, lira: Math.round(WENDEPUNKT.liraSanktion * MARKT_DROHUNG.bleibt * 10) / 10, risiko: -20, netz: { nationalisten: -1 } }),
   vermitteln: (von: string): Werte => ({ konflikt: { [von]: -1.5 }, lira: WENDEPUNKT.liraSanktion / 2, risiko: 25 }),
   standhalten: (von: string): Werte => ({ konflikt: { [von]: 3 }, lira: WENDEPUNKT.liraSanktion, risiko: 60, zustimmung: 0.5, netz: { nationalisten: 1.5 } }),
 };

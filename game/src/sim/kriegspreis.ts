@@ -200,7 +200,8 @@ export function kriegspreisWoche(w: World, k: KriegVorgang, gegnerStaerke: numbe
     addLog(w, "ereignis", t("krieg.preis.sanktion_usa", { land: l.name }), t("krieg.preis.sanktion_warum"));
   }
   // Sanktionsdrohung des Westens bei einer eigenen Bodenoffensive (Vorbild Friedensquelle 2019), danach die Erholung
-  if (angriff && (k.einsatz === undefined || k.einsatz === "boden") && r.usa >= MARKT_DROHUNG.usaAb) sanktionsDrohungMarkt(w, k);
+  // Mit gewählter Operationsform (K3) kommt die Drohung als Wendepunkt (sim/ereignisse-wendepunkte.ts) und bucht den Kurs dort nach der Antwort
+  if (angriff && !k.operation && (k.einsatz === undefined || k.einsatz === "boden") && r.usa >= MARKT_DROHUNG.usaAb) sanktionsDrohungMarkt(w, k);
   if (k.marktDrohung && !k.marktDrohung.erholt && w.day - k.marktDrohung.tag >= MARKT_DROHUNG.erholungTage) marktErholung(w, k);
   wirke(w, "tourismus", r.tourismus);
   if (r.kueste) wirke(w, "tourismus", r.kueste.wert, r.kueste.provinzen);

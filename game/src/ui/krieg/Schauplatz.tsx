@@ -77,7 +77,7 @@ function SchauplatzKarte({ regionen, lage, umk }: { regionen: Region[]; lage: (r
           return (
             <g key={r.id} className={`skk-region skk-${l}`}>
               {(FLAECHEN[r.id] ?? []).map((ring, i) => <path key={i} d={pfad(ring)} />)}
-              <title>{`${t(`krieg.region.${r.id}`)} · ${t(`welle_k2.einheit.${r.einheit.art}`, { name: r.einheit.name })} · ${t("welle_k2.ui.km2", { z: zahl(r.flaecheKm2, 0) })}`}</title>
+              <title>{`${t(`krieg.region.${r.id}`)} · ${t(`welle_k2.einheit.${r.einheit.art}`, { name: t(`welle_k2.einheitname.${r.id}`) })} · ${t("welle_k2.ui.km2", { z: zahl(r.flaecheKm2, 0) })}`}</title>
             </g>
           );
         })}
@@ -181,7 +181,7 @@ export function Schauplatz({ world, k, onTat }: { world: World; k: KriegVorgang;
           const l = lage[r.id] ?? "gegner";
           const res = r.ressourcen.map((x) => t(`welle_k2.res.${x.id}`));
           return (
-            <li key={r.id} className={`ks-region ks-${l} skk-glied`} title={[t(`welle_k2.einheit.${r.einheit.art}`, { name: r.einheit.name }), t(`krieg.gelaende.${r.gelaende}`), ...res].join(" · ")}>
+            <li key={r.id} className={`ks-region ks-${l} skk-glied`} title={[t(`welle_k2.einheit.${r.einheit.art}`, { name: t(`welle_k2.einheitname.${r.id}`) }), t(`krieg.gelaende.${r.gelaende}`), ...res].join(" · ")}>
               <span className="ks-punkt" aria-hidden />
               <span className="skk-glied-text">
                 <span className="ks-name">{t(`krieg.region.${r.id}`)}</span>
@@ -196,13 +196,15 @@ export function Schauplatz({ world, k, onTat }: { world: World; k: KriegVorgang;
       </ol>
       {umk && (
         <p className="skk-umk">
-          <b>{t(`welle_k2.einheit.${umk.einheit.art}`, { name: umk.einheit.name })}</b>
+          <b>{t(`welle_k2.einheit.${umk.einheit.art}`, { name: t(`welle_k2.einheitname.${umk.id}`) })}</b>
           {umk.ressourcen.length ? ` · ${umk.ressourcen.map((x) => t(`welle_k2.res.${x.id}`)).join(" · ")}` : ""}
         </p>
       )}
       {f.keinLand && imKrieg && <p className="ks-warn">{t("welle_k2.ui.kein_land")}</p>}
       {f.ausserReichweite && umk && <p className="ks-warn">{t("krieg.ui.reichweite", { region: t(`krieg.region.${umk.id}`), art: t(`krieg.einsatz.${einsatz === "gemischt" ? "luft" : einsatz}.name`) })}</p>}
 
+      {/* Mit gewählter Operationsform (K3) folgt die Einsatzart der Form; umgestellt wird in der Operationstabelle der Akte */}
+      {!k.operation && (
       <div className="ks-wahl">
         <h5>{t("krieg.ui.einsatz")}</h5>
         <p className="ks-hilfe">{einsatz === "gemischt" ? t("krieg.ui.einsatz_gemischt") : t(`krieg.einsatz.${einsatz}.text`)}</p>
@@ -219,6 +221,7 @@ export function Schauplatz({ world, k, onTat }: { world: World; k: KriegVorgang;
           ))}
         </div>
       </div>
+      )}
 
       <div className="ks-wahl">
         <h5>{t("krieg.ui.tempo")}</h5>
