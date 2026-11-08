@@ -45,6 +45,7 @@ import { BEREICHE_VORLAGEN } from "./ereignisse-bereiche";
 import { DIPLOMATIE_VORLAGEN } from "./ereignisse-diplomatie";
 import { FORSCHUNG_VORLAGEN } from "./ereignisse-forschung";
 import { RUESTUNG_VORLAGEN } from "./ereignisse-ruestung";
+import { MANDAT_VORLAGEN } from "./ereignisse-mandat"; // Welle 4, K7
 import { MEDIEN_VORLAGEN } from "./ereignisse-medien";
 import { KREIS_VORLAGEN } from "./ereignisse-kreis";
 import { LETZTE_VORLAGEN } from "./ereignisse-letzte";
@@ -87,7 +88,8 @@ function alterFaktor(world: World, id: string): number {
 }
 
 /** Feste Termine des Staatsjahres: Sie kommen immer und zählen nicht zur Dichte. */
-const TERMINE = new Set(["mindestlohn", "haushaltsjahr", "kommunalwahl", "zusage", "koalitionsangebot"]);
+// Welle 4, K7: Die Verlängerung der Vollmacht für Syrien und Irak ist ein fester Termin im Oktober des Jahres, in dem sie ausläuft
+const TERMINE = new Set(["mindestlohn", "haushaltsjahr", "kommunalwahl", "zusage", "koalitionsangebot", "vollmacht_verlaengerung"]);
 /** Ab so vielen Ereignissen in zwölf Monaten (offen oder entschieden) werden neue seltener: Das Spiel soll fordern, nicht zuschütten. */
 const DICHTE_SCHWELLE = 6;
 function dichteFaktor(world: World, id: string): number {
@@ -1052,6 +1054,8 @@ export const VORLAGEN: Vorlage[] = [
   ...KREIS_VORLAGEN, ...DIENST_VORLAGEN,
   // Welle E3b: Die letzte Amtszeit kündigt sich an (eigener Platz, fester Tag)
   ...LETZTE_VORLAGEN,
+  // Welle 4, K7: Verlängerung der Vollmacht für Syrien und Irak (fester Termin im Oktober)
+  ...MANDAT_VORLAGEN,
 ];
 
 /** Womit man die Ursache eines Ereignisses selbst regeln kann (statt nur zu reagieren). */

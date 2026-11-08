@@ -17,7 +17,7 @@
 import { kraenke } from "./kraenkung";
 import { KRAFT_TUERKEI, NORMALSTAND } from "../data/kraefte";
 import { militaerVersorgung } from "./versorgung";
-import { PREIS, REAKTION, kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
+import { KRITIK_MUEDE, PREIS, REAKTION, kriegspreisBeginn, kriegspreisWoche } from "./kriegspreis";
 import { BEOBACHTER, KRAENKUNG } from "./kraenkung";
 import { NET } from "./modell";
 import { nationalAverage } from "./netz";
@@ -41,7 +41,7 @@ import {
   paketBlockade,
 } from "./pakte";
 import { akteurName as landNameVon } from "./welt-modell";
-import { stimmenSicht } from "./handeln";
+import { bereitschaftAendern } from "./fraktionen";
 import { oeffne } from "./ereignisse";
 import { kosten } from "./ereignis-hilfen";
 import { kannZahlen } from "./kapital";
@@ -54,7 +54,10 @@ import { STANDARD_ZIEL, ZIELRAEUME, type Zielraum } from "../data/streitkraefte"
 import type { FriedensPaket, FriedensTisch, KriegPhase, KriegVorgang, KriegsRahmung, Mobilmachung } from "./krieg-typen";
 import { besatzungNachFrieden, eigenerBestandsFaktor, gegnerBestand, gegnerBestandsFaktor, kriegsFaktoren, kriegsschauplatzMonat, regionenSetzen, schauplatzWoche, zielGeaendert } from "./kriegsschauplatz";
 import { landFormen } from "./ereignisse-krieg";
-import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFuer } from "./krieg-recht";
+import { erlassGrund, parlamentInFerien, vollmachtAbgelaufen, vollmachtFestschreiben, vollmachtFuer } from "./krieg-recht";
+// Welle 4, K7: Mandat nach den belegten Haltungen der Fraktionen, Zusagen, Sperre nach dem Scheitern; Reservisten am Arbeitsmarkt
+import { MANDAT, haltungsSatz, mandatAbstimmen, mandatSicht, zusageAngebote, zusageBuchen, zusageSinnvoll, type MandatAnlass } from "./mandat";
+import { RESERVISTEN, reservistenLuecke, reservistenVon } from "./reservisten";
 import { FERN, fernZielErreicht, fernZielVon, istFernkonflikt } from "./fernkonflikt";
 // Welle 3, K4 (krieg.md Schritt 7): der Friedenstisch mit Forderungen je Region (sim/friedenstisch.ts)
 import { uebergabenTag } from "./besatzung";
@@ -170,6 +173,28 @@ export const KRIEG = {
   drohkulissePk: 6,
   /** „Einsatz auf die Vollmacht“: Kapital (keine Abstimmung, Art. 92 mit stehender Rahmenvollmacht) */
   vollmachtPk: 6,
+  /**
+   * Welle 4, K7: Kritik am Einsatz unterdrücken. Vorbild Oktober 2019 (Friedensquelle): In der ersten Woche kamen 186 Menschen wegen
+   * Beiträgen in sozialen Medien in Polizeigewahrsam, 24 in Untersuchungshaft, 839 Konten wurden geprüft, zwei Journalisten festgenommen
+   * (Amnesty International, „We can't complain“, 31.10.2019, nach Anadolu); die HDP meldete 151 festgenommene Mitglieder in einer Woche
+   * (Jerusalem Post, 15.10.2019). Wirkung und Preis sind Spielparameter: Die Kriegsmüdigkeit halbiert sich für acht Wochen.
+   */
+  kritik: {
+    pk: 4,
+    tage: 56,
+    abstand: 120,
+    /** Anteil der Kriegsmüdigkeit, solange sie wirkt (gebucht in sim/kriegspreis.ts) */
+    get muede() { return KRITIK_MUEDE; },
+    pressefreiheit: -3,
+    justiz: -1.5,
+    minderheiten: -2.5,
+    polarisierung: 2,
+    eu: -1.5,
+    strassburg: 1.5,
+    ansehen: -1,
+    dem: -10,
+    chp: -4,
+  },
   /** Ein Friedenspaket nimmt der Gegner an, wenn seine Bereitschaft mindestens so hoch ist */
   paketNoetig: 50,
   /** Aufschlag auf die Bereitschaft, wenn das Kriegsziel erreicht ist bzw. der Gegner erschöpft den Rückzug antritt */
@@ -667,7 +692,10 @@ export type KriegHandlungId =
   | "waffenruhe"
   | keyof typeof PAKETE
   | "weiterkaempfen"
-  | "rueckzug";
+  | "rueckzug"
+  // Welle 4, K7: Zusage an eine Fraktion für das Mandat; Kritik am Einsatz unterdrücken
+  | `zusage_${string}`
+  | "kritik";
 
 export interface KriegHandlungSicht {
   id: KriegHandlungId;
@@ -741,6 +769,39 @@ function demobGrund(w: World): string | undefined {
   return t("krieg.k.demob.grund", { datum: formatDateDe(addDays(w.date, bis - w.day)) });
 }
 
+/** Welle 4, K7: der Anlass der Abstimmung über den Einsatz (Land, Stimmenbonus der Begründung, Zusagen an Fraktionen). */
+export function einsatzAnlass(k: KriegVorgang): MandatAnlass {
+  return { art: "einsatz", land: k.land, bonus: (k.rahmung ? rahmungWerte(k).stimmen : 0) + (k.eskalation >= 85 ? 15 : 0), zusagen: k.mandatZusagen ?? [] };
+}
+
+/** Welle 4, K7: Bis zu diesem Tag sperrt ein gescheitertes Mandat einen neuen Antrag für dieses Land (sonst 0). */
+export function mandatSperreBis(w: World, landId: string): number {
+  return w.spiel?.mandatSperre?.[landId] ?? 0;
+}
+
+/** Welle 4, K7: Reservisten unter Waffen über alle Vorgänge, höchstens die ganze Reserve. */
+export function reservistenUnterWaffen(w: World): number {
+  let n = 0;
+  for (const k of kriege(w)) n += reservistenVon(w, k, { faktor: mobilStand(w, k).faktor, faktoren: KRIEG.mobilFaktor, demobTage: KRIEG.demobTage });
+  return Math.min(n, RESERVISTEN.gesamt);
+}
+
+/** Welle 4, K7: Wie viele Reservisten eine Stufe einberuft (für den Hinweis am Knopf, dieselbe Zahl wie `reservistenVon`). */
+function reservistenHinweis(stufe: 1 | 2): string {
+  const n = RESERVISTEN.gesamt * RESERVISTEN.stufe[stufe];
+  const l = reservistenLuecke(n);
+  return " " + t("welle_k7.mobil.reservisten", { n: zahl(n, 0), anteil: zahl(l.anteil, 1), wachstum: zahl(l.wachstum, 1) });
+}
+
+/** Welle 4, K7: Zusagen an Fraktionen, die das Mandat erreichbar machen (höchstens zwei, die mit den meisten Stimmen zuerst). */
+function zusagenAnbieten(w: World, k: KriegVorgang, push: (id: KriegHandlungId, label: string, pk: number, hinweis: string, grund?: string) => void): void {
+  // Nur wenn das Mandat ohne sie wackelt: Eine Zusage kostet Kapital und bindet die Regierung
+  if (!zusageSinnvoll(mandatSicht(w, einsatzAnlass(k)))) return;
+  for (const a of zusageAngebote(w, einsatzAnlass(k)).slice(0, 2)) {
+    push(`zusage_${a.partei}`, t("welle_k7.h.zusage", { partei: a.name }), a.pk, t("welle_k7.h.zusage.hinweis", { partei: a.name, stimmen: a.stimmen, forderung: a.forderung, tage: MANDAT.zusageTage }));
+  }
+}
+
 /** Alle Handlungen, die der Konfliktvorgang in der aktuellen Phase anbietet — mit Preisen und ehrlichen Gründen. */
 export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] {
   const spiel = w.spiel;
@@ -780,8 +841,8 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
   }
   if (ph === "drohkulisse") {
     const dauer = (stufe: 1 | 2) => " " + t("nacht_n7.krieg.mobil.dauer", { tage: KRIEG.mobilTage[stufe] });
-    if (k.mobilmachung === 0) push("mobil_teil", t("krieg.k.h.mobil_teil"), 8, t("krieg.k.h.mobil_teil.hinweis") + dauer(1), demob);
-    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_voll"), 14, t("krieg.k.h.mobil_voll.hinweis") + dauer(2), demob);
+    if (k.mobilmachung === 0) push("mobil_teil", t("krieg.k.h.mobil_teil"), 8, t("krieg.k.h.mobil_teil.hinweis") + dauer(1) + reservistenHinweis(1), demob);
+    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_voll"), 14, t("krieg.k.h.mobil_voll.hinweis") + dauer(2) + reservistenHinweis(2), demob);
     if (!k.kriegszielDeklariert) {
       // Ohne deklariertes Kriegsziel kein Beschluss: Die Rahmung ist Pflicht (Civ6-Preisschild).
     } else {
@@ -796,16 +857,19 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
       if (vollmacht) {
         push("beschluss_vollmacht", t("welle_k1.h.vollmacht"), KRIEG.vollmachtPk, t("welle_k1.h.vollmacht.hinweis", { land: l.name, bis: vollmacht.bis }), sperre);
       } else {
-        const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 }).erwartet + rahmungWerte(k).stimmen;
+        // Welle 4, K7: Die Fraktionen stimmen nach ihren belegten Haltungen (sim/mandat.ts); nach einem Scheitern ist ein neuer Antrag gesperrt
+        const m = mandatSicht(w, einsatzAnlass(k));
         const abgelaufen = vollmachtAbgelaufen(w, k.land);
         const tage = angriffAufTuerkei(k) ? KRIEG.beschlussTageEil : KRIEG.beschlussTage;
+        const gesperrt = mandatSperreBis(w, k.land) > w.day ? t("welle_k7.h.sperre", { datum: addDays(w.date, mandatSperreBis(w, k.land) - w.day) }) : undefined;
         push(
           "beschluss",
           t("krieg.k.h.beschluss"),
           10,
-          t("krieg.k.h.beschluss.hinweis", { tage, stimmen: Math.round(stimmen) }) + (abgelaufen ? " " + t("welle_k1.h.vollmacht_abgelaufen", { bis: abgelaufen.bis }) : ""),
-          sperre,
+          t("welle_k7.h.beschluss.hinweis", { tage, ja: m.ja, noetig: m.noetig, anwesend: m.anwesend }) + (abgelaufen ? " " + t("welle_k1.h.vollmacht_abgelaufen", { bis: abgelaufen.bis }) : ""),
+          sperre ?? gesperrt,
         );
+        zusagenAnbieten(w, k, push);
       }
       // Nur bei einem Angriff auf die Türkei in den Parlamentsferien darf der Präsident den Einsatz sofort selbst anordnen (Art. 92 Abs. 2)
       push(
@@ -819,6 +883,8 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
   }
   if (ph === "beschluss" && k.beschluss?.weg === "parlament") {
     // Warten auf die Abstimmung; ein Rückzug des Beschlusses wäre ein Gesichtsverlust — bewusst nicht angeboten (v1).
+    // Welle 4, K7: Bis zur Abstimmung lassen sich noch Stimmen über Zusagen an Fraktionen holen
+    zusagenAnbieten(w, k, push);
   }
   if (ph === "krieg") {
     const rest = (k.verstaerkungZuletzt ?? -1e9) + 21 - w.day;
@@ -836,7 +902,17 @@ export function handlungenFuer(w: World, kriegId: string): KriegHandlungSicht[] 
       );
     }
     push("waffenruhe", t("krieg.k.h.waffenruhe"), 5, k.zielErreicht !== undefined ? t("welle_k1.h.waffenruhe_ziel", { land: l.name }) : t("krieg.k.h.waffenruhe.hinweis"));
-    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_nach"), 14, t("krieg.k.h.mobil_nach.hinweis"), demob);
+    if (k.mobilmachung < 2) push("mobil_voll", t("krieg.k.h.mobil_nach"), 14, t("krieg.k.h.mobil_nach.hinweis") + reservistenHinweis(2), demob);
+    // Welle 4, K7: Kritik am Einsatz unterdrücken (Vorbild Oktober 2019), mit Preis; höchstens alle KRIEG.kritik.abstand Tage
+    const kr = KRIEG.kritik;
+    const kritikRest = (k.kritikBis ?? -1e9) - kr.tage + kr.abstand - w.day;
+    push(
+      "kritik",
+      t("welle_k7.h.kritik"),
+      kr.pk,
+      t("welle_k7.h.kritik.hinweis", { wochen: Math.round(kr.tage / 7), presse: zahlMitVorzeichen(kr.pressefreiheit), minderheiten: zahlMitVorzeichen(kr.minderheiten), eu: zahlMitVorzeichen(kr.eu), polarisierung: zahlMitVorzeichen(kr.polarisierung) }),
+      kritikRest > 0 ? t("welle_k7.h.kritik.rest", { datum: addDays(w.date, kritikRest) }) : undefined,
+    );
   }
   if (ph === "waffenruhe") {
     const erlaubt = paketeFuer(k);
@@ -963,6 +1039,19 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
 
   let text = "";
   let why = t("krieg.k.x.kostet", { pk: sicht.pk });
+  // Welle 4, K7: Zusage an eine Fraktion für das Mandat (das Kapital ist oben schon gebucht)
+  if (handlungId.startsWith("zusage_")) {
+    const partei = handlungId.slice("zusage_".length);
+    const a = zusageAngebote(w, einsatzAnlass(k)).find((x) => x.partei === partei);
+    if (!a) return { ok: false, text: t("krieg.k.x.nicht") };
+    zusageBuchen(w, a, t("welle_k7.zusage.worum.einsatz", { land: l.name }), true);
+    (k.mandatZusagen ??= []).push(partei);
+    const m = mandatSicht(w, einsatzAnlass(k));
+    text = t("welle_k7.x.zusage", { partei: a.name, forderung: a.forderung });
+    why += " " + t("welle_k7.x.zusage.warum", { ja: m.ja, noetig: m.noetig, tage: MANDAT.zusageTage });
+    addLog(w, "entscheidung", text, why);
+    return { ok: true, text, why };
+  }
   switch (handlungId) {
     case "drohkulisse": {
       // Die zweite Sprosse: Truppen an die Grenze, öffentliche Forderung; die Mindestdauer der Drohkulisse beginnt
@@ -1125,7 +1214,10 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       k.beschluss = { weg: "parlament", abstimmung: w.day + tage, rahmung: k.rahmung! };
       phaseSetzen(w, k, "beschluss");
       text = t("krieg.k.x.beschluss", { land: lf(l, "akk"), tage });
-      why += " " + t("krieg.k.x.beschluss.warum");
+      // Welle 4, K7: Die Fraktionen kündigen ihre Haltung an (wie die Gruppenreden im Plenum), die Zeitung berichtet
+      const m = mandatSicht(w, einsatzAnlass(k));
+      why += " " + t("welle_k7.x.beschluss.warum", { haltung: haltungsSatz(m), ja: m.ja, noetig: m.noetig });
+      spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("welle_k7.chronik.antrag", { land: l.name }), ausgang: haltungsSatz(m), art: "bericht", presse: { sparte: "politik", wertung: m.angenommen ? 0.1 : -0.3 } });
       break;
     }
     case "beschluss_erlass": {
@@ -1137,6 +1229,24 @@ export function fuehreKriegHandlungAus(w: World, kriegId: string, handlungId: Kr
       addLog(w, "entscheidung", text, why);
       kriegsbeginn(w, k, "erlass");
       return { ok: true, text, why };
+    }
+    case "kritik": {
+      // Welle 4, K7: Festnahmen wegen Beiträgen im Netz, Ermittlungen gegen Abgeordnete; die Müdigkeit sinkt, der Preis trifft Rechte und Ansehen
+      const kr = KRIEG.kritik;
+      k.kritikBis = w.day + kr.tage;
+      wirke(w, "pressefreiheit", kr.pressefreiheit);
+      wirke(w, "justiz_unabhaengigkeit", kr.justiz);
+      wirke(w, "minderheiten", kr.minderheiten);
+      wirke(w, "polarisierung", kr.polarisierung);
+      wirke(w, "beziehungen_eu", kr.eu);
+      wirke(w, "strassburg_druck", kr.strassburg);
+      wirke(w, "ansehen", kr.ansehen);
+      bereitschaftAendern(w, "DEM", kr.dem);
+      bereitschaftAendern(w, "CHP", kr.chp);
+      text = t("welle_k7.x.kritik", { land: lf(l, "akk") });
+      why += " " + t("welle_k7.x.kritik.warum", { datum: addDays(w.date, kr.tage) });
+      spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("welle_k7.chronik.kritik"), ausgang: text, art: "bericht", presse: { sparte: "politik", wertung: -0.6 } });
+      break;
     }
     case "verstaerkung": {
       k.verstaerkungZuletzt = w.day;
@@ -1354,20 +1464,33 @@ function beschlussAbstimmen(w: World, k: KriegVorgang, rng: Rng): void {
   const spiel = w.spiel!;
   const l = land(k.land);
   const b = k.beschluss!;
-  const stimmen = stimmenSicht(w, { massnahme: "m_verteidigung", richtung: 1 });
-  const bonus = (b.rahmung === k.rahmung ? rahmungWerte(k) : RAHMUNG[b.rahmung]).stimmen + (k.eskalation >= 85 ? 15 : 0);
-  const ja = Math.min(600, Math.max(0, Math.round(stimmen.erwartet + bonus + rng.normal(6))));
-  const nein = 600 - ja;
+  // Welle 4, K7: Jede Fraktion stimmt nach ihrer belegten Haltung (sim/mandat.ts). Der Zufall bleibt ein Zug aus dem Strom wie vorher.
+  const anlass = { ...einsatzAnlass(k), bonus: (b.rahmung === k.rahmung ? rahmungWerte(k) : RAHMUNG[b.rahmung]).stimmen + (k.eskalation >= 85 ? 15 : 0) };
+  const m = mandatAbstimmen(w, anlass, rng.normal(1));
+  const { ja, nein } = m;
   delete k.beschluss;
-  if (ja >= 301) {
-    addLog(w, "entscheidung", t("krieg.k.bes.ja", { land: lf(l, "akk"), ja, nein }), t(bonus ? "krieg.k.bes.ja.bonus" : "krieg.k.bes.ja.warum", { rahmung: RAHMUNG[b.rahmung].name, bonus: `${bonus >= 0 ? "+" : ""}${bonus}` }));
+  const haltung = haltungsSatz(m);
+  if (m.angenommen) {
+    addLog(w, "entscheidung", t("welle_k7.bes.ja", { land: lf(l, "akk"), ja, nein, enth: m.enthaltung }), t("welle_k7.bes.ja.warum", { haltung, noetig: m.noetig }));
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("welle_k7.chronik.ja", { land: l.name, ja, nein }), ausgang: haltung, art: "bericht", presse: { sparte: "politik", wertung: 0.2 } });
     kriegsbeginn(w, k, "parlament");
   } else {
+    // Gescheitert (Vorbild 1. März 2003): Die Drohkulisse bleibt ohne Mandat stehen, ein neuer Antrag ist gesperrt, und es kostet
+    const f = MANDAT.scheitern;
     phaseSetzen(w, k, "drohkulisse");
     k.eskalation = clamp(k.eskalation + 4, 0, 100);
-    vertrauenAendern(w, -1.2);
-    spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung - 0.8);
-    addLog(w, "entscheidung", t("krieg.k.bes.nein", { land: lf(l, "akk"), ja, nein }), t("krieg.k.bes.nein.warum"));
+    vertrauenAendern(w, f.vertrauen);
+    spiel.umfrage.zustimmung = Math.max(0, spiel.umfrage.zustimmung + f.zustimmung);
+    wirke(w, "ansehen", f.ansehen);
+    wirke(w, "offiziersvertrauen", f.offiziere);
+    w.economy.riskPremium += f.risiko;
+    (spiel.mandatSperre ??= {})[k.land] = w.day + f.sperreTage;
+    addLog(w, "entscheidung", t("welle_k7.bes.nein", { land: lf(l, "akk"), ja, nein, enth: m.enthaltung, noetig: m.noetig }), t("welle_k7.bes.nein.warum", { haltung, datum: addDays(w.date, f.sperreTage) }));
+    spiel.chronik.push({ tag: w.day, datum: w.date, titel: t("welle_k7.chronik.nein", { land: l.name, ja, noetig: m.noetig }), ausgang: haltung, art: "bericht", presse: { sparte: "politik", wertung: -0.7 } });
+    hinweis(w, `mandat-nein-${k.id}-${w.day}`, t("welle_k7.nein.titel", { land: l.name }), [
+      t("welle_k7.nein.text1", { ja, noetig: m.noetig, nein, enth: m.enthaltung }),
+      t("welle_k7.nein.text2", { datum: addDays(w.date, f.sperreTage), zustimmung: zahlMitVorzeichen(f.zustimmung), vertrauen: zahlMitVorzeichen(f.vertrauen) }),
+    ]);
   }
 }
 
@@ -1407,6 +1530,8 @@ function niederlage(w: World, k: KriegVorgang, rng?: Rng): void {
 
 function demobStarten(w: World, k: KriegVorgang): void {
   if (k.mobilmachung === 0) return;
+  // Welle 4, K7: Die Reservisten kehren über die Demobilisierung zurück in die Betriebe
+  k.demobVon = reservistenVon(w, k, { faktor: mobilStand(w, k).faktor, faktoren: KRIEG.mobilFaktor, demobTage: KRIEG.demobTage });
   k.mobilmachung = 0;
   k.demobBis = w.day + KRIEG.demobTage;
   k.demobSperreBis = w.day + KRIEG.demobTage;
@@ -1882,6 +2007,11 @@ export function kriegMonat(w: World, rng: Rng): void {
   if (!spiel || spiel.ende) return;
   streitkraefteMonat(w, aktiveKriege(w).some((k) => k.phase === "krieg"));
   kriegsschauplatzMonat(w, kriege(w));
+  // Welle 4, K7: Die Frist der Vollmacht wird festgeschrieben (ältere Stände), und die Reservisten fehlen in den Betrieben (sim/reservisten.ts)
+  vollmachtFestschreiben(w);
+  const reservisten = reservistenUnterWaffen(w);
+  if (reservisten > 0) w.economy.reservistenAnteil = reservistenLuecke(reservisten).anteil;
+  else delete w.economy.reservistenAnteil;
   // Demobilisierungs-Rechnung (Vic3: 90 Tage Auslauf mit laufenden Kosten)
   for (const k of kriege(w)) {
     if (k.demobBis !== undefined && w.day < k.demobBis) {

@@ -111,6 +111,9 @@ describe("Schritt 1: Zugang und Eskalationsleiter", () => {
   test("nach dem 30.10.2028 braucht auch Syrien eine Abstimmung", () => {
     const w = welt();
     w.date = "2028-11-15";
+    // Welle 4, K7: Die Vollmacht ist ein Zustand. Ohne Eintrag gilt sie als routinemäßig verlängert (ältere Spielstände); hier hat der
+    // Präsident sie im Oktober 2028 auslaufen lassen (sim/ereignisse-mandat.ts).
+    w.spiel!.vollmacht = { bis: "2028-10-30", entschieden: "2028-10-30", verlauf: [] };
     expect(vollmachtFuer(w, "SYR")).toBeUndefined();
     kriseEroeffnen(w, "SYR");
     const k = kriegMit(w, "SYR")!;

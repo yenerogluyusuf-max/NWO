@@ -95,6 +95,8 @@ export interface EconomyState {
   konjunkturUebergang?: { rest: number; schritt: number };
   /** Verschiebung der natürlichen Arbeitslosigkeit durch die Lage am Arbeitsmarkt des Netzes (Prozentpunkte) */
   arbeitsmarktShift?: number;
+  /** Welle 4, K7: Reservisten unter Waffen in % der Erwerbspersonen; sie fehlen in den Betrieben (sim/reservisten.ts) */
+  reservistenAnteil?: number;
   /** Rating als Bestand mit Ausblick (sim/maerkte.ts) */
   rating?: { stufe: number; ausblick: -1 | 0 | 1; seit: number; bezug: number; zaehler: number; tendenz: number };
   /** Letzter Tag je Art politischer Marktschocks (verhindert, dass dieselbe Art den Markt täglich neu erschreckt) */
