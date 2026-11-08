@@ -4,6 +4,8 @@
 // Alles reines JSON, damit Speichern und Laden wie beim übrigen Weltzustand funktionieren.
 // Alle Zahlen dieser Schicht sind Spielparameter (Platzhalter der Kalibrierung), keine Tatsachenbehauptungen.
 
+import type { OperationsFormId, VerbuendeteId } from "../data/operationen";
+
 /** Die sechs Zustände des Vorgangs (Suzerain-Ableitung, RECHERCHE_SUZERAIN_KRIEGSMATRIX.md §9.1). */
 export type KriegPhase = "spannung" | "drohkulisse" | "beschluss" | "krieg" | "waffenruhe" | "frieden" | "beendet";
 
@@ -210,6 +212,17 @@ export interface KriegVorgang {
   angebotZuletzt?: number;
   /** Ziel eines Fernkonflikts (sim/fernkonflikt.ts); ohne Wahl gilt „abschreckung“ */
   fernZiel?: FernZiel;
+  /**
+   * Welle 3, K3 (krieg.md Schritt 6): die Operationsform (data/operationen.ts) und wer am Boden mitkämpft. Ältere Spielstände haben die
+   * Felder nicht: Dann führt der Generalstab „gemischt“ wie bisher, ohne Faktoren der Form.
+   */
+  operation?: OperationsFormId;
+  verbuendete?: VerbuendeteId;
+  /** Tag und Kriegswoche der letzten Wahl der Operationsform (Abkühlung der Umstellung, Ende einer Schlagwelle) */
+  operationSeit?: number;
+  operationWoche?: number;
+  /** Wendepunkte dieses Krieges (sim/ereignisse-wendepunkte.ts): Kennung → Kriegswoche, in der er kam. Keiner kommt zweimal. */
+  wendepunkte?: Record<string, number>;
 }
 
 export type EinsatzWahl = "luft" | "boden" | "see" | "stellvertreter" | "cyber";
